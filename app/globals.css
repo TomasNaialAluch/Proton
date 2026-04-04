@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+/* ── Design tokens ─────────────────────────────────────── */
+@theme {
+  /* Light mode defaults */
+  --color-background: #F0F4F8;
+  --color-surface:    #FFFFFF;
+  --color-accent:     #E67E22;
+  --color-text-primary:   #0F172A;
+  --color-text-secondary: #5A6B80;
+  --color-border:     rgba(0, 0, 0, 0.07);
+
+  /* Legacy brand accents (unchanged between modes) */
+  --color-proton-orange: #E67E22;
+  --color-proton-teal:   #1ABC9C;
+  --color-proton-purple: #9B59B6;
+  --color-proton-green:  #27AE60;
+
+  /* Typography */
+  --font-display: "Plus Jakarta Sans", sans-serif;
+  --font-ui:      "Inter", sans-serif;
+}
+
+/* ── Dark mode overrides ───────────────────────────────── */
+[data-theme="dark"] {
+  --color-background: #0B0E14;
+  --color-surface:    #181C25;
+  --color-accent:     #E67E22;
+  --color-text-primary:   #FFFFFF;
+  --color-text-secondary: #94A3B8;
+  --color-border:     rgba(255, 255, 255, 0.06);
+}
+
+/* ── Base styles ───────────────────────────────────────── */
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
