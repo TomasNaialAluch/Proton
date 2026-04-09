@@ -2,31 +2,52 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
 import {
-  User, TrendingUp, DollarSign, FileText,
+  User, TrendingUp, DollarSign, FileText, Settings,
   Radio, Tag, Disc3, Link as LinkIcon,
-  Settings, Bell, PanelLeftClose, PanelLeftOpen,
+  Bell, PanelLeftClose, PanelLeftOpen,
 } from "lucide-react";
 import { mockArtist } from "@/lib/mock/artist";
 
-const navItems = [
-  { label: "Artists",      icon: User,       href: "/dashboard"                  },
-  { label: "Performance",  icon: TrendingUp, href: "/dashboard/performance"      },
-  { label: "Royalties",    icon: DollarSign, href: "/dashboard/royalties"        },
-  { label: "Contracts",    icon: FileText,   href: "/dashboard/contracts"        },
-  { label: "Shows",        icon: Radio,      href: "#"                           },
-  { label: "Labels",       icon: Tag,        href: "#"                           },
-  { label: "DJ Mixes",     icon: Disc3,      href: "#"                           },
-  { label: "Release Links",icon: LinkIcon,   href: "#"                           },
-  { label: "Settings",     icon: Settings,   href: "/dashboard/settings/account" },
+const dashboardLinks = [
+  { label: "Artists",     icon: User,       href: "/dashboard" },
+  { label: "Performance", icon: TrendingUp, href: "/dashboard/performance" },
+  { label: "Royalties",   icon: DollarSign, href: "/dashboard/royalties" },
+  { label: "Contracts",   icon: FileText,   href: "/dashboard/contracts" },
+  {
+    label: "Settings",
+    icon: Settings,
+    href: "/dashboard/settings/account",
+    /** Highlight for any settings sub-route (profile, account, etc.) */
+    activePrefix: "/dashboard/settings",
+  },
+] as const;
+
+function linkIsActive(
+  pathname: string,
+  href: string,
+  activePrefix?: string
+): boolean {
+  if (activePrefix) {
+    return pathname === activePrefix || pathname.startsWith(`${activePrefix}/`);
+  }
+  if (href === "/dashboard") return pathname === "/dashboard";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+const quickLinks = [
+  { label: "Shows",         icon: Radio,    dot: "#E67E22" },
+  { label: "Labels",        icon: Tag,      dot: "#1ABC9C" },
+  { label: "DJ Mixes",      icon: Disc3,    dot: "#9B59B6" },
+  { label: "Release Links", icon: LinkIcon, dot: null      },
 ];
 
-const ACTIVE_HREF = "/dashboard";
-
 export default function AppSidebar() {
+  const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
 
-  // Persist collapse preference
   useEffect(() => {
     const stored = localStorage.getItem("proton-sidebar-collapsed");
     if (stored === "true") setCollapsed(true);
@@ -47,42 +68,50 @@ export default function AppSidebar() {
         ${collapsed ? "w-16" : "w-64"}`}
     >
 
-      {/* ── Artist header ── */}
-      <Link
-        href="/dashboard/settings/profile"
-        className={`flex items-center gap-3 border-b border-[var(--color-border)]
-          hover:bg-[var(--color-border)] transition-colors
-          ${collapsed ? "justify-center px-0 py-4" : "px-5 py-4"}`}
-      >
-        {/* Avatar */}
-        <div
-          className="size-9 rounded-full p-[1.5px] shrink-0"
-          style={{ background: "linear-gradient(135deg, var(--color-accent), transparent)" }}
-        >
-          <div className="size-full rounded-full bg-surface flex items-center justify-center">
-            <span className="text-xs font-bold text-accent">
-              {mockArtist.name.charAt(0)}
-            </span>
-          </div>
-        </div>
-
-        {/* Name — hidden when collapsed */}
+      {/* ── Header: logo + bell ── */}
+      <div className={`flex items-center border-b border-[var(--color-border)] py-4
+        ${collapsed ? "justify-center px-0" : "justify-between px-5"}`}>
         {!collapsed && (
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-text-primary truncate leading-tight">
-              {mockArtist.name}
-            </p>
-            <p className="text-xs text-text-secondary">for Artists</p>
-          </div>
+          <Link
+            href="/dashboard"
+            className="relative block h-8 shrink-0 min-w-0 max-w-[11rem]"
+            aria-label="Proton — Inicio"
+          >
+            <Image
+              src="/logo%20txt.png"
+              alt="Proton Soundsystem"
+              width={220}
+              height={56}
+              className="h-8 w-auto max-h-8 object-contain object-left"
+              priority
+            />
+          </Link>
         )}
-      </Link>
+        <button
+          className="relative text-text-secondary hover:text-text-primary transition-colors"
+          aria-label="Notifications"
+        >
+          <Bell size={18} />
+          <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-accent" />
+        </button>
+      </div>
 
-      {/* ── Navigation ── */}
-      <nav className="flex-1 overflow-y-auto py-3">
-        <ul className="space-y-0.5 px-2">
-          {navItems.map(({ label, icon: Icon, href }) => {
-            const active = href === ACTIVE_HREF;
-            return (
+      {/* ── Nav ── */}
+      <nav className="flex-1 overflow-y-auto py-4 space-y-5">
+
+        {/* Dashboard section */}
+        <div className={collapsed ? "px-2" : "px-4"}>
+          {!collapsed && (
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-text-secondary mb-2 px-1">
+              Dashboard
+            </p>
+          )}
+          <ul className="space-y-0.5">
+            {dashboardLinks.map((link) => {
+              const { label, icon: Icon, href } = link;
+              const activePrefix = "activePrefix" in link ? link.activePrefix : undefined;
+              const active = linkIsActive(pathname, href, activePrefix);
+              return (
               <li key={label}>
                 <Link
                   href={href}
@@ -94,43 +123,85 @@ export default function AppSidebar() {
                       : "text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]"
                     }`}
                 >
-                  <Icon size={18} strokeWidth={active ? 2.5 : 1.75} className="shrink-0" />
-                  {!collapsed && <span className="truncate">{label}</span>}
+                  <Icon size={16} strokeWidth={active ? 2.5 : 1.75} className="shrink-0" />
+                  {!collapsed && label}
                 </Link>
               </li>
             );
-          })}
-        </ul>
+            })}
+          </ul>
+        </div>
+
+        {/* Quick Access section */}
+        <div className={collapsed ? "px-2" : "px-4"}>
+          {!collapsed && (
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-text-secondary mb-2 px-1">
+              Quick Access
+            </p>
+          )}
+          <ul className="space-y-0.5">
+            {quickLinks.map(({ label, icon: Icon, dot }) => (
+              <li key={label}>
+                <button
+                  title={collapsed ? label : undefined}
+                  className={`w-full flex items-center rounded-lg text-sm transition-colors
+                    text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]
+                    ${collapsed ? "justify-center px-0 py-3" : "gap-3 px-3 py-2.5"}`}
+                >
+                  <div className="relative shrink-0">
+                    <Icon size={16} strokeWidth={1.75} />
+                    {dot && (
+                      <span
+                        className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full"
+                        style={{ backgroundColor: dot }}
+                      />
+                    )}
+                  </div>
+                  {!collapsed && label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
       </nav>
 
-      {/* ── Footer: bell + collapse toggle ── */}
-      <div className={`flex items-center border-t border-[var(--color-border)] py-3 px-2
-        ${collapsed ? "flex-col gap-1" : "justify-between gap-2"}`}>
+      {/* ── Footer: artist + collapse ── */}
+      <div className={`border-t border-[var(--color-border)] py-3
+        ${collapsed ? "flex flex-col items-center gap-1 px-2" : "px-3"}`}>
 
-        <button
-          className={`flex items-center justify-center rounded-lg
-            text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]
-            transition-colors relative
-            ${collapsed ? "w-full py-2.5" : "size-9"}`}
-          aria-label="Notifications"
-        >
-          <Bell size={18} />
-          <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-accent" />
-        </button>
+        {!collapsed && (
+          <Link
+            href="/dashboard/settings/profile"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg
+              hover:bg-[var(--color-border)] transition-colors mb-1"
+          >
+            <div
+              className="size-7 rounded-full p-[1.5px] shrink-0"
+              style={{ background: "linear-gradient(135deg, var(--color-accent), transparent)" }}
+            >
+              <div className="size-full rounded-full bg-surface flex items-center justify-center">
+                <span className="text-[10px] font-bold text-accent">
+                  {mockArtist.name.charAt(0)}
+                </span>
+              </div>
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-text-primary truncate">{mockArtist.name}</p>
+              <p className="text-xs text-text-secondary">Edit profile</p>
+            </div>
+          </Link>
+        )}
 
         <button
           onClick={toggle}
           className={`flex items-center justify-center rounded-lg
             text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]
             transition-colors
-            ${collapsed ? "w-full py-2.5" : "size-9"}`}
+            ${collapsed ? "w-full py-2.5" : "size-8"}`}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           title={collapsed ? "Expand" : "Collapse"}
         >
-          {collapsed
-            ? <PanelLeftOpen size={18} />
-            : <PanelLeftClose size={18} />
-          }
+          {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
         </button>
       </div>
 
