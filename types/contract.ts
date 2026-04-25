@@ -1,10 +1,9 @@
 export interface Contract {
   id: string;
-  artistId: string;
-  title: string;
-  status: "pending" | "signed" | "expired";
-  createdAt: string;
-  signedAt: string | null;
-  expiresAt: string;
-  documentUrl: string;
+  release: string;
+  label: string;
+  labelSlug: string;
+  signedAt: string;
+  status: "signed" | "pending" | "expired";
+  documentUrl: string | null;
 }

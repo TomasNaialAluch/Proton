@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { Bell, Menu } from "lucide-react";
 import HamburgerMenu from "./HamburgerMenu";
+import NotificationsPanel from "./NotificationsPanel";
 
 export default function DashboardNavbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
 
   return (
     <>
@@ -28,6 +30,7 @@ export default function DashboardNavbar() {
         </span>
 
         <button
+          onClick={() => setNotifOpen(true)}
           className="relative text-text-secondary hover:text-text-primary transition-colors"
           aria-label="Notifications"
         >
@@ -37,6 +40,7 @@ export default function DashboardNavbar() {
       </header>
 
       <HamburgerMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <NotificationsPanel open={notifOpen} onClose={() => setNotifOpen(false)} />
     </>
   );
 }

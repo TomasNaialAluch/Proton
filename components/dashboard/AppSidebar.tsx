@@ -10,6 +10,7 @@ import {
   Bell, PanelLeftClose, PanelLeftOpen,
 } from "lucide-react";
 import { mockArtist } from "@/lib/mock/artist";
+import NotificationsPanel from "./NotificationsPanel";
 
 const dashboardLinks = [
   { label: "Artists",     icon: User,       href: "/dashboard" },
@@ -47,6 +48,7 @@ const quickLinks = [
 export default function AppSidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem("proton-sidebar-collapsed");
@@ -61,6 +63,7 @@ export default function AppSidebar() {
   };
 
   return (
+    <>
     <aside
       className={`hidden lg:flex flex-col shrink-0 h-screen sticky top-0
         bg-surface border-r border-[var(--color-border)]
@@ -75,7 +78,7 @@ export default function AppSidebar() {
           <Link
             href="/dashboard"
             className="relative block h-8 shrink-0 min-w-0 max-w-[11rem]"
-            aria-label="Proton — Inicio"
+            aria-label="Proton — Home"
           >
             <Image
               src="/logo%20txt.png"
@@ -88,6 +91,7 @@ export default function AppSidebar() {
           </Link>
         )}
         <button
+          onClick={() => setNotifOpen(true)}
           className="relative text-text-secondary hover:text-text-primary transition-colors"
           aria-label="Notifications"
         >
@@ -206,5 +210,8 @@ export default function AppSidebar() {
       </div>
 
     </aside>
+
+      <NotificationsPanel open={notifOpen} onClose={() => setNotifOpen(false)} />
+    </>
   );
 }

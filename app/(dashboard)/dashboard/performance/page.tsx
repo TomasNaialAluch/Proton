@@ -2,7 +2,7 @@
 
 import { useState, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { TrendingUp, Music2, ShoppingCart, Star, Search } from "lucide-react";
+import { TrendingUp, Music2, Disc3, Star, Search } from "lucide-react";
 import DashboardBreadcrumb from "@/components/dashboard/DashboardBreadcrumb";
 import StreamsChart from "@/components/dashboard/StreamsChart";
 import GenreDonut from "@/components/dashboard/GenreDonut";
@@ -95,7 +95,7 @@ export default function PerformancePage() {
             accent
           />
           <KpiCard
-            icon={<ShoppingCart size={14} />}
+            icon={<Disc3 size={14} />}
             label="Total Sales"
             value={isLoading ? "—" : totalSales(tracks).toString()}
           />
