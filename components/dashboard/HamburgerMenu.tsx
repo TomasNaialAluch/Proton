@@ -140,6 +140,18 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
           </div>
         </nav>
 
+        {/* ── Back to public site (same hierarchy as “For Artists” on the radio) ── */}
+        <div className="px-4 pt-4 border-t border-[var(--color-border)]">
+          <Link
+            href="/"
+            onClick={onClose}
+            className="flex w-full items-center justify-center gap-2 rounded-lg py-3 text-sm font-semibold text-white bg-accent transition-opacity hover:opacity-90"
+          >
+            <Radio size={16} />
+            Proton Radio
+          </Link>
+        </div>
+
         {/* ── Theme toggle — fondo del drawer ── */}
         <div className="px-4 py-5 border-t border-[var(--color-border)]">
           <div className="flex items-center justify-between">

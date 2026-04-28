@@ -1,22 +1,24 @@
 import { create } from "zustand";
-import type { Track } from "@/types/track";
+import type { ProtonMix } from "@/types/mix";
 
 interface PlayerState {
-  currentTrack: Track | null;
+  currentMix: ProtonMix | null;
   isPlaying: boolean;
-  queue: Track[];
-  play: (track: Track) => void;
+  queue: ProtonMix[];
+  play: (mix: ProtonMix) => void;
   pause: () => void;
   resume: () => void;
-  setQueue: (tracks: Track[]) => void;
+  toggle: () => void;
+  setQueue: (mixes: ProtonMix[]) => void;
 }
 
-export const usePlayerStore = create<PlayerState>((set) => ({
-  currentTrack: null,
+export const usePlayerStore = create<PlayerState>((set, get) => ({
+  currentMix: null,
   isPlaying: false,
   queue: [],
-  play: (track) => set({ currentTrack: track, isPlaying: true }),
+  play: (mix) => set({ currentMix: mix, isPlaying: true }),
   pause: () => set({ isPlaying: false }),
   resume: () => set({ isPlaying: true }),
-  setQueue: (tracks) => set({ queue: tracks }),
+  toggle: () => set({ isPlaying: !get().isPlaying }),
+  setQueue: (mixes) => set({ queue: mixes }),
 }));

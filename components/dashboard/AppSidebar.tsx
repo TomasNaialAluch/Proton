@@ -169,9 +169,19 @@ export default function AppSidebar() {
         </div>
       </nav>
 
-      {/* ── Footer: artist + collapse ── */}
+      {/* ── Footer: back to public + artist + collapse ── */}
       <div className={`border-t border-[var(--color-border)] py-3
         ${collapsed ? "flex flex-col items-center gap-1 px-2" : "px-3"}`}>
+
+        <Link
+          href="/"
+          title="Proton Radio"
+          className={`flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold text-white bg-accent transition-opacity hover:opacity-90 mb-2
+            ${collapsed ? "w-full px-0" : "w-full"}`}
+        >
+          <Radio size={16} className="shrink-0" />
+          {!collapsed && <span>Proton Radio</span>}
+        </Link>
 
         {!collapsed && (
           <Link
