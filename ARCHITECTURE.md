@@ -72,7 +72,7 @@ proton/
 │   │   ├── StreamsChart.tsx          # Gráfico de área — streams mensuales
 │   │   ├── ReleasesChart.tsx         # Gráfico — streams por release
 │   │   ├── GenreDonut.tsx            # Gráfico de dona — streams por género
-│   │   └── RoyaltiesWidget.tsx       # Widget de saldo y progreso de regalías
+│   │   └── widgets/                  # Widgets del tablero (registry, meta, un archivo por bloque)
 │   │
 │   ├── settings/
 │   │   └── SettingsShared.tsx        # Componentes reutilizables de settings:

@@ -1,5 +1,10 @@
 import type { ProtonMix } from "@/types/mix";
 
+/** Thumbnails de demo (API real aún no expone imágenes). Misma imagen estable por mix via seed. */
+function mixArtworkUrl(mixId: string) {
+  return `https://picsum.photos/seed/proton-mix-${mixId}/640/360`;
+}
+
 export const mockMixes: ProtonMix[] = [
   {
     id: "1",
@@ -8,7 +13,7 @@ export const mockMixes: ProtonMix[] = [
     youtubeId: "dQw4w9WgXcQ",
     genre: "Progressive",
     duration: "1h 23m",
-    artist: { id: "12345", name: "Andy Green", image: { url: "https://res.cloudinary.com/proton/image/upload/andy-green.jpg" } },
+    artist: { id: "12345", name: "Andy Green", image: { url: mixArtworkUrl("1") } },
   },
   {
     id: "2",
@@ -17,7 +22,7 @@ export const mockMixes: ProtonMix[] = [
     youtubeId: "dQw4w9WgXcQ",
     genre: "Progressive",
     duration: "1h 18m",
-    artist: { id: "12345", name: "Andy Green", image: { url: "https://res.cloudinary.com/proton/image/upload/andy-green.jpg" } },
+    artist: { id: "12345", name: "Andy Green", image: { url: mixArtworkUrl("2") } },
   },
   {
     id: "3",
@@ -26,7 +31,7 @@ export const mockMixes: ProtonMix[] = [
     youtubeId: "dQw4w9WgXcQ",
     genre: "Melodic House",
     duration: "1h 00m",
-    artist: { id: "88457", name: "Naial", image: null },
+    artist: { id: "88457", name: "Naial", image: { url: mixArtworkUrl("3") } },
   },
   {
     id: "4",
@@ -35,7 +40,7 @@ export const mockMixes: ProtonMix[] = [
     youtubeId: "dQw4w9WgXcQ",
     genre: "Electronica",
     duration: "2h 05m",
-    artist: { id: "54321", name: "Robin Thurston", image: null },
+    artist: { id: "54321", name: "Robin Thurston", image: { url: mixArtworkUrl("4") } },
   },
   {
     id: "5",
@@ -44,7 +49,7 @@ export const mockMixes: ProtonMix[] = [
     youtubeId: "dQw4w9WgXcQ",
     genre: "Deep House",
     duration: "1h 45m",
-    artist: { id: "99001", name: "Sasha", image: null },
+    artist: { id: "99001", name: "Sasha", image: { url: mixArtworkUrl("5") } },
   },
   {
     id: "6",
@@ -53,7 +58,7 @@ export const mockMixes: ProtonMix[] = [
     youtubeId: "dQw4w9WgXcQ",
     genre: "Progressive",
     duration: "1h 30m",
-    artist: { id: "77002", name: "Hernan Cattaneo", image: null },
+    artist: { id: "77002", name: "Hernan Cattaneo", image: { url: mixArtworkUrl("6") } },
   },
   {
     id: "7",
@@ -62,7 +67,7 @@ export const mockMixes: ProtonMix[] = [
     youtubeId: "dQw4w9WgXcQ",
     genre: "Techno",
     duration: "1h 55m",
-    artist: { id: "33003", name: "Dense & Pika", image: null },
+    artist: { id: "33003", name: "Dense & Pika", image: { url: mixArtworkUrl("7") } },
   },
   {
     id: "8",
@@ -71,7 +76,7 @@ export const mockMixes: ProtonMix[] = [
     youtubeId: "dQw4w9WgXcQ",
     genre: "Downtempo",
     duration: "1h 10m",
-    artist: { id: "44004", name: "Carbon Based Lifeforms", image: null },
+    artist: { id: "44004", name: "Carbon Based Lifeforms", image: { url: mixArtworkUrl("8") } },
   },
   {
     id: "9",
@@ -80,7 +85,7 @@ export const mockMixes: ProtonMix[] = [
     youtubeId: "dQw4w9WgXcQ",
     genre: "Tech House",
     duration: "1h 25m",
-    artist: { id: "55005", name: "Cristoph", image: null },
+    artist: { id: "55005", name: "Cristoph", image: { url: mixArtworkUrl("9") } },
   },
   {
     id: "10",
@@ -89,7 +94,7 @@ export const mockMixes: ProtonMix[] = [
     youtubeId: "dQw4w9WgXcQ",
     genre: "Breaks",
     duration: "1h 15m",
-    artist: { id: "66006", name: "Stanton Warriors", image: null },
+    artist: { id: "66006", name: "Stanton Warriors", image: { url: mixArtworkUrl("10") } },
   },
   {
     id: "11",
@@ -98,7 +103,7 @@ export const mockMixes: ProtonMix[] = [
     youtubeId: "dQw4w9WgXcQ",
     genre: "Progressive",
     duration: "1h 40m",
-    artist: { id: "12346", name: "Henry Saiz", image: null },
+    artist: { id: "12346", name: "Henry Saiz", image: { url: mixArtworkUrl("11") } },
   },
   {
     id: "12",
@@ -107,6 +112,6 @@ export const mockMixes: ProtonMix[] = [
     youtubeId: "dQw4w9WgXcQ",
     genre: "Electro",
     duration: "1h 00m",
-    artist: { id: "88001", name: "DVS1", image: null },
+    artist: { id: "88001", name: "DVS1", image: { url: mixArtworkUrl("12") } },
   },
 ];

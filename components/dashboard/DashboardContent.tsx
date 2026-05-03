@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   DndContext,
@@ -23,34 +24,157 @@ import {
   TrendingUp,
   Music2,
   Disc3,
-  ChevronRight,
-  Play,
   Camera,
   Pencil,
   SlidersHorizontal,
+  LayoutGrid,
   X,
-  Plus,
   GripVertical,
   Check,
   RotateCcw,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import StreamsChart from "./StreamsChart";
-import ReleasesChart from "./ReleasesChart";
-import RoyaltiesWidget from "./RoyaltiesWidget";
 import { fetchArtistWithTracks } from "@/lib/api/artist";
 import { mockArtist } from "@/lib/mock/artist";
 import { useDashboardStore, WidgetId, DEFAULT_WIDGET_ORDER } from "@/lib/store/dashboardStore";
+import { DASHBOARD_WIDGETS, WIDGET_META, type DashboardWidgetProps } from "./widgets";
 
-// ── Widget metadata ──────────────────────────────────────────────────────────
+// ── Manage widgets modal (full catalog + on-board feedback) ─────────────────
 
-const WIDGET_META: Record<WidgetId, { label: string; description: string }> = {
-  streams:             { label: "Streams",             description: "Stream evolution (last 6 months)" },
-  "latest-tracks":     { label: "Latest Tracks",       description: "Your most recent tracks" },
-  "streams-by-release":{ label: "Streams by Release",  description: "Comparison by release" },
-  royalties:           { label: "Royalties",            description: "Progress toward next payment" },
-};
+function WidgetManageModal({
+  open,
+  onClose,
+  hiddenWidgets,
+  hideWidget,
+  showWidget,
+}: {
+  open: boolean;
+  onClose: () => void;
+  hiddenWidgets: WidgetId[];
+  hideWidget: (id: WidgetId) => void;
+  showWidget: (id: WidgetId) => void;
+}) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open, onClose]);
+
+  if (!mounted || !open) return null;
+
+  const isOnBoard = (id: WidgetId) => !hiddenWidgets.includes(id);
+
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex flex-col justify-end sm:items-center sm:justify-center sm:p-4">
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/55 backdrop-blur-[2px] transition-opacity"
+        onClick={onClose}
+        aria-label="Close dialog"
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dashboard-widget-modal-title"
+        className="relative z-[1] flex max-h-[min(90dvh,40rem)] w-full flex-col rounded-t-2xl border border-[var(--color-border)] bg-background shadow-2xl sm:max-w-lg sm:rounded-2xl"
+      >
+        <div className="flex items-start justify-between gap-3 border-b border-[var(--color-border)] px-4 py-4 sm:px-5">
+          <div className="min-w-0">
+            <h2
+              id="dashboard-widget-modal-title"
+              className="font-display text-lg font-bold tracking-tight text-text-primary"
+            >
+              Manage widgets
+            </h2>
+            <p className="mt-1 text-xs leading-relaxed text-text-secondary">
+              All sections are listed below. A check means the widget is on your board and available
+              in the layout.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="shrink-0 rounded-lg p-2 text-text-secondary transition-colors hover:bg-[var(--color-border)] hover:text-text-primary"
+            aria-label="Close"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2 sm:p-3">
+          {(DEFAULT_WIDGET_ORDER as readonly WidgetId[]).map((id) => {
+            const on = isOnBoard(id);
+            const meta = WIDGET_META[id];
+            return (
+              <li key={id} className="mb-2 last:mb-0">
+                <button
+                  type="button"
+                  onClick={() => (on ? hideWidget(id) : showWidget(id))}
+                  className={`flex w-full items-start gap-3 rounded-xl border px-3 py-3 text-left transition-colors ${
+                    on
+                      ? "border-accent/40 bg-accent/[0.06] shadow-[inset_3px_0_0_0_var(--color-accent)]"
+                      : "border-[var(--color-border)] bg-surface/80 hover:bg-surface"
+                  }`}
+                >
+                  <span
+                    className={`mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full ${
+                      on ? "bg-accent/20 text-accent" : "bg-[var(--color-border)] text-text-secondary"
+                    }`}
+                    aria-hidden
+                  >
+                    {on ? (
+                      <Check size={20} strokeWidth={2.5} />
+                    ) : (
+                      <span className="size-2.5 rounded-full bg-text-secondary/40" />
+                    )}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm font-medium text-text-primary">{meta.label}</span>
+                      {on ? (
+                        <span className="rounded-md bg-accent/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent">
+                          On board
+                        </span>
+                      ) : (
+                        <span className="rounded-md bg-[var(--color-border)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-text-secondary">
+                          Hidden
+                        </span>
+                      )}
+                    </span>
+                    <span className="mt-0.5 block text-xs text-text-secondary">{meta.description}</span>
+                    <span className="mt-1 block text-[11px] text-text-secondary/90">
+                      {on ? "Tap to hide from your board." : "Tap to add back to your board."}
+                    </span>
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+        <div className="border-t border-[var(--color-border)] px-4 py-3 sm:px-5">
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full rounded-xl bg-accent/10 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-accent/20"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
 
 // ── Sortable wrapper ─────────────────────────────────────────────────────────
 
@@ -134,9 +258,9 @@ export default function DashboardContent() {
   const { widgetOrder, hiddenWidgets, setWidgetOrder, hideWidget, showWidget, resetLayout } =
     useDashboardStore();
 
-  const [editMode, setEditMode]         = useState(false);
-  const [showAddPanel, setShowAddPanel] = useState(false);
-  const [activeId, setActiveId]         = useState<WidgetId | null>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [showWidgetModal, setShowWidgetModal] = useState(false);
+  const [activeId, setActiveId] = useState<WidgetId | null>(null);
 
   const tracks       = artist?.tracks ?? [];
   const totalTracks  = tracks.length;
@@ -149,10 +273,7 @@ export default function DashboardContent() {
 
   // Visible widgets in order
   const visibleWidgets = widgetOrder.filter((id) => !hiddenWidgets.includes(id));
-  // Widgets that can be re-added
-  const addableWidgets = (DEFAULT_WIDGET_ORDER as readonly WidgetId[]).filter((id) =>
-    hiddenWidgets.includes(id)
-  );
+  const hiddenCount = hiddenWidgets.length;
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
@@ -183,100 +304,16 @@ export default function DashboardContent() {
     hideWidget(id);
   }
 
-  function handleAdd(id: WidgetId) {
-    showWidget(id);
-    setShowAddPanel(false);
-  }
-
   function handleReset() {
     resetLayout();
-    setShowAddPanel(false);
+    setShowWidgetModal(false);
   }
 
+  const widgetProps: DashboardWidgetProps = { tracks, isLoading, topTracks };
+
   function renderWidgetContent(id: WidgetId) {
-    switch (id) {
-      case "streams":
-        return (
-          <section className="bg-surface rounded-2xl border border-[var(--color-border)] p-4 h-full">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-sm font-medium text-text-primary">Streams</h2>
-                <p className="text-xs text-text-secondary mt-0.5">Last 6 months</p>
-              </div>
-              <span className="text-xs text-accent font-medium">+37% ↑</span>
-            </div>
-            <Suspense fallback={<div className="h-40 animate-pulse rounded-lg bg-[var(--color-border)]" />}>
-              <StreamsChart />
-            </Suspense>
-          </section>
-        );
-
-      case "latest-tracks":
-        return (
-          <section className="bg-surface rounded-2xl border border-[var(--color-border)] overflow-hidden h-full">
-            <div className="flex items-center justify-between px-4 pt-4 pb-3">
-              <h2 className="text-sm font-medium text-text-primary">Latest Tracks</h2>
-              <button className="text-xs text-accent flex items-center gap-0.5 hover:opacity-80 transition-opacity">
-                See all <ChevronRight size={12} />
-              </button>
-            </div>
-            {isLoading ? (
-              <div className="px-4 pb-4 space-y-3">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-10 rounded-lg animate-pulse bg-[var(--color-border)]" />
-                ))}
-              </div>
-            ) : (
-              <ul>
-                {topTracks.map((track, index) => (
-                  <li
-                    key={track.id}
-                    className="flex items-center gap-3 px-4 py-3 border-t border-[var(--color-border)] hover:bg-[var(--color-border)] transition-colors"
-                  >
-                    <span className="w-5 text-center text-xs font-medium text-text-secondary shrink-0">
-                      {index + 1}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-text-primary truncate leading-snug">{track.title}</p>
-                      <p className="text-xs text-text-secondary mt-0.5">{track.release.label.name}</p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-xs text-text-secondary tabular-nums">
-                        {track.release.date.slice(0, 4)}
-                      </span>
-                      <button className="size-7 rounded-full bg-accent/10 flex items-center justify-center hover:bg-accent/20 transition-colors">
-                        <Play size={12} className="text-accent translate-x-px" />
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        );
-
-      case "streams-by-release":
-        return (
-          <section className="bg-surface rounded-2xl border border-[var(--color-border)] p-4 h-full">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-sm font-medium text-text-primary">Streams by Release</h2>
-                <p className="text-xs text-text-secondary mt-0.5">All time</p>
-              </div>
-            </div>
-            {isLoading ? (
-              <div className="h-48 animate-pulse rounded-lg bg-[var(--color-border)]" />
-            ) : (
-              <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-[var(--color-border)]" />}>
-                <ReleasesChart tracks={tracks} />
-              </Suspense>
-            )}
-          </section>
-        );
-
-      case "royalties":
-        return <RoyaltiesWidget />;
-    }
+    const Comp = DASHBOARD_WIDGETS[id];
+    return <Comp {...widgetProps} />;
   }
 
   return (
@@ -339,115 +376,135 @@ export default function DashboardContent() {
         <StatCard icon={<Disc3 size={14} />}      label="Labels"   value={isLoading ? "—" : new Set(tracks.map((t) => t.release.label.id)).size} />
       </section>
 
-      {/* ── Toolbar ── */}
-      <div className="flex items-center justify-between mb-4">
+      {/* ── Toolbar (sticky in edit mode so Add / Done stay visible while scrolling) ── */}
+      <div
+        className={
+          editMode
+            ? "sticky top-0 z-20 -mx-5 mb-4 border-b border-[var(--color-border)] bg-background/95 px-5 py-3 backdrop-blur-md supports-[backdrop-filter]:bg-background/85"
+            : "mb-4"
+        }
+      >
         {editMode ? (
-          <>
-            <span className="text-xs text-text-secondary">
-              Drag to reorder · tap <X size={11} className="inline" /> to hide
-            </span>
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-text-secondary leading-relaxed sm:max-w-[min(100%,22rem)]">
+              Drag cards to reorder. Tap{" "}
+              <X size={11} className="inline align-text-bottom" aria-hidden /> on a card to hide it — use{" "}
+              <span className="font-medium text-text-primary">Manage widgets</span> to see every section and
+              turn them on or off.
+            </p>
+            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
               <button
+                type="button"
+                onClick={() => setShowWidgetModal(true)}
+                className="flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] bg-surface px-2.5 py-1.5 text-xs font-medium text-text-primary transition-colors hover:border-accent/40 hover:bg-accent/5"
+              >
+                <LayoutGrid size={13} className="text-accent shrink-0" />
+                <span>Manage widgets</span>
+                {hiddenCount > 0 && (
+                  <span className="rounded-md bg-accent/15 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-accent">
+                    {hiddenCount} hidden
+                  </span>
+                )}
+              </button>
+              <button
+                type="button"
                 onClick={handleReset}
-                className="flex items-center gap-1.5 text-xs text-text-secondary hover:text-text-primary transition-colors"
+                className="flex items-center gap-1.5 text-xs text-text-secondary transition-colors hover:text-text-primary"
               >
                 <RotateCcw size={12} /> Reset
               </button>
               <button
-                onClick={() => { setEditMode(false); setShowAddPanel(false); }}
-                className="flex items-center gap-1.5 text-xs font-medium text-accent
-                  bg-accent/10 hover:bg-accent/20 px-3 py-1.5 rounded-lg transition-colors"
+                type="button"
+                onClick={() => {
+                  setEditMode(false);
+                  setShowWidgetModal(false);
+                }}
+                className="flex items-center gap-1.5 rounded-lg bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent transition-colors hover:bg-accent/20"
               >
                 <Check size={13} /> Done
               </button>
             </div>
-          </>
+          </div>
         ) : (
-          <button
-            onClick={() => setEditMode(true)}
-            className="ml-auto flex items-center gap-1.5 text-xs text-text-secondary
-              hover:text-text-primary transition-colors"
-          >
-            <SlidersHorizontal size={13} /> Customize
-          </button>
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => setEditMode(true)}
+              className="flex items-center gap-1.5 text-xs text-text-secondary transition-colors hover:text-text-primary"
+            >
+              <SlidersHorizontal size={13} /> Customize
+            </button>
+          </div>
         )}
       </div>
 
       {/* ── Widget grid ── */}
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext items={visibleWidgets} strategy={rectSortingStrategy}>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-            {visibleWidgets.map((id) => (
-              <SortableWidget
-                key={id}
-                id={id}
-                editMode={editMode}
-                onRemove={handleRemove}
-              >
-                {renderWidgetContent(id)}
-              </SortableWidget>
-            ))}
-          </div>
-        </SortableContext>
-
-        {/* Drag overlay — renders the dragged item on top */}
-        <DragOverlay>
-          {activeId ? (
-            <div className="opacity-90 rotate-1 scale-105 shadow-2xl rounded-2xl">
-              {renderWidgetContent(activeId)}
+      {visibleWidgets.length > 0 ? (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={visibleWidgets} strategy={rectSortingStrategy}>
+            <div className="grid grid-cols-1 gap-4 mb-4 lg:grid-cols-2">
+              {visibleWidgets.map((id) => (
+                <SortableWidget
+                  key={id}
+                  id={id}
+                  editMode={editMode}
+                  onRemove={handleRemove}
+                >
+                  {renderWidgetContent(id)}
+                </SortableWidget>
+              ))}
             </div>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+          </SortableContext>
 
-      {/* ── Add widget panel (edit mode only) ── */}
-      {editMode && (
-        <div className="mb-6">
-          {addableWidgets.length > 0 ? (
-            <>
+          <DragOverlay>
+            {activeId ? (
+              <div className="rotate-1 scale-105 rounded-2xl opacity-90 shadow-2xl">
+                {renderWidgetContent(activeId)}
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      ) : (
+        <div className="mb-6 flex flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--color-border)] bg-surface/50 px-4 py-12 text-center">
+          <LayoutGrid className="mb-3 text-text-secondary" size={28} strokeWidth={1.5} aria-hidden />
+          <p className="text-sm font-medium text-text-primary">No widgets on your board</p>
+          <p className="mt-1 max-w-xs text-xs leading-relaxed text-text-secondary">
+            Open Manage widgets to choose which sections stay visible. You can still reorder them after
+            you turn Customize on.
+          </p>
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowWidgetModal(true)}
+              className="rounded-xl bg-accent/10 px-4 py-2 text-sm font-medium text-accent transition-colors hover:bg-accent/20"
+            >
+              Manage widgets
+            </button>
+            {!editMode && (
               <button
-                onClick={() => setShowAddPanel((p) => !p)}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl
-                  border-2 border-dashed border-[var(--color-border)]
-                  text-sm text-text-secondary hover:text-text-primary hover:border-accent/40
-                  transition-colors"
+                type="button"
+                onClick={() => setEditMode(true)}
+                className="rounded-xl border border-[var(--color-border)] px-4 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-[var(--color-border)]/40"
               >
-                <Plus size={15} />
-                Add widget
+                Customize
               </button>
-
-              {showAddPanel && (
-                <div className="mt-2 bg-surface rounded-2xl border border-[var(--color-border)] overflow-hidden">
-                  {addableWidgets.map((id) => (
-                    <button
-                      key={id}
-                      onClick={() => handleAdd(id)}
-                      className="w-full flex items-center justify-between px-4 py-3
-                        hover:bg-[var(--color-border)] transition-colors
-                        border-b border-[var(--color-border)] last:border-0"
-                    >
-                      <div className="text-left">
-                        <p className="text-sm text-text-primary">{WIDGET_META[id].label}</p>
-                        <p className="text-xs text-text-secondary mt-0.5">{WIDGET_META[id].description}</p>
-                      </div>
-                      <Plus size={15} className="text-accent shrink-0" />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </>
-          ) : (
-            <p className="text-center text-xs text-text-secondary py-2">
-              All widgets are visible
-            </p>
-          )}
+            )}
+          </div>
         </div>
       )}
+
+      <WidgetManageModal
+        open={showWidgetModal}
+        onClose={() => setShowWidgetModal(false)}
+        hiddenWidgets={hiddenWidgets}
+        hideWidget={hideWidget}
+        showWidget={showWidget}
+      />
 
     </main>
   );

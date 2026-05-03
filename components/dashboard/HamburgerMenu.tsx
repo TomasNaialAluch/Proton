@@ -8,12 +8,14 @@ import {
   Disc3,
   DollarSign,
   Link as LinkIcon,
+  BarChart3,
   User,
   TrendingUp,
   FileText,
   Settings,
   Moon,
   Sun,
+  ExternalLink,
 } from "lucide-react";
 import { useThemeStore } from "@/lib/store/themeStore";
 import Link from "next/link";
@@ -23,12 +25,15 @@ interface HamburgerMenuProps {
   onClose: () => void;
 }
 
+const QUICK_ACCESS_PUBLIC_HINT =
+  "Opens the public Proton Radio site — you will leave the artist dashboard.";
+
 const quickLinks = [
-  { label: "Shows",        icon: Radio,      dot: "#E67E22" },
-  { label: "Labels",       icon: Tag,        dot: "#1ABC9C" },
-  { label: "DJ Mixes",     icon: Disc3,      dot: "#9B59B6" },
-  { label: "Account",      icon: DollarSign, dot: "#27AE60" },
-  { label: "Release Links",icon: LinkIcon,   dot: null      },
+  { label: "Shows",         href: "/shows",                                     icon: Radio,   dot: "#E67E22", leavesDashboard: true },
+  { label: "Labels",        href: "/labels",                                    icon: Tag,     dot: "#1ABC9C", leavesDashboard: true },
+  { label: "DJ Mixes",      href: "/shows",                                     icon: Disc3,     dot: "#9B59B6", leavesDashboard: true },
+  { label: "Charts",        href: "/dashboard/performance",                     icon: BarChart3,  dot: "#3498DB", leavesDashboard: false },
+  { label: "Release Links", href: "/dashboard/settings/account/notifications", icon: LinkIcon,   dot: null, leavesDashboard: false },
 ];
 
 const dashboardLinks = [
@@ -89,34 +94,7 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
         {/* Scrollable content */}
         <nav className="flex-1 overflow-y-auto px-4 py-5 space-y-6">
 
-          {/* Quick access */}
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-text-secondary mb-2 px-1">
-              Quick Access
-            </p>
-            <ul className="space-y-0.5">
-              {quickLinks.map(({ label, icon: Icon, dot }) => (
-                <li key={label}>
-                  <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg
-                    text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]
-                    transition-colors text-sm">
-                    <div className="relative">
-                      <Icon size={16} />
-                      {dot && (
-                        <span
-                          className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full"
-                          style={{ backgroundColor: dot }}
-                        />
-                      )}
-                    </div>
-                    {label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Dashboard nav */}
+          {/* Dashboard nav — mismo orden que AppSidebar (desktop) */}
           <div>
             <p className="text-xs font-medium uppercase tracking-wider text-text-secondary mb-2 px-1">
               Dashboard
@@ -136,6 +114,46 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
                   </Link>
                 </li>
               ))}
+            </ul>
+          </div>
+
+          {/* Quick access */}
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wider text-text-secondary mb-2 px-1">
+              Quick Access
+            </p>
+            <ul className="space-y-0.5">
+              {quickLinks.map(({ label, href, icon: Icon, dot, leavesDashboard }) => {
+                const title = leavesDashboard ? QUICK_ACCESS_PUBLIC_HINT : undefined;
+                const ariaLabel = leavesDashboard ? `${label}. ${QUICK_ACCESS_PUBLIC_HINT}` : label;
+                return (
+                <li key={label}>
+                  <Link
+                    href={href}
+                    onClick={onClose}
+                    title={title}
+                    aria-label={ariaLabel}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg
+                      text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]
+                      transition-colors text-sm"
+                  >
+                    <div className="relative shrink-0">
+                      <Icon size={16} />
+                      {dot && (
+                        <span
+                          className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full"
+                          style={{ backgroundColor: dot }}
+                        />
+                      )}
+                    </div>
+                    <span className="min-w-0 flex-1 truncate text-left">{label}</span>
+                    {leavesDashboard && (
+                      <ExternalLink size={12} className="shrink-0 opacity-40" aria-hidden />
+                    )}
+                  </Link>
+                </li>
+              );
+              })}
             </ul>
           </div>
         </nav>

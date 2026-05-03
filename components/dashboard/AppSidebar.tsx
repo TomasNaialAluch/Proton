@@ -6,10 +6,12 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   User, TrendingUp, DollarSign, FileText, Settings,
-  Radio, Tag, Disc3, Link as LinkIcon,
-  Bell, PanelLeftClose, PanelLeftOpen,
+  Radio, Tag, Disc3, Link as LinkIcon, BarChart3,
+  Bell, PanelLeftClose, PanelLeftOpen, ExternalLink,
+  Sun, Moon,
 } from "lucide-react";
 import { mockArtist } from "@/lib/mock/artist";
+import { useThemeStore } from "@/lib/store/themeStore";
 import NotificationsPanel from "./NotificationsPanel";
 
 const dashboardLinks = [
@@ -38,24 +40,31 @@ function linkIsActive(
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+/** Shown on Quick Access links that open the public (non-dashboard) area */
+const QUICK_ACCESS_PUBLIC_HINT =
+  "Opens the public Proton Radio site — you will leave the artist dashboard.";
+
 const quickLinks = [
-  { label: "Shows",         icon: Radio,    dot: "#E67E22" },
-  { label: "Labels",        icon: Tag,      dot: "#1ABC9C" },
-  { label: "DJ Mixes",      icon: Disc3,    dot: "#9B59B6" },
-  { label: "Release Links", icon: LinkIcon, dot: null      },
-];
+  { label: "Shows",         href: "/shows",                                     icon: Radio,    dot: "#E67E22", leavesDashboard: true },
+  { label: "Labels",        href: "/labels",                                    icon: Tag,      dot: "#1ABC9C", leavesDashboard: true },
+  { label: "DJ Mixes",      href: "/shows",                                     icon: Disc3,      dot: "#9B59B6", leavesDashboard: true },
+  { label: "Charts",        href: "/dashboard/performance",                     icon: BarChart3,  dot: "#3498DB", leavesDashboard: false },
+  { label: "Release Links", href: "/dashboard/settings/account/notifications", icon: LinkIcon,   dot: null,       leavesDashboard: false },
+] as const;
 
 export default function AppSidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const { theme, toggle: toggleTheme } = useThemeStore();
+  const isDark = theme === "dark";
 
   useEffect(() => {
     const stored = localStorage.getItem("proton-sidebar-collapsed");
     if (stored === "true") setCollapsed(true);
   }, []);
 
-  const toggle = () => {
+  const toggleCollapsed = () => {
     setCollapsed((prev) => {
       localStorage.setItem("proton-sidebar-collapsed", String(!prev));
       return !prev;
@@ -144,16 +153,29 @@ export default function AppSidebar() {
             </p>
           )}
           <ul className="space-y-0.5">
-            {quickLinks.map(({ label, icon: Icon, dot }) => (
+            {quickLinks.map(({ label, href, icon: Icon, dot, leavesDashboard }) => {
+              const active = linkIsActive(pathname, href);
+              const title = leavesDashboard
+                ? QUICK_ACCESS_PUBLIC_HINT
+                : collapsed
+                  ? label
+                  : undefined;
+              const ariaLabel = leavesDashboard ? `${label}. ${QUICK_ACCESS_PUBLIC_HINT}` : label;
+              return (
               <li key={label}>
-                <button
-                  title={collapsed ? label : undefined}
-                  className={`w-full flex items-center rounded-lg text-sm transition-colors
-                    text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]
-                    ${collapsed ? "justify-center px-0 py-3" : "gap-3 px-3 py-2.5"}`}
+                <Link
+                  href={href}
+                  title={title}
+                  aria-label={ariaLabel}
+                  className={`flex items-center rounded-lg text-sm transition-colors
+                    ${collapsed ? "justify-center px-0 py-3" : "gap-3 px-3 py-2.5"}
+                    ${active
+                      ? "bg-accent/10 text-accent font-semibold"
+                      : "text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]"
+                    }`}
                 >
                   <div className="relative shrink-0">
-                    <Icon size={16} strokeWidth={1.75} />
+                    <Icon size={16} strokeWidth={active ? 2.5 : 1.75} />
                     {dot && (
                       <span
                         className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full"
@@ -161,10 +183,16 @@ export default function AppSidebar() {
                       />
                     )}
                   </div>
-                  {!collapsed && label}
-                </button>
+                  {!collapsed && (
+                    <span className="min-w-0 flex-1 truncate text-left">{label}</span>
+                  )}
+                  {!collapsed && leavesDashboard && (
+                    <ExternalLink size={12} className="shrink-0 opacity-40" aria-hidden />
+                  )}
+                </Link>
               </li>
-            ))}
+            );
+            })}
           </ul>
         </div>
       </nav>
@@ -206,8 +234,54 @@ export default function AppSidebar() {
           </Link>
         )}
 
+        {!collapsed ? (
+          <div className="mb-2 flex items-center justify-between gap-2 px-3 py-2">
+            <span className="text-xs font-medium text-text-primary">Dark mode</span>
+            <div className="flex items-center gap-2 shrink-0">
+              <Sun size={14} className="text-text-secondary" />
+              <button
+                type="button"
+                onClick={toggleTheme}
+                role="switch"
+                aria-checked={isDark}
+                aria-label="Toggle dark mode"
+                className={`relative h-6 w-12 rounded-full transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                  isDark ? "bg-accent" : "bg-text-secondary/25"
+                }`}
+              >
+                <span
+                  className={`absolute top-1 size-4 rounded-full shadow-md transition-all duration-300 ${
+                    isDark ? "left-7 bg-background" : "left-1 bg-white"
+                  }`}
+                />
+              </button>
+              <Moon size={14} className={isDark ? "text-accent" : "text-text-secondary"} />
+            </div>
+          </div>
+        ) : (
+          <div className="mb-1 flex w-full flex-col items-center gap-0.5">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              role="switch"
+              aria-checked={isDark}
+              aria-label="Toggle dark mode"
+              title="Dark mode"
+              className={`relative h-6 w-12 rounded-full transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                isDark ? "bg-accent" : "bg-text-secondary/25"
+              }`}
+            >
+              <span
+                className={`absolute top-1 size-4 rounded-full shadow-md transition-all duration-300 ${
+                  isDark ? "left-7 bg-background" : "left-1 bg-white"
+                }`}
+              />
+            </button>
+          </div>
+        )}
+
         <button
-          onClick={toggle}
+          onClick={toggleCollapsed}
           className={`flex items-center justify-center rounded-lg
             text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]
             transition-colors

@@ -6,7 +6,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { X, Radio, Tv2, BarChart2, Tag, LayoutDashboard } from "lucide-react";
 
-const PUBLIC_LOGO_SRC = "/logo%20complete.png";
+const PUBLIC_LOGO_SRC = "/Logo%20ISO.png";
 
 const NAV_LINKS = [
   { label: "Radio", href: "/", icon: Radio },
@@ -42,47 +42,52 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
+        onClick={onClose}
+        className={`fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${
           open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
-        onClick={onClose}
       />
 
       {/* Drawer */}
-      <div
-        className={`fixed top-0 left-0 h-full w-72 z-50 flex flex-col transition-transform duration-300 ease-in-out ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
-        style={{ background: "var(--color-surface)", borderRight: "1px solid var(--color-border)" }}
+      <aside
+        className={`fixed top-0 left-0 z-50 h-full w-72 flex flex-col
+          bg-surface border-r border-[var(--color-border)] shadow-2xl
+          transition-transform duration-300 ease-in-out
+          ${open ? "translate-x-0" : "-translate-x-full"}`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--color-border)" }}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--color-border)]">
           <Link
             href="/"
             onClick={onClose}
-            className="relative block h-8 w-[96px] shrink-0"
+            className="m-0 flex min-w-0 flex-1 items-center gap-0 p-0 mr-2"
             aria-label="Proton Radio — Home"
           >
-            <Image
-              src={PUBLIC_LOGO_SRC}
-              alt="Proton Radio"
-              fill
-              className="object-contain object-left"
-              sizes="96px"
-            />
+            <span className="inline-flex h-10 shrink-0 items-center m-0 p-0">
+              <Image
+                src={PUBLIC_LOGO_SRC}
+                alt=""
+                width={160}
+                height={110}
+                className="h-10 w-auto max-h-10 object-contain object-right"
+                sizes="48px"
+              />
+            </span>
+            <span className="font-display m-0 min-w-0 truncate p-0 text-left text-sm font-bold uppercase leading-none tracking-normal text-text-primary">
+              Proton
+            </span>
           </Link>
           <button
             onClick={onClose}
-            className="p-1.5 rounded transition-colors hover:bg-white/10"
-            style={{ color: "var(--color-text-secondary)" }}
+            className="text-text-secondary hover:text-text-primary transition-colors"
             aria-label="Close menu"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
         {/* Nav links */}
-        <nav className="flex-1 flex flex-col gap-1 px-3 pt-4">
+        <nav className="flex-1 overflow-y-auto flex flex-col gap-0.5 px-3 py-4">
           {NAV_LINKS.map(({ label, href, icon: Icon }) => {
             const active = pathname === href;
             return (
@@ -90,13 +95,12 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
                 key={href}
                 href={href}
                 onClick={onClose}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors"
-                style={{
-                  color: active ? "var(--color-accent)" : "var(--color-text-primary)",
-                  background: active ? "rgba(230,126,34,0.1)" : "transparent",
-                }}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+                  ${active
+                    ? "text-accent bg-accent/10"
+                    : "text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]"}`}
               >
-                <Icon size={18} style={{ color: active ? "var(--color-accent)" : "var(--color-text-secondary)" }} />
+                <Icon size={16} className={active ? "text-accent" : "text-text-secondary"} />
                 {label}
               </Link>
             );
@@ -104,18 +108,17 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
         </nav>
 
         {/* For Artists CTA */}
-        <div className="px-4 py-5" style={{ borderTop: "1px solid var(--color-border)" }}>
+        <div className="px-4 py-5 border-t border-[var(--color-border)]">
           <Link
             href="/dashboard"
             onClick={onClose}
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-lg text-sm font-semibold text-white transition-opacity hover:opacity-90"
-            style={{ background: "var(--color-accent)" }}
+            className="flex items-center justify-center gap-2 w-full py-3 rounded-lg text-sm font-semibold text-white bg-accent transition-opacity hover:opacity-90"
           >
             <LayoutDashboard size={16} />
             For Artists
           </Link>
         </div>
-      </div>
+      </aside>
     </>
   );
 }

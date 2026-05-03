@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { Menu, LayoutDashboard } from "lucide-react";
 import HamburgerMenu from "./HamburgerMenu";
 
-const PUBLIC_LOGO_SRC = "/logo%20complete.png";
+const PUBLIC_LOGO_SRC = "/Logo%20ISO.png";
 
 const NAV_LINKS = [
   { label: "Radio", href: "/" },
@@ -23,37 +23,42 @@ export default function PublicNavbar() {
   return (
     <>
       <header
-        className="sticky top-0 z-30 h-14 flex items-center px-4 md:px-6"
-        style={{
-          background: "var(--color-surface)",
-          borderBottom: "1px solid var(--color-border)",
-          backdropFilter: "blur(12px)",
-        }}
+        className="relative sticky top-0 z-30 h-16 flex items-center px-5 md:px-6
+          border-b border-[var(--color-border)] bg-background/80 backdrop-blur-md
+          transition-colors duration-200"
       >
-        {/* Mobile: hamburger */}
+        {/* Mobile: hamburger (fijo a la izquierda; la marca se centra en el viewport aparte) */}
         <button
-          className="lg:hidden p-2 -ml-2 rounded transition-colors hover:bg-white/10"
-          style={{ color: "var(--color-text-secondary)" }}
+          type="button"
+          className="relative z-10 lg:hidden p-2 -ml-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)] transition-colors"
           onClick={() => setMenuOpen(true)}
           aria-label="Open menu"
         >
-          <Menu size={22} />
+          <Menu size={20} />
         </button>
 
-        {/* Logo — asset en /public/logo complete.png */}
+        {/* Marca: gap 0 — el PNG ya trae aire interno; sin márgenes extra entre icono y texto */}
         <Link
           href="/"
-          className="relative mx-auto lg:mx-0 block h-9 w-[104px] sm:w-[118px] shrink-0"
+          className="absolute left-1/2 top-1/2 z-0 m-0 flex -translate-x-1/2 -translate-y-1/2 items-center gap-0 p-0
+            max-w-[calc(100%-5rem)] min-w-0
+            lg:static lg:z-auto lg:translate-x-0 lg:translate-y-0 lg:max-w-none"
           aria-label="Proton Radio — Home"
         >
-          <Image
-            src={PUBLIC_LOGO_SRC}
-            alt="Proton Radio"
-            fill
-            className="object-contain object-center lg:object-left"
-            priority
-            sizes="120px"
-          />
+          <span className="inline-flex h-11 shrink-0 items-center m-0 p-0">
+            <Image
+              src={PUBLIC_LOGO_SRC}
+              alt=""
+              width={160}
+              height={110}
+              className="h-11 w-auto max-h-11 object-contain object-right lg:object-left"
+              priority
+              sizes="(max-width: 1023px) 72px, 56px"
+            />
+          </span>
+          <span className="font-display m-0 min-w-0 truncate p-0 text-left text-sm font-bold uppercase leading-none tracking-normal text-text-primary sm:text-base">
+            Proton
+          </span>
         </Link>
 
         {/* Desktop nav */}
@@ -79,8 +84,7 @@ export default function PublicNavbar() {
         {/* Desktop: For Artists CTA */}
         <Link
           href="/dashboard"
-          className="hidden lg:flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-semibold text-white transition-opacity hover:opacity-90 ml-auto"
-          style={{ background: "var(--color-accent)" }}
+          className="hidden lg:flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-semibold text-white bg-accent transition-opacity hover:opacity-90 ml-auto"
         >
           <LayoutDashboard size={15} />
           For Artists

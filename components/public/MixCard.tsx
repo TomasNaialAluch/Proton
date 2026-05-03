@@ -5,6 +5,8 @@ import { Play } from "lucide-react";
 import { usePlayerStore } from "@/lib/store/playerStore";
 import type { ProtonMix } from "@/types/mix";
 
+const MIX_ARTWORK_FALLBACK = "/mix-artwork-fallback-dark-16x9.png";
+
 interface MixCardProps {
   mix: ProtonMix;
   size?: "sm" | "md" | "lg";
@@ -16,7 +18,7 @@ export default function MixCard({ mix, size = "md" }: MixCardProps) {
   const isPlaying = usePlayerStore((s) => s.isPlaying);
 
   const isActive = currentMix?.id === mix.id;
-  const artwork = mix.artist.image?.url;
+  const artworkSrc = mix.artist.image?.url ?? MIX_ARTWORK_FALLBACK;
 
   const titleSize = size === "sm" ? "text-xs" : "text-sm";
   const metaSize = size === "sm" ? "text-[11px]" : "text-xs";
@@ -25,17 +27,13 @@ export default function MixCard({ mix, size = "md" }: MixCardProps) {
     <article className="flex flex-col gap-2 group cursor-pointer" onClick={() => play(mix)}>
       {/* Artwork */}
       <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-white/5">
-        {artwork ? (
-          <Image
-            src={artwork}
-            alt={mix.title}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5" />
-        )}
+        <Image
+          src={artworkSrc}
+          alt={mix.title}
+          fill
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+        />
 
         {/* Play overlay */}
         <div

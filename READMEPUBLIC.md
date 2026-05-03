@@ -76,7 +76,7 @@ proton/
 │   │   ├── StreamsChart.tsx
 │   │   ├── GenreDonut.tsx
 │   │   ├── ReleasesChart.tsx
-│   │   └── RoyaltiesWidget.tsx
+│   │   └── widgets/                  # tablero: registry + un componente por widget
 │   │
 │   ├── player/
 │   │   └── GlobalPlayer.tsx                ← Compartido (visible en área pública) ⚠️ vacío
