@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "firebase:login": "firebase login",
+    "firebase:backend:create": "firebase --non-interactive apphosting:backends:create --project proton-e311b --backend proton-web --primary-region us-central1 --root-dir .",
+    "deploy:firebase": "firebase deploy --only apphosting"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -22,6 +25,7 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
+    "firebase-tools": "^15.16.0",
     "@tailwindcss/postcss": "^4.1.3",
     "@types/node": "^22.14.0",
     "@types/react": "^19.1.1",
