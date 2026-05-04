@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { DEMO_SESSION_COOKIE, DEMO_SESSION_VALUE } from "@/lib/auth/demoSession";
+
+function hasDemoSession(request: NextRequest): boolean {
+  return request.cookies.get(DEMO_SESSION_COOKIE)?.value === DEMO_SESSION_VALUE;
+}
 
 /** Compat: `?genre=` → path; `/charts` → default genre (sin tocar `searchParams` en páginas). */
 export function middleware(request: NextRequest) {
@@ -25,9 +30,25 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  const session = hasDemoSession(request);
+
+  /** Siempre mostrar `/login` (p. ej. prototipo Account) aunque exista sesión demo — no redirigir a dashboard. */
+  if (pathname === "/login") {
+    return NextResponse.next();
+  }
+
+  if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
+    if (!session) {
+      const login = new URL("/login", request.url);
+      login.searchParams.set("callbackUrl", pathname + (url.search || ""));
+      return NextResponse.redirect(login);
+    }
+    return NextResponse.next();
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/charts", "/shows"],
+  matcher: ["/charts", "/shows", "/login", "/dashboard", "/dashboard/:path*"],
 };

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import GlobalPlayer from "@/components/player/GlobalPlayer";
+import SupportAssistantPanel from "@/components/help/SupportAssistantPanel";
 import ThemeProvider from "@/components/providers/ThemeProvider";
 import QueryProvider from "@/components/providers/QueryProvider";
 import DevInspectorNoiseFilter from "@/components/providers/DevInspectorNoiseFilter";
@@ -53,6 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ThemeProvider>
             {children}
             <GlobalPlayer />
+            <SupportAssistantPanel />
           </ThemeProvider>
         </QueryProvider>
       </body>

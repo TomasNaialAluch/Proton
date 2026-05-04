@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { ProtonLabel } from "@/types/label";
 
 interface LabelCardProps {
@@ -9,7 +10,9 @@ interface LabelCardProps {
 export default function LabelCard({ label, href }: LabelCardProps) {
   const inner = (
     <div
-      className="flex flex-col items-center gap-3 p-5 rounded-xl border text-center transition-colors group cursor-default"
+      className={`flex flex-col items-center gap-3 p-5 rounded-xl border text-center transition-colors group ${
+        href ? "cursor-pointer hover:opacity-95" : "cursor-default"
+      }`}
       style={{
         background: "var(--color-surface)",
         borderColor: "var(--color-border)",
@@ -64,9 +67,9 @@ export default function LabelCard({ label, href }: LabelCardProps) {
 
   if (href) {
     return (
-      <a href={href} className="no-underline block">
+      <Link href={href} className="no-underline block focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] rounded-xl">
         {inner}
-      </a>
+      </Link>
     );
   }
 

@@ -6,6 +6,7 @@ import { usePlayerStore } from "@/lib/store/playerStore";
 import { usePlayerAudio } from "./PlayerAudioContext";
 import PlayerArtwork from "./PlayerArtwork";
 import PlayerSeekBar from "./PlayerSeekBar";
+import PlayerYoutubeNotice from "./PlayerYoutubeNotice";
 import PlayerYouTubeQualityControl from "./PlayerYouTubeQualityControl";
 
 /**
@@ -37,6 +38,7 @@ export default function PlayerDashboardMobile() {
         backdropFilter: "blur(12px)",
       }}
     >
+      <PlayerYoutubeNotice />
       <PlayerSeekBar />
 
       {!showExpanded ? (

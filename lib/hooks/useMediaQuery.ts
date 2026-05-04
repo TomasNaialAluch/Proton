@@ -4,8 +4,11 @@ import { useSyncExternalStore } from "react";
 
 function subscribeMaxMd(onStoreChange: () => void) {
   const mq = window.matchMedia("(max-width: 1023px)");
-  mq.addEventListener("change", onStoreChange);
-  return () => mq.removeEventListener("change", onStoreChange);
+  const listener = () => {
+    onStoreChange();
+  };
+  mq.addEventListener("change", listener);
+  return () => mq.removeEventListener("change", listener);
 }
 
 function getMaxMdSnapshot() {

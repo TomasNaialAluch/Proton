@@ -1,13 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Menu, LayoutDashboard, LogIn } from "lucide-react";
+import { Menu, LayoutDashboard, LogIn, CircleHelp } from "lucide-react";
+import {
+  PUBLIC_NAV_CONDENSE_EVENT,
+  type PublicNavCondenseDetail,
+} from "@/lib/publicNavCondense";
 import HamburgerMenu from "./HamburgerMenu";
 import NavbarSearch from "./NavbarSearch";
 import PublicThemeToggle from "./PublicThemeToggle";
+import { useHelpAssistantStore } from "@/lib/store/helpAssistantStore";
 
 const PUBLIC_LOGO_SRC = "/Logo%20ISO.png";
 
@@ -18,10 +23,53 @@ const NAV_LINKS = [
   { label: "Labels", href: "/labels" },
 ];
 
+/** Ruta activa para cada ítem del nav (incl. subrutas donde aplique). */
+function linkActive(pathname: string, href: string): boolean {
+  const p = pathname || "/";
+  if (href === "/") return p === "/" || p === "";
+  if (href === "/shows") return p === "/shows" || p.startsWith("/shows/");
+  if (href.startsWith("/charts/")) return p.startsWith("/charts");
+  if (href === "/labels") return p === "/labels" || p.startsWith("/labels/");
+  return p === href;
+}
+
 export default function PublicNavbar() {
+  const openAssistant = useHelpAssistantStore((s) => s.openAssistant);
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [hoverNav, setHoverNav] = useState(false);
+  const [focusInsideNav, setFocusInsideNav] = useState(false);
   const loginActive = pathname === "/login";
+  const loginHref =
+    pathname === "/login"
+      ? "/login"
+      : `/login?next=${encodeURIComponent(pathname || "/")}`;
+
+  /** Sentinel + IntersectionObserver en `PublicMain` → modo inicial compacto en desktop. */
+  useEffect(() => {
+    const fromSentinel = (e: Event) => {
+      const ce = e as CustomEvent<PublicNavCondenseDetail>;
+      if (typeof ce.detail?.condensed === "boolean") {
+        setScrolled(ce.detail.condensed);
+      }
+    };
+
+    window.addEventListener(
+      PUBLIC_NAV_CONDENSE_EVENT,
+      fromSentinel as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        PUBLIC_NAV_CONDENSE_EVENT,
+        fromSentinel as EventListener
+      );
+    };
+  }, []);
+
+  const revealFullNav = !scrolled || hoverNav || focusInsideNav;
+  const condensed = scrolled && !revealFullNav;
 
   return (
     <>
@@ -66,20 +114,49 @@ export default function PublicNavbar() {
 
         {/* Desktop: nav (en móvil el tema solo está en el menú hamburguesa) */}
         <div className="hidden lg:flex items-center gap-4 flex-1 min-w-0 ml-8">
-          <nav className="flex items-center gap-1 shrink-0">
+          <nav
+            className={`flex items-center shrink-0 transition-[gap] duration-300 ease-out ${
+              condensed ? "gap-0" : "gap-1"
+            }`}
+            aria-label="Main navigation"
+            onMouseEnter={() => setHoverNav(true)}
+            onMouseLeave={() => setHoverNav(false)}
+            onFocusCapture={() => setFocusInsideNav(true)}
+            onBlurCapture={(e) => {
+              const nav = e.currentTarget;
+              queueMicrotask(() => {
+                if (!nav.contains(document.activeElement)) {
+                  setFocusInsideNav(false);
+                }
+              });
+            }}
+          >
             {NAV_LINKS.map(({ label, href }) => {
-              const active = pathname === href;
+              const active = linkActive(pathname, href);
+              const showInitialOnly = condensed && !active;
+              const initial = label.charAt(0).toUpperCase();
+
               return (
                 <Link
                   key={href}
                   href={href}
-                  className="px-4 py-1.5 rounded text-sm font-medium transition-colors"
+                  aria-current={active ? "page" : undefined}
+                  aria-label={label}
+                  title={showInitialOnly ? label : undefined}
+                  className={`inline-flex items-center rounded text-sm font-medium transition-[padding,color,background-color,min-width] duration-300 ease-out
+                    ${showInitialOnly ? "min-w-[2rem] justify-center px-2 py-1.5 text-center tabular-nums" : "px-4 py-1.5"}
+                  `}
                   style={{
                     color: active ? "var(--color-accent)" : "var(--color-text-secondary)",
                     background: active ? "rgba(230,126,34,0.1)" : "transparent",
                   }}
                 >
-                  {label}
+                  <span
+                    {...(showInitialOnly ? { "aria-hidden": true } : {})}
+                    className="inline-block transition-[opacity,transform] duration-200 ease-out"
+                  >
+                    {showInitialOnly ? initial : label}
+                  </span>
                 </Link>
               );
             })}
@@ -90,8 +167,16 @@ export default function PublicNavbar() {
         <div className="hidden lg:flex items-center gap-3 ml-auto shrink-0">
           <NavbarSearch />
           <PublicThemeToggle variant="compact" />
+          <button
+            type="button"
+            onClick={openAssistant}
+            className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-transparent text-text-secondary transition-colors hover:border-[var(--color-border)] hover:bg-[var(--color-border)] hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
+            aria-label="Help and support"
+          >
+            <CircleHelp size={20} strokeWidth={1.75} />
+          </button>
           <Link
-            href="/login"
+            href={loginHref}
             aria-current={loginActive ? "page" : undefined}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold shrink-0 border transition-colors
               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import AppSidebar from "@/components/dashboard/AppSidebar";
 import BottomNav from "@/components/dashboard/BottomNav";
 import DashboardMainArea from "@/components/dashboard/DashboardMainArea";
@@ -10,10 +11,14 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="min-h-screen bg-background lg:flex">
-      <AppSidebar />
+      <Suspense fallback={null}>
+        <AppSidebar />
+      </Suspense>
 
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-        <DashboardNavbar />
+        <Suspense fallback={null}>
+          <DashboardNavbar />
+        </Suspense>
         <DashboardMainArea>{children}</DashboardMainArea>
       </div>
 

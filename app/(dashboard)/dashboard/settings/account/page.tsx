@@ -4,6 +4,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { mockAccount } from "@/lib/mock/account";
+import DemoSignOutButton from "@/components/dashboard/DemoSignOutButton";
 
 const sections = [
   {
@@ -99,6 +100,11 @@ export default function AccountSettingsPage() {
             </Link>
           ))}
         </div>
+
+        <p className="mt-6 text-center text-[11px] text-text-secondary">
+          Prototype session only — not connected to a real account.
+        </p>
+        <DemoSignOutButton />
       </main>
     </div>
   );

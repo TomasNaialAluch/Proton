@@ -55,6 +55,8 @@ export type YtPlayerLite = {
   isMuted: () => boolean;
   getCurrentTime: () => number;
   getDuration: () => number;
+  /** @see https://developers.google.com/youtube/iframe_api_reference#Playback_status */
+  getPlayerState?: () => number;
   getPlaybackQuality: () => string;
   getAvailableQualityLevels: () => string[];
   setPlaybackQualityRange: (suggestedMin: string, suggestedMax: string) => void;

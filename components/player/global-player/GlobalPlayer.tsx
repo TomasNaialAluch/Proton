@@ -11,6 +11,7 @@ import PlayerFab from "./PlayerFab";
 import { usePlayerAudioEngine } from "./usePlayerAudioEngine";
 import { useYouTubePlayerEngine } from "./useYouTubePlayerEngine";
 import YouTubeChoiceModal from "./YouTubeChoiceModal";
+import YoutubeMiniBlockedModal from "./YoutubeMiniBlockedModal";
 
 function GlobalPlayerLoaded({ mix }: { mix: ProtonMix }) {
   const playbackSource = usePlayerStore((s) => s.playbackSource);
@@ -61,6 +62,7 @@ export default function GlobalPlayer() {
   return (
     <>
       <YouTubeChoiceModal />
+      <YoutubeMiniBlockedModal />
       {currentMix ? (
         <GlobalPlayerLoaded
           key={`${currentMix.id}-${playbackSource ?? "none"}-${surfaceKey}`}

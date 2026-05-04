@@ -1,4 +1,4 @@
-import { PublicMain } from "@/components/player/global-player";
+import PublicMain from "@/components/player/global-player/PublicMain";
 import PublicNavbar from "@/components/public/Navbar";
 
 export default function PublicLayout({

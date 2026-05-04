@@ -1,86 +1,79 @@
-# Quick Access (dashboard) — guía del rediseño Proton
+# Sidebar below “Dashboard” — Producer tools, Platform & Public site
 
-Este documento describe **qué debería representar cada ítem** de *Quick Access* en el panel de artista (SoundSystem / dashboard) y **a qué rutas o productos** conviene enlazarlo dentro del concepto de **sitio unificado** (radio pública + gestión B2B).
+Este documento describe las **secciones** bajo la navegación principal *Dashboard* en el panel de artista (`AppSidebar`, `HamburgerMenu` del dashboard) y **a qué rutas** enlazan. Reemplaza el modelo anterior unificado bajo el título “Quick Access”. La visión de producto está alineada con `docs/README-dashboard-vision-roadmap.md`.
 
----
-
-## Objetivo de la sección
-
-*Quick Access* es un puente entre:
-
-1. **Superficie pública (B2C)** — oyente: shows, sellos, mixes on demand.  
-2. **Superficie privada (B2B)** — artista: cuenta, release links, etc.
-
-Los ítems no deberían competir con la navegación principal *Dashboard* (Artists, Performance, Royalties…); complementan con **saltos frecuentes** hacia la radio y herramientas concretas.
+**Idioma en UI:** los títulos de sección en la app están en **inglés** (*Producer tools*, *Platform*, *Public site*).
 
 ---
 
-## Ítems y destinos recomendados
+## Objetivo
 
-| Ítem | Destino propuesto (app) | Tipo | Qué es / por qué |
-|------|-------------------------|------|------------------|
-| **Shows** | `/shows` | B2C público | Programación / archivo de shows (equivalente lógico a “contenido episódico” de la radio). |
-| **Labels** | `/labels` | B2C público | Directorio de sellos distribuidos en Proton; discovery para oyentes y referencia de marca. |
-| **DJ Mixes** | `/shows` **o** `/mixes` *(si se agrega ruta)* | B2C público | Alineado con **Mixes** en protonradio.com: biblioteca on demand por género. Hoy el prototipo concentra mucho de eso en `/shows`; si más adelante existe `/mixes`, ese es el destino natural. |
-| **Charts** | `/dashboard/performance` | B2B artista | Vista de rendimiento / gráficos del artista (misma área que **Performance** en la nav principal; atajo en Quick Access). |
-| **Release Links** | `/dashboard/settings/account/notifications` **o** ruta dedicada `/dashboard/release-links` *(futuro)* | B2B artista | Herramienta de **promo por release** (emails / enlaces de artista). En el repo ya hay contexto en ajustes de cuenta y notificaciones; una página propia queda más clara si el producto crece. |
+Separar tres intenciones:
 
-**No hay fila “Account” en Quick Access** — ver sección siguiente.
+1. **Producer tools** — tareas **dentro del dashboard** centradas en promo (p. ej. release links).
+2. **Platform** — **Shows**, **Labels** y **DJ Mixes** abren el **hub in-app** (`/dashboard/platform?tab=…`) con copy placeholder alineado a SoundSystem. **No** incluye charts de oyente; el rendimiento del artista sigue en **Dashboard → Performance**.
+3. **Public site** — accesos a la **superficie pública** del mismo prototipo (Radio, Shows, Charts, Labels) con icono de “sale del dashboard” (`ExternalLink` + `title` / `aria-label`). Sección **plegable** en desktop (y en el drawer, mismas claves `localStorage` que Platform).
 
 ---
 
-## “Account” en móvil — análisis: no debería existir en Quick Access
+## Producer tools
 
-### Qué había en el código
-
-En el drawer móvil (`HamburgerMenu`) existía un ítem extra **“Account”** (con ícono `DollarSign`) que **no** aparecía en el sidebar desktop (`AppSidebar`). Eso generaba lista distinta entre vistas.
-
-### A dónde “llevaría” Account si fuera un enlace
-
-Cualquier destino razonable para “cuenta del artista” **ya está cubierto** por la navegación principal del mismo menú:
-
-| Necesidad del usuario | Ya existe en *Dashboard* (bloque inferior del drawer / sidebar) |
-|------------------------|------------------------------------------------------------------|
-| Cuenta, email, plan, notificaciones, descargas, etc. | **Settings** → `/dashboard/settings/account` (y subrutas: `…/subscriptions`, `…/payment`, `…/notifications`, etc.) |
-| Ingresos por música | **Royalties** → `/dashboard/royalties` |
-
-Si *Account* en Quick Access apuntara a `/dashboard/settings/account`, sería **el mismo sitio** que **Settings**. Dos entradas en el mismo menú que resuelven lo mismo = **ruido y duplicación**, especialmente en móvil donde el espacio es caro.
-
-Si se interpretara “Account” como solo **pagos / suscripción**, lo natural sería `/dashboard/settings/account/subscriptions` o `…/payment` — sigue siendo **subárbol de Settings**, no un producto aparte que justifique un segundo atajo con otro nombre.
-
-### Conclusión de producto
-
-- **No incluir “Account” en Quick Access.**  
-- La **única** entrada canónica para “mi cuenta / ajustes de producto” debe ser **Settings** (misma jerarquía en desktop y móvil).  
-- Si en el futuro querés un atajo móvil extra, que sea **explícito** y no duplicado (p.ej. “Suscripción” → solo `…/subscriptions`) y evaluar si realmente mejora la tarea frecuente.
-
-### Implementación
-
-El ítem **Account** fue **eliminado** de `HamburgerMenu` para igualar la lista a `AppSidebar` (Shows, Labels, DJ Mixes, Charts, Release Links).
-
-Los enlaces que abren el **sitio público** (`/shows`, `/labels`) muestran **tooltip** (`title`) y **`aria-label`** explicando que se sale del dashboard, y un ícono pequeño **“external”** al final de la fila (solo visual; el destino sigue siendo mismo sitio, otra layout).
+| Ítem | Destino (app) | Notas |
+|------|----------------|-------|
+| **Release Links** | `/dashboard/settings/account/notifications` | Herramienta de promo por release (hoy contextualizada en notificaciones). |
 
 ---
 
-## Checklist de implementación (cuando se cablee en código)
+## Platform
 
-- [x] **Quick Access** incluye **Charts** → `/dashboard/performance` (sidebar + drawer).  
-- [x] **Quick Access** sin ítem “Account” (redundante con **Settings**).  
-- [x] Cada ítem de *Quick Access* es un `Link` de Next con `href` claro (`AppSidebar` + `HamburgerMenu`).  
-- [x] Misma lista y mismos destinos en **`AppSidebar`** y **`HamburgerMenu`**.  
-- [x] Cerrar drawer móvil al navegar (`onClick={onClose}` en enlaces de Quick Access).  
-- [ ] Decidir destino final de **DJ Mixes** (`/shows` vs `/mixes`) y documentarlo aquí. *(Hoy: `/shows`.)*  
-- [ ] Decidir destino final de **Release Links** (solo notificaciones vs página dedicada). *(Hoy: notificaciones.)*
+| Ítem | Destino (app) | Notas |
+|------|----------------|-------|
+| **Shows** | `/dashboard/platform?tab=shows` | Panel informativo (invitación / demo a Bonnie, etc.). |
+| **Labels** | `/dashboard/platform?tab=labels` | Panel informativo (SoundSystem, FAQ, email de contacto). |
+| **DJ Mixes** | `/dashboard/platform?tab=dj-mixes` | Panel informativo (flujo futuro DSP / guía / Track Stack). |
+
+Todo el bloque **permanece** bajo `/dashboard`; el copy aclara prototipo hasta integración real.
+
+---
+
+## Public site
+
+| Ítem | Destino (app) | Notas |
+|------|----------------|-------|
+| **Radio** | `/` | Inicio público / escucha. |
+| **Shows** | `/shows` | Directorio público de shows. |
+| **Charts** | `/charts/progressive` | Charts por género (misma entrada que navbar público). |
+| **Labels** | `/labels` | Directorio de sellos. |
+
+Cada fila muestra **ExternalLink** y texto accesible: se **abandona** el artist dashboard.
+
+---
+
+## “Account” en el menú lateral
+
+La entrada canónica para ajustes de cuenta sigue siendo **Settings** en el bloque **Dashboard**, no una fila duplicada en Producer tools. Ver historial en versiones anteriores de este doc (rama *Quick Access* + eliminación de “Account” duplicado en móvil).
+
+---
+
+## Checklist de implementación
+
+- [x] Tres bloques en sidebar: **Producer tools**, **Platform**, **Public site**.  
+- [x] **Platform** y **Public site** plegables (desktop); drawer alineado con mismas preferencias en `localStorage`.  
+- [x] **Release Links** solo en Producer tools.  
+- [x] **Shows**, **Labels**, **DJ Mixes** en Platform (hub in-app).  
+- [x] **Radio / Shows / Charts / Labels** en Public site con affordance de salida del dashboard.  
+- [ ] Destino final de **DJ Mixes** cuando exista gestión real (ruta B2B o pública dedicada); el hub `?tab=dj-mixes` puede redirigir o enlazar allí.  
+- [ ] **Release Links**: ¿solo notificaciones vs `/dashboard/release-links` dedicada?
 
 ---
 
 ## Referencia de archivos
 
-| Componente | Ruta del archivo |
-|------------|------------------|
+| Componente | Ruta |
+|------------|------|
 | Sidebar desktop | `components/dashboard/AppSidebar.tsx` |
-| Menú hamburguesa (móvil) | `components/dashboard/HamburgerMenu.tsx` |
+| Drawer móvil (dashboard) | `components/dashboard/HamburgerMenu.tsx` |
 
 ---
 
-*Documento orientado al rediseño unificado Proton Radio + SoundSystem. Actualizar cuando las rutas o el IA de producto cambien.*
+*Actualizar cuando cambien rutas o el mapa de producto B2B.*

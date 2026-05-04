@@ -12,6 +12,7 @@ import { useDashboardPlayerInsetClass } from "./useDashboardPlayerInsetClass";
 import { usePlayerAudio } from "./PlayerAudioContext";
 import { useFabYoutubeVideoSize } from "./useFabYoutubeVideoSize";
 import { YoutubeResizeCorner } from "./YoutubeResizeCorner";
+import PlayerYoutubeNotice from "./PlayerYoutubeNotice";
 
 export default function PlayerExpandedBar() {
   const dashboardInset = useDashboardPlayerInsetClass();
@@ -40,6 +41,7 @@ export default function PlayerExpandedBar() {
         backdropFilter: "blur(12px)",
       }}
     >
+      <PlayerYoutubeNotice />
       <PlayerSeekBar />
 
       {/* Dos mitades iguales + transporte centrado en el ancho total */}

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { usePlayerBottomPaddingClass } from "@/components/player/global-player/usePlayerBottomPaddingClass";
+import DashboardPersonaChip from "@/components/dashboard/DashboardPersonaChip";
 
 /**
  * Columna de contenido del dashboard con el mismo padding inferior que el área
@@ -10,6 +11,9 @@ import { usePlayerBottomPaddingClass } from "@/components/player/global-player/u
 export default function DashboardMainArea({ children }: { children: ReactNode }) {
   const bottomPad = usePlayerBottomPaddingClass();
   return (
-    <div className={`flex-1 min-w-0 flex flex-col min-h-screen ${bottomPad}`}>{children}</div>
+    <div className={`relative flex-1 min-w-0 flex flex-col min-h-screen ${bottomPad}`}>
+      <DashboardPersonaChip />
+      {children}
+    </div>
   );
 }

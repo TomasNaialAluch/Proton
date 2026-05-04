@@ -6,6 +6,8 @@
 
 This project combines a **B2B admin dashboard** (artist management, contracts, royalties) with a **B2C streaming platform** (radio, shows, charts). Built with a modern stack focused on performance, code quality, and scalability.
 
+**Product / dashboard vision (Spanish):** [`docs/README-dashboard-vision-roadmap.md`](docs/README-dashboard-vision-roadmap.md) — persona producer, sidebar *Producer tools* / *Platform*; auth público: Sign in → `/login` (pestañas prototipo).
+
 ---
 
 ## What this project demonstrates

@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, Menu } from "lucide-react";
+import { Bell, Menu, CircleHelp } from "lucide-react";
 import HamburgerMenu from "./HamburgerMenu";
 import NotificationsPanel from "./NotificationsPanel";
+import { useHelpAssistantStore } from "@/lib/store/helpAssistantStore";
 
 export default function DashboardNavbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const openAssistant = useHelpAssistantStore((s) => s.openAssistant);
 
   return (
     <>
@@ -29,14 +31,24 @@ export default function DashboardNavbar() {
           Proton
         </span>
 
-        <button
-          onClick={() => setNotifOpen(true)}
-          className="relative text-text-secondary hover:text-text-primary transition-colors"
-          aria-label="Notifications"
-        >
-          <Bell size={20} />
-          <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-accent" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={openAssistant}
+            className="rounded-lg p-2 text-text-secondary transition-colors hover:bg-[var(--color-border)] hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            aria-label="Help and support"
+          >
+            <CircleHelp size={20} strokeWidth={1.75} />
+          </button>
+          <button
+            onClick={() => setNotifOpen(true)}
+            className="relative rounded-lg p-2 text-text-secondary transition-colors hover:bg-[var(--color-border)] hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            aria-label="Notifications"
+          >
+            <Bell size={20} />
+            <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-accent" />
+          </button>
+        </div>
       </header>
 
       <HamburgerMenu open={menuOpen} onClose={() => setMenuOpen(false)} />

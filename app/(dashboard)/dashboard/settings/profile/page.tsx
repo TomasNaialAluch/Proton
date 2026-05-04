@@ -1,6 +1,7 @@
 import { Camera, ChevronLeft, ChevronRight, Mic2, Radio, Link as LinkIcon } from "lucide-react";
 import Link from "next/link";
 import { mockArtist } from "@/lib/mock/artist";
+import DemoSignOutButton from "@/components/dashboard/DemoSignOutButton";
 
 const connections = [
   { platform: "Spotify",     username: "Naial",  verified: true,  color: "#1DB954" },
@@ -96,6 +97,10 @@ export default function ProfileSettingsPage() {
           ))}
         </Section>
 
+        <p className="pt-4 text-center text-[11px] text-text-secondary">
+          Prototype session only — not connected to a real account.
+        </p>
+        <DemoSignOutButton />
       </main>
     </div>
   );

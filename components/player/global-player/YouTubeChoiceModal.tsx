@@ -1,9 +1,15 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { ExternalLink, PictureInPicture } from "lucide-react";
 import { usePlayerStore } from "@/lib/store/playerStore";
 import { youtubeWatchUrl } from "@/lib/player/youtubeWatchUrl";
+import { fetchYoutubeVideoHintsClient } from "@/lib/youtube/fetchYoutubeVideoHintsClient";
+import {
+  noticeLines,
+  shouldBlockMiniPlayer,
+  type YoutubeVideoHints,
+} from "@/lib/youtube/youtubeVideoHints";
 import {
   writeYoutubePlaybackPreference,
   type YoutubePlaybackPreference,
@@ -18,10 +24,31 @@ export default function YouTubeChoiceModal() {
   const play = usePlayerStore((s) => s.play);
   const titleId = useId();
   const [remember, setRemember] = useState(false);
+  const [hints, setHints] = useState<YoutubeVideoHints | null>(null);
+  const [hintsLoading, setHintsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!mix?.youtubeId?.trim()) return;
+    let cancelled = false;
+    const vid = mix.youtubeId.trim();
+    setHints(null);
+    setHintsLoading(true);
+    void fetchYoutubeVideoHintsClient(vid).then((h) => {
+      if (!cancelled) {
+        setHints(h);
+        setHintsLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [mix?.id, mix?.youtubeId]);
 
   if (!mix?.youtubeId?.trim()) return null;
 
   const vid = mix.youtubeId.trim();
+  const blockMini = Boolean(hints && shouldBlockMiniPlayer(hints));
+  const notices = hints ? noticeLines(hints) : [];
 
   const close = () => {
     setRemember(false);
@@ -39,8 +66,9 @@ export default function YouTubeChoiceModal() {
   };
 
   const openMiniPlayer = () => {
+    if (blockMini) return;
     persistIfNeeded("mini");
-    play(mix, "youtube");
+    play(mix, "youtube", { youtubeHints: hints ?? undefined });
     close();
   };
 
@@ -63,14 +91,36 @@ export default function YouTubeChoiceModal() {
           id={titleId}
           className="text-lg font-semibold text-[var(--color-text-primary)]"
         >
-          Reproducir en YouTube
+          Play on YouTube
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-[var(--color-text-secondary)]">
-          Este show está disponible como vídeo en YouTube. ¿Cómo quieres verlo?
+          This show is available as video on YouTube. How would you like to watch
+          it?
         </p>
         <p className="mt-1 truncate text-xs text-[var(--color-text-secondary)]">
           {mix.title}
         </p>
+
+        {hintsLoading && (
+          <p className="mt-3 text-xs text-[var(--color-text-secondary)]">
+            Checking video availability…
+          </p>
+        )}
+
+        {!hintsLoading && notices.length > 0 && (
+          <ul className="mt-3 list-disc space-y-1 pl-4 text-xs leading-relaxed text-[var(--color-text-secondary)]">
+            {notices.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        )}
+
+        {!hintsLoading && blockMini && (
+          <p className="mt-3 text-xs font-medium text-amber-600 dark:text-amber-400/95">
+            The mini player can’t be used for this video. Use Open YouTube
+            instead.
+          </p>
+        )}
 
         <div className="mt-5 flex flex-col gap-2 sm:flex-row">
           <button
@@ -79,16 +129,22 @@ export default function YouTubeChoiceModal() {
             className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm font-medium text-[var(--color-text-primary)] transition-colors hover:bg-[var(--color-border)]"
           >
             <ExternalLink size={18} className="shrink-0 opacity-80" aria-hidden />
-            Abrir YouTube en otra pestaña
+            Open YouTube in a new tab
           </button>
           <button
             type="button"
             onClick={openMiniPlayer}
-            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            disabled={hintsLoading || blockMini}
+            title={
+              blockMini
+                ? "Embedding isn’t available for this video"
+                : undefined
+            }
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white transition-opacity enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
             style={{ background: "var(--color-accent)" }}
           >
             <PictureInPicture size={18} className="shrink-0" aria-hidden />
-            Mini reproductor aquí
+            Mini player here
           </button>
         </div>
 
@@ -99,7 +155,7 @@ export default function YouTubeChoiceModal() {
             onChange={(e) => setRemember(e.target.checked)}
             className="rounded border-[var(--color-border)]"
           />
-          Recordar mi elección en este dispositivo
+          Remember my choice on this device
         </label>
 
         <button
@@ -107,7 +163,7 @@ export default function YouTubeChoiceModal() {
           onClick={close}
           className="mt-4 w-full rounded-lg py-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
         >
-          Cancelar
+          Cancel
         </button>
       </div>
     </div>

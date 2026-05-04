@@ -6,6 +6,8 @@
 
 Todo lo de abajo fue implementado y está en el área `/dashboard`. El proyecto corre con Next.js 15, TypeScript, Tailwind CSS v4 y TanStack Query.
 
+**Visión de producto / roadmap (sidebar Producer tools + Platform, auth):** [`docs/README-dashboard-vision-roadmap.md`](docs/README-dashboard-vision-roadmap.md).
+
 ---
 
 ### 1. Página de Contratos — `/dashboard/contracts`
@@ -118,7 +120,8 @@ Sidebar desktop (`lg:flex`) con:
 - **Logo** (imagen `logo txt.png`) visible solo cuando está expandido
 - **Campana de notificaciones** (abre `NotificationsPanel`) con badge naranja
 - **Links de navegación:** Artists · Performance · Royalties · Contracts · Settings — con highlight naranja en la ruta activa
-- **Quick Access:** Shows · Labels · DJ Mixes · Release Links — con dot de color por sección
+- **Producer tools:** Release Links (ruta dentro del dashboard)
+- **Platform:** Shows · Labels · DJ Mixes → hub `/dashboard/platform`. **Public site:** Radio · Shows · Charts · Labels (rutas públicas; sale del dashboard). **Performance** en nav Dashboard.
 - **Footer:** avatar del artista + link a settings/profile + botón collapse/expand
 
 ---

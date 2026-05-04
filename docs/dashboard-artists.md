@@ -5,6 +5,8 @@ Redesign of the SoundSystem dashboard: [`soundsystem.protonradio.com`](https://s
 > **Language:** All UI copy is in **English** — Proton is an international platform.
 > **Mock data:** Defined in `/lib/mock/` — see `artist.ts`, `tracks.ts`, `royalties.ts`.
 
+**Persona (this build):** The dashboard shell and mocks assume an **artist / producer** account (e.g. **Naial** in `lib/mock/artist.ts`). A dedicated **label-manager-only** layout is **not** in scope until roles and APIs are defined; see `docs/README-dashboard-vision-roadmap.md`.
+
 This is the first screen an artist sees after logging in. It consolidates identity, navigation, and account data in one place.
 
 ---
@@ -34,7 +36,7 @@ Artist profile →  [Edit Profile] button           →  /login  →  /dashboard
 
 ### What works (keep)
 - The **4-tab structure** (Artists / Performance / Royalties / Contracts) — intuitive
-- Quick access shortcuts at the top (Shows, Labels, DJ Mixes, Account)
+- Sidebar **Producer tools** (Release Links), **Platform** (Shows, Labels, DJ Mixes → hub), **Public site** (Radio, Shows, Charts, Labels) — see `docs/README-quick-access.md`
 - Right sidebar with account data — useful concept, needs better execution
 
 ---

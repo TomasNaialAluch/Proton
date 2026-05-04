@@ -39,7 +39,11 @@ export default function LabelsView() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
           {labels.map((label) => (
-            <LabelCard key={label.id} label={label} />
+            <LabelCard
+              key={label.id}
+              label={label}
+              href={`/labels/${encodeURIComponent(label.slug)}`}
+            />
           ))}
         </div>
       )}

@@ -4,8 +4,9 @@ import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { X, Radio, Tv2, BarChart2, Tag, LayoutDashboard, Search, LogIn } from "lucide-react";
+import { X, Radio, Tv2, BarChart2, Tag, LayoutDashboard, Search, LogIn, CircleHelp } from "lucide-react";
 import PublicThemeToggle from "./PublicThemeToggle";
+import { useHelpAssistantStore } from "@/lib/store/helpAssistantStore";
 
 const PUBLIC_LOGO_SRC = "/Logo%20ISO.png";
 
@@ -22,7 +23,12 @@ interface HamburgerMenuProps {
 }
 
 export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
+  const openAssistant = useHelpAssistantStore((s) => s.openAssistant);
   const pathname = usePathname();
+  const loginHref =
+    pathname === "/login"
+      ? "/login"
+      : `/login?next=${encodeURIComponent(pathname || "/")}`;
 
   // Cerrar con Escape
   useEffect(() => {
@@ -119,9 +125,23 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
           })}
         </nav>
 
+        <div className="border-t border-[var(--color-border)] px-3 py-2">
+          <button
+            type="button"
+            onClick={() => {
+              openAssistant();
+              onClose();
+            }}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-text-secondary transition-colors hover:bg-[var(--color-border)] hover:text-text-primary"
+          >
+            <CircleHelp size={16} aria-hidden />
+            Help & support
+          </button>
+        </div>
+
         <div className="border-t border-[var(--color-border)] px-3 py-3">
           <Link
-            href="/login"
+            href={loginHref}
             onClick={onClose}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors w-full
               ${pathname === "/login"

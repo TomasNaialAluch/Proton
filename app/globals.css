@@ -39,3 +39,68 @@ body {
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
+
+/* ── /login Sign in: animated green ring so prototype testers spot “Continue” ── */
+@keyframes login-prototype-border-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.login-prototype-cta-ring {
+  border-radius: 0.75rem;
+  padding: 3px;
+  background: linear-gradient(
+    125deg,
+    #15803d,
+    #22c55e,
+    #4ade80,
+    #86efac,
+    #fbbf24,
+    var(--color-accent),
+    #c2410c,
+    #15803d
+  );
+  background-size: 400% 400%;
+  animation: login-prototype-border-flow 2.6s ease infinite;
+}
+
+.login-prototype-cta-btn {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  border-radius: calc(0.75rem - 3px);
+  background-color: var(--color-accent);
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #fff;
+  text-align: center;
+  transition: filter 0.2s ease, transform 0.15s ease;
+}
+
+.login-prototype-cta-btn:hover {
+  filter: brightness(1.06);
+}
+
+.login-prototype-cta-btn:active {
+  transform: scale(0.99);
+}
+
+.login-prototype-cta-btn-sub {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgb(220 252 231 / 0.95);
+}
