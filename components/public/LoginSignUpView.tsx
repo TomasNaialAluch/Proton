@@ -1,0 +1,191 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+
+type Tab = "signin" | "signup";
+
+/**
+ * Prototype auth page: single URL (`/login`) with tabs (see `docs/README-navbar-ux-analysis.md` §8.7).
+ * No backend integration.
+ */
+export default function LoginSignUpView() {
+  const [tab, setTab] = useState<Tab>("signin");
+
+  return (
+    <div className="max-w-md mx-auto px-4 md:px-6 py-10 flex flex-col gap-6">
+      <Link
+        href="/"
+        className="inline-flex items-center gap-2 text-sm font-medium w-fit transition-colors
+          text-text-secondary hover:text-text-primary"
+      >
+        <ArrowLeft size={16} aria-hidden />
+        Back to home
+      </Link>
+
+      <div>
+        <h1
+          className="text-2xl md:text-3xl font-bold italic"
+          style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-display)" }}
+        >
+          Account
+        </h1>
+        <p className="text-sm mt-1" style={{ color: "var(--color-text-secondary)" }}>
+          Redesign prototype: sign-in and registration are not connected to a server. Pick a tab to
+          preview the flow.
+        </p>
+      </div>
+
+      <div
+        role="tablist"
+        aria-label="Account access type"
+        className="flex rounded-xl border p-1 gap-1"
+        style={{ borderColor: "var(--color-border)", background: "var(--color-surface)" }}
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === "signin"}
+          id="tab-signin"
+          aria-controls="panel-signin"
+          className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+            tab === "signin"
+              ? "text-white shadow-sm"
+              : "text-text-secondary hover:text-text-primary"
+          }`}
+          style={
+            tab === "signin"
+              ? { background: "var(--color-accent)" }
+              : { background: "transparent" }
+          }
+          onClick={() => setTab("signin")}
+        >
+          Sign in
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === "signup"}
+          id="tab-signup"
+          aria-controls="panel-signup"
+          className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+            tab === "signup"
+              ? "text-white shadow-sm"
+              : "text-text-secondary hover:text-text-primary"
+          }`}
+          style={
+            tab === "signup"
+              ? { background: "var(--color-accent)" }
+              : { background: "transparent" }
+          }
+          onClick={() => setTab("signup")}
+        >
+          Create account
+        </button>
+      </div>
+
+      <div
+        role="tabpanel"
+        id="panel-signin"
+        aria-labelledby="tab-signin"
+        hidden={tab !== "signin"}
+        className="flex flex-col gap-4"
+      >
+        <form
+          className="flex flex-col gap-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+          }}
+        >
+          <label className="flex flex-col gap-1.5 text-sm">
+            <span style={{ color: "var(--color-text-secondary)" }}>Email</span>
+            <input
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              className="rounded-lg border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              style={{
+                borderColor: "var(--color-border)",
+                background: "var(--color-background)",
+                color: "var(--color-text-primary)",
+              }}
+            />
+          </label>
+          <label className="flex flex-col gap-1.5 text-sm">
+            <span style={{ color: "var(--color-text-secondary)" }}>Password</span>
+            <input
+              type="password"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              className="rounded-lg border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              style={{
+                borderColor: "var(--color-border)",
+                background: "var(--color-background)",
+                color: "var(--color-text-primary)",
+              }}
+            />
+          </label>
+          <button
+            type="submit"
+            className="w-full py-3 rounded-lg text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            style={{ background: "var(--color-accent)" }}
+          >
+            Continue (prototype)
+          </button>
+        </form>
+      </div>
+
+      <div
+        role="tabpanel"
+        id="panel-signup"
+        aria-labelledby="tab-signup"
+        hidden={tab !== "signup"}
+        className="flex flex-col gap-4"
+      >
+        <form
+          className="flex flex-col gap-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+          }}
+        >
+          <label className="flex flex-col gap-1.5 text-sm">
+            <span style={{ color: "var(--color-text-secondary)" }}>Email</span>
+            <input
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              className="rounded-lg border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              style={{
+                borderColor: "var(--color-border)",
+                background: "var(--color-background)",
+                color: "var(--color-text-primary)",
+              }}
+            />
+          </label>
+          <label className="flex flex-col gap-1.5 text-sm">
+            <span style={{ color: "var(--color-text-secondary)" }}>Password</span>
+            <input
+              type="password"
+              autoComplete="new-password"
+              placeholder="At least 8 characters"
+              className="rounded-lg border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              style={{
+                borderColor: "var(--color-border)",
+                background: "var(--color-background)",
+                color: "var(--color-text-primary)",
+              }}
+            />
+          </label>
+          <button
+            type="submit"
+            className="w-full py-3 rounded-lg text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            style={{ background: "var(--color-accent)" }}
+          >
+            Create account (prototype)
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}

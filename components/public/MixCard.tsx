@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { Play } from "lucide-react";
+import { startPlayback } from "@/lib/player/startPlayback";
 import { usePlayerStore } from "@/lib/store/playerStore";
 import type { ProtonMix } from "@/types/mix";
 
@@ -13,26 +13,31 @@ interface MixCardProps {
 }
 
 export default function MixCard({ mix, size = "md" }: MixCardProps) {
-  const play = usePlayerStore((s) => s.play);
   const currentMix = usePlayerStore((s) => s.currentMix);
   const isPlaying = usePlayerStore((s) => s.isPlaying);
 
   const isActive = currentMix?.id === mix.id;
-  const artworkSrc = mix.artist.image?.url ?? MIX_ARTWORK_FALLBACK;
+  const artworkSrc = (mix.artist.image?.url ?? MIX_ARTWORK_FALLBACK).trim();
 
   const titleSize = size === "sm" ? "text-xs" : "text-sm";
   const metaSize = size === "sm" ? "text-[11px]" : "text-xs";
+  const artworkClass =
+    "object-cover transition-transform duration-300 group-hover:scale-105";
 
   return (
-    <article className="flex flex-col gap-2 group cursor-pointer" onClick={() => play(mix)}>
-      {/* Artwork */}
+    <article
+      className="flex flex-col gap-2 group cursor-pointer"
+      onClick={() => startPlayback(mix)}
+    >
+      {/* Artwork: siempre <img> — la API usa muchos hosts GCS/CDN y next/image exige allowlist */}
       <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-white/5">
-        <Image
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src={artworkSrc}
           alt={mix.title}
-          fill
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          className={`absolute inset-0 h-full w-full ${artworkClass}`}
+          loading="lazy"
+          decoding="async"
         />
 
         {/* Play overlay */}

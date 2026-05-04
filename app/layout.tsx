@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import GlobalPlayer from "@/components/player/GlobalPlayer";
 import ThemeProvider from "@/components/providers/ThemeProvider";
 import QueryProvider from "@/components/providers/QueryProvider";
+import DevInspectorNoiseFilter from "@/components/providers/DevInspectorNoiseFilter";
 import "./globals.css";
 
 const inter = Inter({
@@ -46,8 +48,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
+        <DevInspectorNoiseFilter />
         <QueryProvider>
-          <ThemeProvider>{children}</ThemeProvider>
+          <ThemeProvider>
+            {children}
+            <GlobalPlayer />
+          </ThemeProvider>
         </QueryProvider>
       </body>
     </html>

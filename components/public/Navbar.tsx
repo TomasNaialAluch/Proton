@@ -4,21 +4,24 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Menu, LayoutDashboard } from "lucide-react";
+import { Menu, LayoutDashboard, LogIn } from "lucide-react";
 import HamburgerMenu from "./HamburgerMenu";
+import NavbarSearch from "./NavbarSearch";
+import PublicThemeToggle from "./PublicThemeToggle";
 
 const PUBLIC_LOGO_SRC = "/Logo%20ISO.png";
 
 const NAV_LINKS = [
   { label: "Radio", href: "/" },
   { label: "Shows", href: "/shows" },
-  { label: "Charts", href: "/charts" },
+  { label: "Charts", href: "/charts/progressive" },
   { label: "Labels", href: "/labels" },
 ];
 
 export default function PublicNavbar() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const loginActive = pathname === "/login";
 
   return (
     <>
@@ -61,34 +64,54 @@ export default function PublicNavbar() {
           </span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden lg:flex items-center gap-1 ml-8 flex-1">
-          {NAV_LINKS.map(({ label, href }) => {
-            const active = pathname === href;
-            return (
-              <Link
-                key={href}
-                href={href}
-                className="px-4 py-1.5 rounded text-sm font-medium transition-colors"
-                style={{
-                  color: active ? "var(--color-accent)" : "var(--color-text-secondary)",
-                  background: active ? "rgba(230,126,34,0.1)" : "transparent",
-                }}
-              >
-                {label}
-              </Link>
-            );
-          })}
-        </nav>
+        {/* Desktop: nav (en móvil el tema solo está en el menú hamburguesa) */}
+        <div className="hidden lg:flex items-center gap-4 flex-1 min-w-0 ml-8">
+          <nav className="flex items-center gap-1 shrink-0">
+            {NAV_LINKS.map(({ label, href }) => {
+              const active = pathname === href;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className="px-4 py-1.5 rounded text-sm font-medium transition-colors"
+                  style={{
+                    color: active ? "var(--color-accent)" : "var(--color-text-secondary)",
+                    background: active ? "rgba(230,126,34,0.1)" : "transparent",
+                  }}
+                >
+                  {label}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
 
-        {/* Desktop: For Artists CTA */}
-        <Link
-          href="/dashboard"
-          className="hidden lg:flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-semibold text-white bg-accent transition-opacity hover:opacity-90 ml-auto"
-        >
-          <LayoutDashboard size={15} />
-          For Artists
-        </Link>
+        {/* Desktop: búsqueda + tema + Sign in (§8.7) + For Artists */}
+        <div className="hidden lg:flex items-center gap-3 ml-auto shrink-0">
+          <NavbarSearch />
+          <PublicThemeToggle variant="compact" />
+          <Link
+            href="/login"
+            aria-current={loginActive ? "page" : undefined}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold shrink-0 border transition-colors
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]
+              ${
+                loginActive
+                  ? "border-accent/40 text-accent bg-accent/10"
+                  : "border-[var(--color-border)] text-text-primary hover:bg-[var(--color-border)] hover:text-text-primary"
+              }`}
+          >
+            <LogIn size={15} strokeWidth={2} aria-hidden />
+            Sign in
+          </Link>
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-semibold text-white bg-accent transition-opacity hover:opacity-90"
+          >
+            <LayoutDashboard size={15} />
+            For Artists
+          </Link>
+        </div>
       </header>
 
       <HamburgerMenu open={menuOpen} onClose={() => setMenuOpen(false)} />

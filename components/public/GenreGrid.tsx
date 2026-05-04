@@ -2,14 +2,14 @@ import Link from "next/link";
 
 const GENRES = [
   { label: "All", href: "/shows", color: "#E67E22" },
-  { label: "Breaks", href: "/shows?genre=breaks", color: "#9B59B6" },
-  { label: "Downtempo", href: "/shows?genre=downtempo", color: "#2980B9" },
-  { label: "Deep House", href: "/shows?genre=deep-house", color: "#27AE60" },
-  { label: "Electro", href: "/shows?genre=electro", color: "#2471A3" },
-  { label: "Electronica", href: "/shows?genre=electronica", color: "#1ABC9C" },
-  { label: "Progressive", href: "/shows?genre=progressive", color: "#C0392B" },
-  { label: "Tech House", href: "/shows?genre=tech-house", color: "#922B21" },
-  { label: "Techno", href: "/shows?genre=techno", color: "#8E44AD" },
+  { label: "Breaks", href: "/shows/breaks", color: "#9B59B6" },
+  { label: "Downtempo", href: "/shows/downtempo", color: "#2980B9" },
+  { label: "Deep House", href: "/shows/deep-house", color: "#27AE60" },
+  { label: "Electro", href: "/shows/electro", color: "#2471A3" },
+  { label: "Electronica", href: "/shows/electronica", color: "#1ABC9C" },
+  { label: "Progressive", href: "/shows/progressive", color: "#C0392B" },
+  { label: "Tech House", href: "/shows/tech-house", color: "#922B21" },
+  { label: "Techno", href: "/shows/techno", color: "#8E44AD" },
 ];
 
 export default function GenreGrid() {

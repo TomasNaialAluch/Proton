@@ -16,6 +16,7 @@ import {
   Moon,
   Sun,
   ExternalLink,
+  ChevronRight,
 } from "lucide-react";
 import { useThemeStore } from "@/lib/store/themeStore";
 import Link from "next/link";
@@ -66,14 +67,14 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
       {/* Backdrop */}
       <div
         onClick={onClose}
-        className={`fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${
+        className={`fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${
           open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
       />
 
       {/* Drawer */}
       <aside
-        className={`fixed top-0 left-0 z-50 h-full w-72 flex flex-col
+        className={`fixed top-0 left-0 z-[70] h-full w-72 flex flex-col
           bg-surface border-r border-[var(--color-border)]
           shadow-2xl transition-transform duration-300 ease-in-out
           ${open ? "translate-x-0" : "-translate-x-full"}`}
@@ -147,8 +148,10 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
                       )}
                     </div>
                     <span className="min-w-0 flex-1 truncate text-left">{label}</span>
-                    {leavesDashboard && (
+                    {leavesDashboard ? (
                       <ExternalLink size={12} className="shrink-0 opacity-40" aria-hidden />
+                    ) : (
+                      <ChevronRight size={12} className="shrink-0 opacity-40" aria-hidden />
                     )}
                   </Link>
                 </li>

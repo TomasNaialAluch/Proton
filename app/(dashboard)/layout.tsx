@@ -1,5 +1,6 @@
 import AppSidebar from "@/components/dashboard/AppSidebar";
 import BottomNav from "@/components/dashboard/BottomNav";
+import DashboardMainArea from "@/components/dashboard/DashboardMainArea";
 import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
 
 export default function DashboardLayout({
@@ -11,9 +12,9 @@ export default function DashboardLayout({
     <div className="min-h-screen bg-background lg:flex">
       <AppSidebar />
 
-      <div className="flex-1 min-w-0 flex flex-col min-h-screen">
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
         <DashboardNavbar />
-        {children}
+        <DashboardMainArea>{children}</DashboardMainArea>
       </div>
 
       <BottomNav />

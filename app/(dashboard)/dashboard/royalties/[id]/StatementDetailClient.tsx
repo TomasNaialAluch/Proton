@@ -1,8 +1,7 @@
 "use client";
 
-import { use } from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, usePathname } from "next/navigation";
 import {
   Download, ChevronRight, Music2,
   Store, DollarSign, AlertTriangle, FileText,
@@ -25,13 +24,16 @@ function fmtMoney(n: number) {
   return `$${fmt(n)}`;
 }
 
-export default function StatementDetailPage({
-  params,
-}: {
-  params: Promise<{ qid: string }>;
-}) {
-  const { qid: qidStr } = use(params);
+function statementIdFromPath(pathname: string): string {
+  const m = pathname.match(/\/dashboard\/royalties\/([^/]+)\/?$/);
+  return m?.[1] ?? "";
+}
+
+export default function StatementDetailClient() {
+  const pathname = usePathname();
+  const qidStr = statementIdFromPath(pathname);
   const qid = parseInt(qidStr, 10);
+  if (!qidStr || Number.isNaN(qid)) notFound();
 
   const royalty  = mockRoyalties.find((r) => r.qid === qid);
   const statement = mockStatements[qid];

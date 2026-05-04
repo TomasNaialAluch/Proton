@@ -1,5 +1,5 @@
+import { PublicMain } from "@/components/player/global-player";
 import PublicNavbar from "@/components/public/Navbar";
-import GlobalPlayer from "@/components/player/GlobalPlayer";
 
 export default function PublicLayout({
   children,
@@ -9,8 +9,7 @@ export default function PublicLayout({
   return (
     <div className="min-h-screen" style={{ background: "var(--color-background)" }}>
       <PublicNavbar />
-      <main className="pb-20">{children}</main>
-      <GlobalPlayer />
+      <PublicMain>{children}</PublicMain>
     </div>
   );
 }

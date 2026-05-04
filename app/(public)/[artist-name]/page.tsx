@@ -1,13 +1,21 @@
-interface ArtistPageProps {
-  params: Promise<{ "artist-name": string }>;
-}
+"use client";
 
-export default async function ArtistPage({ params }: ArtistPageProps) {
-  const { "artist-name": artistName } = await params;
+import { Suspense } from "react";
+import ArtistProfileView from "./ArtistProfileView";
 
+/** Página cliente: el segmento dinámico no expone props `params` en un Server Component. */
+export default function ArtistPage() {
   return (
-    <div>
-      {/* PERFIL PÚBLICO del artista: {artistName} — Bio + Discografía */}
-    </div>
+    <Suspense
+      fallback={
+        <div className="max-w-4xl mx-auto px-4 py-10">
+          <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+            Loading…
+          </p>
+        </div>
+      }
+    >
+      <ArtistProfileView />
+    </Suspense>
   );
 }

@@ -1,0 +1,33 @@
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+/** Compat: `?genre=` → path; `/charts` → default genre (sin tocar `searchParams` en páginas). */
+export function middleware(request: NextRequest) {
+  const url = request.nextUrl.clone();
+  const { pathname } = url;
+  const genre = url.searchParams.get("genre");
+
+  if (pathname === "/charts") {
+    const target =
+      genre && genre.length > 0
+        ? `/charts/${encodeURIComponent(genre)}`
+        : "/charts/progressive";
+    url.pathname = target;
+    url.searchParams.delete("genre");
+    if (url.search === "" || url.search === "?") url.search = "";
+    return NextResponse.redirect(url);
+  }
+
+  if (pathname === "/shows" && genre && genre.length > 0) {
+    url.pathname = `/shows/${encodeURIComponent(genre)}`;
+    url.searchParams.delete("genre");
+    if (url.search === "" || url.search === "?") url.search = "";
+    return NextResponse.redirect(url);
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ["/charts", "/shows"],
+};

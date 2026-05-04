@@ -7,10 +7,11 @@ import { usePathname } from "next/navigation";
 import {
   User, TrendingUp, DollarSign, FileText, Settings,
   Radio, Tag, Disc3, Link as LinkIcon, BarChart3,
-  Bell, PanelLeftClose, PanelLeftOpen, ExternalLink,
+  Bell, PanelLeftClose, PanelLeftOpen, ExternalLink, ChevronRight,
   Sun, Moon,
 } from "lucide-react";
 import { mockArtist } from "@/lib/mock/artist";
+import { useDashboardSidebarStore } from "@/lib/store/dashboardSidebarStore";
 import { useThemeStore } from "@/lib/store/themeStore";
 import NotificationsPanel from "./NotificationsPanel";
 
@@ -45,30 +46,38 @@ const QUICK_ACCESS_PUBLIC_HINT =
   "Opens the public Proton Radio site — you will leave the artist dashboard.";
 
 const quickLinks = [
-  { label: "Shows",         href: "/shows",                                     icon: Radio,    dot: "#E67E22", leavesDashboard: true },
-  { label: "Labels",        href: "/labels",                                    icon: Tag,      dot: "#1ABC9C", leavesDashboard: true },
-  { label: "DJ Mixes",      href: "/shows",                                     icon: Disc3,      dot: "#9B59B6", leavesDashboard: true },
-  { label: "Charts",        href: "/dashboard/performance",                     icon: BarChart3,  dot: "#3498DB", leavesDashboard: false },
-  { label: "Release Links", href: "/dashboard/settings/account/notifications", icon: LinkIcon,   dot: null,       leavesDashboard: false },
+  { label: "Shows",         href: "/shows",                                     icon: Radio,    dot: "#E67E22", leavesDashboard: true,  externalGlyph: false },
+  { label: "Labels",        href: "/labels",                                    icon: Tag,      dot: "#1ABC9C", leavesDashboard: true,  externalGlyph: false },
+  { label: "DJ Mixes",      href: "/shows",                                     icon: Disc3,      dot: "#9B59B6", leavesDashboard: true,  externalGlyph: false },
+  {
+    label: "Charts",
+    href: "/dashboard/performance",
+    icon: BarChart3,
+    dot: "#3498DB",
+    leavesDashboard: false,
+    /** Icono tipo “external” en la fila (no implica salir del dashboard). */
+    externalGlyph: true,
+  },
+  { label: "Release Links", href: "/dashboard/settings/account/notifications", icon: LinkIcon,   dot: null,       leavesDashboard: false, externalGlyph: false },
 ] as const;
 
 export default function AppSidebar() {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
+  const collapsed = useDashboardSidebarStore((s) => s.collapsed);
+  const setCollapsedGlobal = useDashboardSidebarStore((s) => s.setCollapsed);
   const [notifOpen, setNotifOpen] = useState(false);
   const { theme, toggle: toggleTheme } = useThemeStore();
   const isDark = theme === "dark";
 
   useEffect(() => {
     const stored = localStorage.getItem("proton-sidebar-collapsed");
-    if (stored === "true") setCollapsed(true);
-  }, []);
+    setCollapsedGlobal(stored === "true");
+  }, [setCollapsedGlobal]);
 
   const toggleCollapsed = () => {
-    setCollapsed((prev) => {
-      localStorage.setItem("proton-sidebar-collapsed", String(!prev));
-      return !prev;
-    });
+    const next = !collapsed;
+    setCollapsedGlobal(next);
+    localStorage.setItem("proton-sidebar-collapsed", String(next));
   };
 
   return (
@@ -153,8 +162,18 @@ export default function AppSidebar() {
             </p>
           )}
           <ul className="space-y-0.5">
-            {quickLinks.map(({ label, href, icon: Icon, dot, leavesDashboard }) => {
+            {quickLinks.map(
+              ({
+                label,
+                href,
+                icon: Icon,
+                dot,
+                leavesDashboard,
+                externalGlyph,
+              }) => {
               const active = linkIsActive(pathname, href);
+              const trailingExternal =
+                leavesDashboard || Boolean(externalGlyph);
               const title = leavesDashboard
                 ? QUICK_ACCESS_PUBLIC_HINT
                 : collapsed
@@ -186,8 +205,11 @@ export default function AppSidebar() {
                   {!collapsed && (
                     <span className="min-w-0 flex-1 truncate text-left">{label}</span>
                   )}
-                  {!collapsed && leavesDashboard && (
+                  {!collapsed && trailingExternal && (
                     <ExternalLink size={12} className="shrink-0 opacity-40" aria-hidden />
+                  )}
+                  {!collapsed && !trailingExternal && (
+                    <ChevronRight size={12} className="shrink-0 opacity-40" aria-hidden />
                   )}
                 </Link>
               </li>
@@ -282,10 +304,9 @@ export default function AppSidebar() {
 
         <button
           onClick={toggleCollapsed}
-          className={`flex items-center justify-center rounded-lg
+          className="flex w-full items-center justify-center rounded-lg py-2.5
             text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]
-            transition-colors
-            ${collapsed ? "w-full py-2.5" : "size-8"}`}
+            transition-colors"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           title={collapsed ? "Expand" : "Collapse"}
         >

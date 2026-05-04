@@ -1,6 +1,7 @@
 "use client";
 
 import { Play } from "lucide-react";
+import { startPlayback } from "@/lib/player/startPlayback";
 import { usePlayerStore } from "@/lib/store/playerStore";
 import type { ProtonMix } from "@/types/mix";
 
@@ -9,7 +10,7 @@ interface NowPlayingHeroProps {
 }
 
 export default function NowPlayingHero({ mix }: NowPlayingHeroProps) {
-  const { play, isPlaying, currentMix } = usePlayerStore();
+  const { isPlaying, currentMix } = usePlayerStore();
 
   const isActive = currentMix?.id === mix.id && isPlaying;
   const artwork = mix.artist.image?.url;
@@ -63,7 +64,7 @@ export default function NowPlayingHero({ mix }: NowPlayingHeroProps) {
 
           {/* Play button */}
           <button
-            onClick={() => play(mix)}
+            onClick={() => startPlayback(mix)}
             className="inline-flex items-center gap-3 w-fit px-6 py-3 rounded-full text-sm font-semibold text-white transition-opacity hover:opacity-90"
             style={{ background: "var(--color-accent)" }}
           >

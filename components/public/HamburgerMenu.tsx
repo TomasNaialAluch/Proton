@@ -4,14 +4,15 @@ import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { X, Radio, Tv2, BarChart2, Tag, LayoutDashboard } from "lucide-react";
+import { X, Radio, Tv2, BarChart2, Tag, LayoutDashboard, Search, LogIn } from "lucide-react";
+import PublicThemeToggle from "./PublicThemeToggle";
 
 const PUBLIC_LOGO_SRC = "/Logo%20ISO.png";
 
 const NAV_LINKS = [
   { label: "Radio", href: "/", icon: Radio },
   { label: "Shows", href: "/shows", icon: Tv2 },
-  { label: "Charts", href: "/charts", icon: BarChart2 },
+  { label: "Charts", href: "/charts/progressive", icon: BarChart2 },
   { label: "Labels", href: "/labels", icon: Tag },
 ];
 
@@ -43,14 +44,14 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
       {/* Backdrop */}
       <div
         onClick={onClose}
-        className={`fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${
+        className={`fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${
           open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
       />
 
       {/* Drawer */}
       <aside
-        className={`fixed top-0 left-0 z-50 h-full w-72 flex flex-col
+        className={`fixed top-0 left-0 z-[70] h-full w-72 flex flex-col
           bg-surface border-r border-[var(--color-border)] shadow-2xl
           transition-transform duration-300 ease-in-out
           ${open ? "translate-x-0" : "-translate-x-full"}`}
@@ -88,6 +89,17 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
 
         {/* Nav links */}
         <nav className="flex-1 overflow-y-auto flex flex-col gap-0.5 px-3 py-4">
+          <Link
+            href="/search"
+            onClick={onClose}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+              ${pathname === "/search"
+                ? "text-accent bg-accent/10"
+                : "text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]"}`}
+          >
+            <Search size={16} className={pathname === "/search" ? "text-accent" : "text-text-secondary"} />
+            Búsqueda
+          </Link>
           {NAV_LINKS.map(({ label, href, icon: Icon }) => {
             const active = pathname === href;
             return (
@@ -106,6 +118,25 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
             );
           })}
         </nav>
+
+        <div className="border-t border-[var(--color-border)] px-3 py-3">
+          <Link
+            href="/login"
+            onClick={onClose}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors w-full
+              ${pathname === "/login"
+                ? "text-accent bg-accent/10 border border-accent/20"
+                : "text-text-primary border border-[var(--color-border)] hover:bg-[var(--color-border)]"}`}
+          >
+            <LogIn size={16} aria-hidden />
+            Sign in
+          </Link>
+        </div>
+
+        {/* Dark mode (alineado con dashboard) */}
+        <div className="border-t border-[var(--color-border)] px-1 py-2">
+          <PublicThemeToggle variant="labeled" />
+        </div>
 
         {/* For Artists CTA */}
         <div className="px-4 py-5 border-t border-[var(--color-border)]">
