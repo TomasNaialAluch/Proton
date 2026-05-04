@@ -104,9 +104,9 @@ export default function AppSidebar() {
   const setCollapsedGlobal = useDashboardSidebarStore((s) => s.setCollapsed);
   const [notifOpen, setNotifOpen] = useState(false);
   /** Expanded sidebar only: hide Platform links to reduce visual noise. */
-  const [platformSectionOpen, setPlatformSectionOpen] = useState(true);
+  const [platformSectionOpen, setPlatformSectionOpen] = useState(false);
   /** Expanded sidebar only: hide public-site shortcuts. */
-  const [publicSiteSectionOpen, setPublicSiteSectionOpen] = useState(true);
+  const [publicSiteSectionOpen, setPublicSiteSectionOpen] = useState(false);
   const { theme, toggle: toggleTheme } = useThemeStore();
   const isDark = theme === "dark";
   const openAssistant = useHelpAssistantStore((s) => s.openAssistant);
@@ -118,13 +118,11 @@ export default function AppSidebar() {
 
   useEffect(() => {
     const stored = localStorage.getItem("proton-sidebar-platform-open");
-    if (stored === "false") setPlatformSectionOpen(false);
     if (stored === "true") setPlatformSectionOpen(true);
   }, []);
 
   useEffect(() => {
     const stored = localStorage.getItem("proton-sidebar-public-site-open");
-    if (stored === "false") setPublicSiteSectionOpen(false);
     if (stored === "true") setPublicSiteSectionOpen(true);
   }, []);
 
@@ -363,6 +361,21 @@ export default function AppSidebar() {
                 </li>
               );
             })}
+            <li key="help-support">
+              <button
+                type="button"
+                onClick={openAssistant}
+                title={collapsed ? "Help & support" : undefined}
+                aria-label="Help & support"
+                className={`flex w-full items-center rounded-lg text-sm font-medium text-text-secondary transition-colors hover:bg-[var(--color-border)] hover:text-text-primary
+                  ${collapsed ? "justify-center px-0 py-3" : "justify-start gap-3 px-3 py-2.5"}`}
+              >
+                <CircleHelp size={16} strokeWidth={1.75} className="shrink-0" />
+                {!collapsed && (
+                  <span className="min-w-0 flex-1 truncate text-left">Help & support</span>
+                )}
+              </button>
+            </li>
           </ul>
         </div>
 
@@ -506,18 +519,6 @@ export default function AppSidebar() {
             </button>
           </div>
         )}
-
-        <button
-          type="button"
-          onClick={openAssistant}
-          title="Help & support"
-          aria-label="Help & support"
-          className={`mb-2 flex w-full items-center rounded-lg py-2.5 text-sm font-medium text-text-secondary transition-colors hover:bg-[var(--color-border)] hover:text-text-primary
-            ${collapsed ? "justify-center px-0" : "justify-start gap-3 px-3"}`}
-        >
-          <CircleHelp size={18} strokeWidth={1.75} className="shrink-0" />
-          {!collapsed && <span>Help & support</span>}
-        </button>
 
         <button
           onClick={toggleCollapsed}

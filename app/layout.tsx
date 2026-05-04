@@ -4,6 +4,7 @@ import GlobalPlayer from "@/components/player/GlobalPlayer";
 import SupportAssistantPanel from "@/components/help/SupportAssistantPanel";
 import ThemeProvider from "@/components/providers/ThemeProvider";
 import QueryProvider from "@/components/providers/QueryProvider";
+import FirebaseInit from "@/components/providers/FirebaseInit";
 import DevInspectorNoiseFilter from "@/components/providers/DevInspectorNoiseFilter";
 import "./globals.css";
 
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <DevInspectorNoiseFilter />
         <QueryProvider>
           <ThemeProvider>
+            <FirebaseInit />
             {children}
             <GlobalPlayer />
             <SupportAssistantPanel />

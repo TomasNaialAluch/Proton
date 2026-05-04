@@ -91,15 +91,13 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
   const urlTab = searchParams.get("tab");
   const { theme, toggle } = useThemeStore();
   const isDark = theme === "dark";
-  const [platformSectionOpen, setPlatformSectionOpen] = useState(true);
-  const [publicSiteSectionOpen, setPublicSiteSectionOpen] = useState(true);
+  const [platformSectionOpen, setPlatformSectionOpen] = useState(false);
+  const [publicSiteSectionOpen, setPublicSiteSectionOpen] = useState(false);
 
   useEffect(() => {
     const p = localStorage.getItem("proton-sidebar-platform-open");
-    if (p === "false") setPlatformSectionOpen(false);
     if (p === "true") setPlatformSectionOpen(true);
     const s = localStorage.getItem("proton-sidebar-public-site-open");
-    if (s === "false") setPublicSiteSectionOpen(false);
     if (s === "true") setPublicSiteSectionOpen(true);
   }, []);
 
@@ -295,6 +293,19 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
                   </li>
                 );
               })}
+              <li key="help-support">
+                <button
+                  type="button"
+                  onClick={() => {
+                    openAssistant();
+                    onClose();
+                  }}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary transition-colors hover:bg-[var(--color-border)] hover:text-text-primary"
+                >
+                  <CircleHelp size={16} aria-hidden className="shrink-0" />
+                  Help & support
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -347,20 +358,6 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
             </ul>
           </div>
         </nav>
-
-        <div className="border-t border-[var(--color-border)] px-4 py-3">
-          <button
-            type="button"
-            onClick={() => {
-              openAssistant();
-              onClose();
-            }}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary transition-colors hover:bg-[var(--color-border)] hover:text-text-primary"
-          >
-            <CircleHelp size={18} aria-hidden />
-            Help & support
-          </button>
-        </div>
 
         {/* ── Back to public site (same hierarchy as “For Artists” on the radio) ── */}
         <div className="px-4 pt-4 border-t border-[var(--color-border)]">
