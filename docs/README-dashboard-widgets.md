@@ -1,57 +1,57 @@
 # Dashboard widgets (Proton)
 
-Referencia de los **widgets del tablero del artista**: catálogo en código, datos mock para los que aún no tienen API, y dónde extender.
+Reference for the **artist dashboard widgets**: the in-code catalog, mock data for widgets that don’t have an API yet, and where to extend.
 
-## Dónde vive en el repo
+## Where it lives in the repo
 
-| Pieza | Archivo |
+| Piece | File |
 |--------|---------|
-| Orden por defecto, tipo `WidgetId`, persistencia | `lib/store/dashboardStore.ts` |
-| Datos mock compartidos (nuevos widgets) | `lib/mock/dashboardExtendedWidgets.ts` |
-| Registro id → componente, meta del modal | `components/dashboard/widgets/` (`registry.tsx`, `meta.ts`) |
-| Orquestación: hero, DnD, modal, grilla | `components/dashboard/DashboardContent.tsx` |
+| Default order, `WidgetId` type, persistence | `lib/store/dashboardStore.ts` |
+| Shared mock data (new widgets) | `lib/mock/dashboardExtendedWidgets.ts` |
+| id → component registry, modal meta | `components/dashboard/widgets/` (`registry.tsx`, `meta.ts`) |
+| Orchestration: hero, DnD, modal, grid | `components/dashboard/DashboardContent.tsx` |
 
-Para añadir un widget nuevo hay que tocar al menos: `DEFAULT_WIDGET_ORDER` en el store, `WIDGET_META` y `DASHBOARD_WIDGETS` en `components/dashboard/widgets/`, y el nuevo archivo de widget en esa misma carpeta (más mocks si aplica).
+To add a new widget you must update at least: `DEFAULT_WIDGET_ORDER` in the store, `WIDGET_META` and `DASHBOARD_WIDGETS` in `components/dashboard/widgets/`, plus the new widget file in that same folder (and mocks if needed).
 
-El store usa **`merge` en persist**: si el usuario tenía guardado un orden con menos widgets, al cargar se **añaden los ids faltantes** al final sin perder el orden previo de los que ya existían. Los ids **nuevos respecto a lo guardado** quedan **ocultos por defecto**, salvo los cuatro originales (`DEFAULT_VISIBLE_WIDGET_IDS` en el store).
+The store uses **`merge` in persist**: if the user had a saved order with fewer widgets, on load it **appends missing ids** at the end without losing the prior order. Widget ids that are **new compared to what was saved** are **hidden by default**, except for the four original ones (`DEFAULT_VISIBLE_WIDGET_IDS` in the store).
 
-**Primera visita y Reset:** solo están **visibles** los cuatro widgets originales (Streams, Latest Tracks, Streams by Release, Royalties); el resto figura en **Manage widgets** y se puede activar cuando quieras. Si ya tenías en `localStorage` los 18 visibles de una sesión anterior, **Customize → Reset** vuelve a ese comportamiento.
+**First visit and Reset:** only the four original widgets are **visible** (Streams, Latest Tracks, Streams by Release, Royalties); the rest show up in **Manage widgets** and can be enabled anytime. If you previously had all 18 visible in `localStorage` from an earlier session, **Customize → Reset** returns to the “only the original four visible” behavior.
 
 ---
 
-## Widgets en el tablero (orden por defecto)
+## Widgets in the dashboard (default order)
 
-Todos aparecen en **Manage widgets**; el usuario puede ocultar, reordenar (drag) y restaurar. Los marcados **mock** usan datos de ejemplo hasta conectar backend.
+All widgets appear in **Manage widgets**; the user can hide, reorder (drag), and restore. Widgets marked **mock** use sample data until they’re connected to a backend.
 
-| ID (`WidgetId`) | Título (UI) | Descripción |
+| ID (`WidgetId`) | Title (UI) | Description |
 |-----------------|-------------|-------------|
-| `streams` | Streams | Evolución de streams (últimos 6 meses). |
-| `latest-tracks` | Latest Tracks | Temas más recientes. |
-| `streams-by-release` | Streams by Release | Comparación por lanzamiento. |
-| `royalties` | Royalties | Avance hacia el próximo pago. |
-| `listeners-growth` | Listeners | Oyentes / tendencia 7·28d · **mock** |
-| `top-territories` | Top territories | Ranking por país · **mock** |
-| `play-sources` | Play sources | Playlist vs perfil vs búsqueda · **mock** |
-| `rising-tracks` | Rising tracks | Temas con mayor crecimiento · **mock** |
-| `upcoming-releases` | Upcoming releases | Calendario singles / EP / álbum · **mock** |
-| `distribution-status` | Distribution | En revisión, en tiendas, rechazos · **mock** |
-| `catalog-codes` | Catalog codes | ISRC / UPC + hint del último track · **mock** |
-| `royalties-by-store` | Royalties by store | Desglose por DSP · **mock** |
-| `payout-history` | Payout history | Últimas liquidaciones · **mock** |
-| `pending-tasks` | Pending tasks | Arte, metadatos, contratos · **mock** |
-| `notifications-feed` | Notifications | Pagos, strikes, aprobaciones · **mock** |
+| `streams` | Streams | Streams over time (last 6 months). |
+| `latest-tracks` | Latest Tracks | Most recent tracks. |
+| `streams-by-release` | Streams by Release | Comparison by release. |
+| `royalties` | Royalties | Progress toward the next payout. |
+| `listeners-growth` | Listeners | Listeners / 7·28d trend · **mock** |
+| `top-territories` | Top territories | Country ranking · **mock** |
+| `play-sources` | Play sources | Playlist vs profile vs search · **mock** |
+| `rising-tracks` | Rising tracks | Fastest-growing tracks · **mock** |
+| `upcoming-releases` | Upcoming releases | Singles / EP / album calendar · **mock** |
+| `distribution-status` | Distribution | In review, in stores, rejections · **mock** |
+| `catalog-codes` | Catalog codes | ISRC / UPC + hint of the latest track · **mock** |
+| `royalties-by-store` | Royalties by store | Breakdown by DSP · **mock** |
+| `payout-history` | Payout history | Latest payouts · **mock** |
+| `pending-tasks` | Pending tasks | Artwork, metadata, contracts · **mock** |
+| `notifications-feed` | Notifications | Payments, strikes, approvals · **mock** |
 | `smart-links` | Smart links | Pre-saves / bio link · **mock** |
-| `social-overview` | Social | Posts y calendario · **mock** |
-| `audio-metadata` | Audio & metadata | LUFS y avisos de campos · **mock** |
+| `social-overview` | Social | Posts and calendar · **mock** |
+| `audio-metadata` | Audio & metadata | LUFS + field warnings · **mock** |
 
 ---
 
-## De README “ideas” a implementación
+## From README “ideas” to implementation
 
-Las secciones que antes estaban solo como ideas (**audiencia, catálogo, ingresos, tareas, promo, calidad**) tienen ahora un **widget mock** correspondiente en `components/dashboard/widgets/`, alineado con `docs/README-dashboard-widgets.md` histórico. Sustituir mocks por queries reales implica definir contratos de API y pasar datos vía `DashboardWidgetProps` (o props específicas por widget).
+Sections that used to exist only as ideas (**audience, catalog, revenue, tasks, promo, quality**) now have a corresponding **mock widget** in `components/dashboard/widgets/`, aligned with the historical `docs/README-dashboard-widgets.md`. Replacing mocks with real queries implies defining API contracts and passing data via `DashboardWidgetProps` (or widget-specific props).
 
 ---
 
-## Priorización sugerida (conectar a datos reales)
+## Suggested priority (connect to real data)
 
-Suele dar más valor primero: **top territorios**, **fuentes de escucha**, **próximos lanzamientos** y **royalties por tienda**, porque encajan con streams, releases y el widget de royalties ya existente.
+The highest value tends to come first from: **top territories**, **play sources**, **upcoming releases**, and **royalties by store**, because they fit naturally with streams, releases, and the existing royalties widget.

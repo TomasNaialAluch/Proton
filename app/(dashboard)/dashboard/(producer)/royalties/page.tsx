@@ -5,7 +5,7 @@ import {
   DollarSign, ChevronRight, Clock, Wallet,
   TrendingUp, FileText, Download,
 } from "lucide-react";
-import DashboardBreadcrumb from "@/components/dashboard/DashboardBreadcrumb";
+import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
 import { mockRoyalties, mockRoyaltySummary, payoutConfig } from "@/lib/mock/royalties";
 
 const PRO_USER_ID = 67325;

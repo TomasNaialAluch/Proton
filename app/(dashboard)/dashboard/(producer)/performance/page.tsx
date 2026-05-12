@@ -3,7 +3,7 @@
 import { useState, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { TrendingUp, Music2, Disc3, Star, Search } from "lucide-react";
-import DashboardBreadcrumb from "@/components/dashboard/DashboardBreadcrumb";
+import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
 import StreamsChart from "@/components/dashboard/StreamsChart";
 import GenreDonut from "@/components/dashboard/GenreDonut";
 import { fetchArtistWithTracks } from "@/lib/api/artist";

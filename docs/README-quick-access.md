@@ -1,8 +1,8 @@
 # Sidebar below “Dashboard” — Producer tools, Platform & Public site
 
-Este documento describe las **secciones** bajo la navegación principal *Dashboard* en el panel de artista (`AppSidebar`, `HamburgerMenu` del dashboard) y **a qué rutas** enlazan. Reemplaza el modelo anterior unificado bajo el título “Quick Access”. La visión de producto está alineada con `docs/README-dashboard-vision-roadmap.md`.
+This document describes the **sections** under the main *Dashboard* navigation in the artist panel (`AppSidebar`, dashboard `HamburgerMenu`) and **which routes** they link to. It replaces the previous unified model under the “Quick Access” title. The product vision is aligned with `docs/README-dashboard-vision-roadmap.md`.
 
-**Idioma en UI:** los títulos de sección en la app están en **inglés** (*Producer tools*, *Platform*, *Public site*).
+**UI language:** section titles in the app are in **English** (*Producer tools*, *Platform*, *Public site*).
 
 ---
 

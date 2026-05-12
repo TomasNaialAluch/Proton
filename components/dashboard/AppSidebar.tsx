@@ -6,7 +6,7 @@ import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   User, TrendingUp, DollarSign, FileText, Settings,
-  Radio, Tag, Disc3, Link as LinkIcon, BarChart3, Mic2,
+  Radio, Tag, Disc3, Link as LinkIcon, BarChart3, Mic2, Building2,
   Bell, PanelLeftClose, PanelLeftOpen, ExternalLink, ChevronRight, ChevronDown,
   Sun, Moon, CircleHelp,
 } from "lucide-react";
@@ -15,7 +15,10 @@ import { platformHubLinkActive } from "@/lib/dashboard/platformHub";
 import { useDashboardSidebarStore } from "@/lib/store/dashboardSidebarStore";
 import { useThemeStore } from "@/lib/store/themeStore";
 import { useHelpAssistantStore } from "@/lib/store/helpAssistantStore";
+import { usePrototypeViewStore } from "@/lib/store/prototypeViewStore";
+import { LABEL_MANAGER_ENTRY, LABEL_MANAGER_NAV_LINKS } from "@/lib/dashboard/dashboardShellRouting";
 import NotificationsPanel from "./NotificationsPanel";
+import LabelScopeSwitcher from "@/components/dashboard/label-manager/LabelScopeSwitcher";
 
 const dashboardLinks = [
   { label: "Artists",     icon: User,       href: "/dashboard" },
@@ -110,6 +113,7 @@ export default function AppSidebar() {
   const { theme, toggle: toggleTheme } = useThemeStore();
   const isDark = theme === "dark";
   const openAssistant = useHelpAssistantStore((s) => s.openAssistant);
+  const view = usePrototypeViewStore((s) => s.view);
 
   useEffect(() => {
     const stored = localStorage.getItem("proton-sidebar-collapsed");
@@ -159,12 +163,13 @@ export default function AppSidebar() {
         ${collapsed ? "w-16" : "w-64"}`}
     >
 
-      {/* ── Header: logo + bell ── */}
-      <div className={`flex items-center border-b border-[var(--color-border)] py-4
-        ${collapsed ? "justify-center px-0" : "justify-between px-5"}`}>
+      {/* ── Header: logo + bell (+ label scope when label manager) ── */}
+      <div className={`border-b border-[var(--color-border)] py-4
+        ${collapsed ? "px-0" : "px-5"}`}>
+        <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between"}`}>
         {!collapsed && (
           <Link
-            href="/dashboard"
+            href={view === "label_manager" ? LABEL_MANAGER_ENTRY : "/dashboard"}
             className="relative block h-8 shrink-0 min-w-0 max-w-[11rem]"
             aria-label="Proton — Home"
           >
@@ -186,45 +191,78 @@ export default function AppSidebar() {
           <Bell size={18} />
           <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-accent" />
         </button>
+        </div>
+
+        {!collapsed && view === "label_manager" && (
+          <div className="mt-3">
+            <LabelScopeSwitcher />
+          </div>
+        )}
       </div>
 
       {/* ── Nav ── */}
       <nav className="flex-1 overflow-y-auto py-4 space-y-5">
 
-        {/* Dashboard section */}
+        {/* Primary shell: producer dashboard vs label-manager workspace */}
         <div className={collapsed ? "px-2" : "px-4"}>
           {!collapsed && (
             <p className="text-[10px] font-semibold uppercase tracking-widest text-text-secondary mb-2 px-1">
-              Dashboard
+              {view === "label_manager" ? "Label workspace" : "Dashboard"}
             </p>
           )}
           <ul className="space-y-0.5">
-            {dashboardLinks.map((link) => {
-              const { label, icon: Icon, href } = link;
-              const activePrefix = "activePrefix" in link ? link.activePrefix : undefined;
-              const active = linkIsActive(pathname, href, activePrefix);
-              return (
-              <li key={label}>
-                <Link
-                  href={href}
-                  title={collapsed ? label : undefined}
-                  className={`flex items-center rounded-lg text-sm transition-colors
-                    ${collapsed ? "justify-center px-0 py-3" : "gap-3 px-3 py-2.5"}
-                    ${active
-                      ? "bg-accent/10 text-accent font-semibold"
-                      : "text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]"
-                    }`}
-                >
-                  <Icon size={16} strokeWidth={active ? 2.5 : 1.75} className="shrink-0" />
-                  {!collapsed && label}
-                </Link>
-              </li>
-            );
-            })}
+            {view === "label_manager"
+              ? LABEL_MANAGER_NAV_LINKS.map(({ label, icon: Icon, href }) => {
+                  const active = linkIsActive(pathname, href);
+                  return (
+                    <li key={label}>
+                      <Link
+                        href={href}
+                        title={collapsed ? label : undefined}
+                        className={`flex items-center rounded-lg text-sm transition-colors
+                          ${collapsed ? "min-h-10 w-full justify-center px-0 py-0" : "gap-3 px-3 py-2.5"}
+                          ${active
+                            ? "bg-accent/10 text-accent font-semibold"
+                            : "text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]"
+                          }`}
+                      >
+                        <span className={`inline-flex shrink-0 items-center justify-center ${collapsed ? "size-9" : ""}`}>
+                          <Icon size={16} strokeWidth={active ? 2.5 : 1.75} />
+                        </span>
+                        {!collapsed && label}
+                      </Link>
+                    </li>
+                  );
+                })
+              : dashboardLinks.map((link) => {
+                  const { label, icon: Icon, href } = link;
+                  const activePrefix = "activePrefix" in link ? link.activePrefix : undefined;
+                  const active = linkIsActive(pathname, href, activePrefix);
+                  return (
+                    <li key={label}>
+                      <Link
+                        href={href}
+                        title={collapsed ? label : undefined}
+                        className={`flex items-center rounded-lg text-sm transition-colors
+                          ${collapsed ? "min-h-10 w-full justify-center px-0 py-0" : "gap-3 px-3 py-2.5"}
+                          ${active
+                            ? "bg-accent/10 text-accent font-semibold"
+                            : "text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]"
+                          }`}
+                      >
+                        <span className={`inline-flex shrink-0 items-center justify-center ${collapsed ? "size-9" : ""}`}>
+                          <Icon size={16} strokeWidth={active ? 2.5 : 1.75} />
+                        </span>
+                        {!collapsed && label}
+                      </Link>
+                    </li>
+                  );
+                })}
           </ul>
         </div>
 
-        {/* Producer tools — stays inside the dashboard */}
+        {/* Producer tools — producer shell only */}
+        {view !== "label_manager" && (
         <div className={collapsed ? "px-2" : "px-4"}>
           {!collapsed && (
             <p className="text-[10px] font-semibold uppercase tracking-widest text-text-secondary mb-2 px-1">
@@ -282,6 +320,7 @@ export default function AppSidebar() {
             )}
           </ul>
         </div>
+        )}
 
         {/* Platform — collapsible when sidebar expanded (desktop) */}
         <div className={collapsed ? "px-2" : "px-4"}>
@@ -451,26 +490,62 @@ export default function AppSidebar() {
           {!collapsed && <span>Proton Radio</span>}
         </Link>
 
-        {!collapsed && (
-          <Link
-            href="/dashboard/settings/profile"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg
-              hover:bg-[var(--color-border)] transition-colors mb-1"
-          >
-            <div
-              className="size-7 rounded-full p-[1.5px] shrink-0"
-              style={{ background: "linear-gradient(135deg, var(--color-accent), transparent)" }}
+        {view === "label_manager" ? (
+          !collapsed && (
+            <Link
+              href={LABEL_MANAGER_ENTRY}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg
+                hover:bg-[var(--color-border)] transition-colors mb-1"
             >
-              <div className="size-full rounded-full bg-surface flex items-center justify-center">
-                <span className="text-[10px] font-bold text-accent">
-                  {mockArtist.name.charAt(0)}
-                </span>
+              <div
+                className="size-7 rounded-full p-[1.5px] shrink-0"
+                style={{ background: "linear-gradient(135deg, var(--color-accent), transparent)" }}
+              >
+                <div className="flex size-full items-center justify-center rounded-full bg-surface text-accent">
+                  <Building2 size={14} strokeWidth={1.75} aria-hidden />
+                </div>
               </div>
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-text-primary truncate">{mockArtist.name}</p>
-              <p className="text-xs text-text-secondary">Edit profile</p>
-            </div>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-text-primary truncate">Label workspace</p>
+                <p className="text-xs text-text-secondary">Roster · catalog · reporting</p>
+              </div>
+            </Link>
+          )
+        ) : (
+          !collapsed && (
+            <Link
+              href="/dashboard/settings/profile"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg
+                hover:bg-[var(--color-border)] transition-colors mb-1"
+            >
+              <div
+                className="size-7 rounded-full p-[1.5px] shrink-0"
+                style={{ background: "linear-gradient(135deg, var(--color-accent), transparent)" }}
+              >
+                <div className="size-full rounded-full bg-surface flex items-center justify-center">
+                  <span className="text-[10px] font-bold text-accent">
+                    {mockArtist.name.charAt(0)}
+                  </span>
+                </div>
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-text-primary truncate">{mockArtist.name}</p>
+                <p className="text-xs text-text-secondary">Edit profile</p>
+              </div>
+            </Link>
+          )
+        )}
+
+        {view === "label_manager" && collapsed && (
+          <Link
+            href={LABEL_MANAGER_ENTRY}
+            title="Label workspace — Roster"
+            aria-label="Label workspace — open roster"
+            className="mb-1 flex w-full justify-center"
+          >
+            <span className="inline-flex size-10 items-center justify-center rounded-lg text-accent transition-colors hover:bg-[var(--color-border)]">
+              <Building2 size={18} strokeWidth={1.75} aria-hidden />
+            </span>
           </Link>
         )}
 

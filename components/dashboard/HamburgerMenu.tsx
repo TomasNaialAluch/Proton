@@ -26,6 +26,8 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { platformHubLinkActive } from "@/lib/dashboard/platformHub";
 import { useHelpAssistantStore } from "@/lib/store/helpAssistantStore";
+import { usePrototypeViewStore } from "@/lib/store/prototypeViewStore";
+import { LABEL_MANAGER_NAV_LINKS } from "@/lib/dashboard/dashboardShellRouting";
 
 interface HamburgerMenuProps {
   open: boolean;
@@ -86,6 +88,7 @@ const dashboardLinks = [
 
 export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
   const openAssistant = useHelpAssistantStore((s) => s.openAssistant);
+  const view = usePrototypeViewStore((s) => s.view);
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const urlTab = searchParams.get("tab");
@@ -163,30 +166,46 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
         {/* Scrollable content */}
         <nav className="flex-1 overflow-y-auto px-4 py-5 space-y-6">
 
-          {/* Dashboard nav — mismo orden que AppSidebar (desktop) */}
+          {/* Primary shell — aligned with AppSidebar / BottomNav */}
           <div>
             <p className="text-xs font-medium uppercase tracking-wider text-text-secondary mb-2 px-1">
-              Dashboard
+              {view === "label_manager" ? "Label workspace" : "Dashboard"}
             </p>
             <ul className="space-y-0.5">
-              {dashboardLinks.map(({ label, icon: Icon, href }) => (
-                <li key={label}>
-                  <Link
-                    href={href}
-                    onClick={onClose}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg
-                      text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]
-                      transition-colors text-sm"
-                  >
-                    <Icon size={16} />
-                    {label}
-                  </Link>
-                </li>
-              ))}
+              {view === "label_manager"
+                ? LABEL_MANAGER_NAV_LINKS.map(({ label, icon: Icon, href }) => (
+                    <li key={label}>
+                      <Link
+                        href={href}
+                        onClick={onClose}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg
+                          text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]
+                          transition-colors text-sm"
+                      >
+                        <Icon size={16} />
+                        {label}
+                      </Link>
+                    </li>
+                  ))
+                : dashboardLinks.map(({ label, icon: Icon, href }) => (
+                    <li key={label}>
+                      <Link
+                        href={href}
+                        onClick={onClose}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg
+                          text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]
+                          transition-colors text-sm"
+                      >
+                        <Icon size={16} />
+                        {label}
+                      </Link>
+                    </li>
+                  ))}
             </ul>
           </div>
 
-          {/* Producer tools */}
+          {/* Producer tools — producer shell only */}
+          {view !== "label_manager" && (
           <div>
             <p className="text-xs font-medium uppercase tracking-wider text-text-secondary mb-2 px-1">
               Producer tools
@@ -228,6 +247,7 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
               })}
             </ul>
           </div>
+          )}
 
           {/* Platform */}
           <div>

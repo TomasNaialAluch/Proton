@@ -6,7 +6,7 @@ import {
   Download, ChevronRight, Music2,
   Store, DollarSign, AlertTriangle, FileText,
 } from "lucide-react";
-import DashboardBreadcrumb from "@/components/dashboard/DashboardBreadcrumb";
+import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
 import { mockRoyalties, mockStatements, payoutConfig } from "@/lib/mock/royalties";
 
 const PRO_USER_ID = 67325;

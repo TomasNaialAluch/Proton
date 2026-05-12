@@ -1,136 +1,136 @@
-# Buscador global (área pública) — propuesta de rediseño
+# Global search (public area) — redesign proposal
 
-Este documento propone **qué** construir y **cómo** acercarse al buscador de [protonradio.com](https://www.protonradio.com) en nuestra app Next.js pública, sin asumir que la API pública expone hoy un endpoint idéntico.
+This document proposes **what** to build and **how** to approach the search experience from [protonradio.com](https://www.protonradio.com) in our public Next.js app, without assuming the public API exposes an identical endpoint today.
 
 ---
 
-## 1. Referencia (protonradio.com)
+## 1. Reference (protonradio.com)
 
-Comportamiento observado en el sitio oficial (header naranja, búsqueda global):
+Observed behavior on the official site (orange header, global search):
 
-| Momento | Comportamiento |
+| Moment | Behavior |
 |--------|----------------|
-| **Input en el header** | Campo con icono de lupa, placeholder “Search”, estilo “ghost” sobre la barra de marca. |
-| **Focus / apertura** | Panel grande (overlay o dropdown) con foco en la tarea: ilustración/marca, copy tipo *“What are you looking for?”*, fondo claro, mucho aire. |
-| **Mientras se escribe** | Resultados **agrupados por tipo**: Artists, Labels, Shows, Tracklists, etc., con contadores (badges) y filas con avatar / logo / metadatos (*“0 Mixes \| 11 Tracks”*). |
-| **Más resultados** | Enlaces *“More Artists”*, *“More Labels”*, y acción global *“See all results”*. |
-| **Página de resultados** | Vista **Search Results** con título, filtro lateral (géneros, artistas, labels, shows, tracklists) y listas con **highlight** del término en naranja. |
-| **Errores** | Aviso si la API no responde (el producto real depende de conectividad al backend). |
+| **Header input** | Field with magnifier icon, “Search” placeholder, ghost style over the brand bar. |
+| **Focus / open** | Large panel (overlay or dropdown) focused on the task: illustration/brand, copy like *“What are you looking for?”*, light background, lots of breathing room. |
+| **While typing** | Results **grouped by type**: Artists, Labels, Shows, Tracklists, etc., with counters (badges) and rows with avatar / logo / metadata (*“0 Mixes \| 11 Tracks”*). |
+| **More results** | Links like *“More Artists”*, *“More Labels”*, plus a global action *“See all results”*. |
+| **Results page** | **Search Results** view with title, side filters (genres, artists, labels, shows, tracklists) and lists with orange **highlight** for the matched term. |
+| **Errors** | A notice when the API fails (the real product depends on backend connectivity). |
 
-**Para nuestro rediseño:** replicamos la **jerarquía mental** (un solo lugar para buscar → tipos de entidad → detalle / ver todo), adaptando layout y tokens a `--color-accent`, `--color-surface`, `data-theme` (claro / oscuro) ya usados en el repo.
-
----
-
-## 2. Objetivos de producto
-
-1. **Un solo punto de entrada** en la zona pública: encontrar artistas, labels, shows/episodios y — cuando existan datos — tracks / tracklists.
-2. **Consistencia visual** con `PublicNavbar`, `HamburgerMenu` y tema **light/dark** (`useThemeStore` / `PublicThemeToggle`).
-3. **Mobile-first respetando decisiones previas:** en móvil, el buscador **no** tiene que vivir en la barra fija si preferís ahorrar altura; puede abrirse desde el **menú hamburguesa** o desde un **icono de lupa** que abre overlay/página dedicada (ver §5).
-4. **URLs compartibles:** ` /search?q=... ` (y opcionalmente `&type=artists`) para alinear con mental model de “página de resultados”.
+**For our redesign:** we replicate the **mental hierarchy** (one place to search → entity types → detail / see all), adapting layout and tokens to `--color-accent`, `--color-surface`, and `data-theme` (light / dark) already used in the repo.
 
 ---
 
-## 3. Arquitectura de información
+## 2. Product goals
 
-### 3.1 Entidades (orden sugerido en resultados)
-
-1. **Artists** — avatar, nombre, *mixes / tracks* si tenemos números.  
-2. **Labels** — logo cuadrado, nombre.  
-3. **Shows** (o “Episodes” / “Mixes” según copy) — carátula, título, fecha.  
-4. **Tracklists** (opcional, fase 2) — requiere API o índice de tracks.
-
-Alineación con datos **ya usados** en el repo: `fetchLatestMixes` / `ProtonMix`, artistas de GraphQL, labels vía `lib/api/labels.ts`, etc. Lo que **no** exista en API pública se documenta como *gap* (§7).
-
-### 3.2 Flujos
-
-- **Ruta A — Command-palette ligera (dropdown):** al escribir en el input del header, se abre un panel bajo el input con secciones y “Ver todos los resultados” que navega a `/search?q=…`.  
-- **Ruta B — Página completa:** `/search` con sidebar de filtros (como Proton) para refinamiento cuando hay muchos resultados.
-
-Se pueden implementar **primero B** (más simple) y luego añadir dropdown predictivo.
+1. **Single entry point** in the public area: find artists, labels, shows/episodes and — when data exists — tracks / tracklists.
+2. **Visual consistency** with `PublicNavbar`, `HamburgerMenu`, and the **light/dark** theme (`useThemeStore` / `PublicThemeToggle`).
+3. **Mobile-first while respecting prior decisions:** on mobile, search doesn’t have to live in the fixed bar if you want to save height; it can open from the **hamburger menu** or via a **magnifier icon** that opens an overlay/dedicated page (see §5).
+4. **Shareable URLs:** `/search?q=...` (and optionally `&type=artists`) to match the “results page” mental model.
 
 ---
 
-## 4. Propuesta de UI (componentes)
+## 3. Information architecture
 
-Colocación sugerida en código (nombres tentativos):
+### 3.1 Entities (suggested ordering in results)
 
-| Pieza | Responsabilidad |
+1. **Artists** — avatar, name, *mixes / tracks* if we have counts.  
+2. **Labels** — square logo, name.  
+3. **Shows** (or “Episodes” / “Mixes” depending on copy) — cover, title, date.  
+4. **Tracklists** (optional, phase 2) — requires an API or a tracks index.
+
+Alignment with data **already used** in the repo: `fetchLatestMixes` / `ProtonMix`, artists from GraphQL, labels via `lib/api/labels.ts`, etc. Anything that **doesn’t** exist in the public API should be documented as a *gap* (§7).
+
+### 3.2 Flows
+
+- **Route A — Lightweight command palette (dropdown):** when typing in the header input, open a panel under the input with sections and a “See all results” link that navigates to `/search?q=…`.  
+- **Route B — Full page:** `/search` with a filters sidebar (like Proton) for refinement when there are many results.
+
+You can implement **B first** (simpler) and then add the predictive dropdown.
+
+---
+
+## 4. UI proposal (components)
+
+Suggested placement in code (tentative names):
+
+| Piece | Responsibility |
 |--------|------------------|
-| `PublicSearchTrigger` | Botón lupa (mobile opcional) o `input` compacto en desktop. |
-| `SearchOverlay` o `SearchModal` | Capa a pantalla completa o anclada bajo el header: input grande, estados vacío / cargando / resultados agrupados. |
-| `SearchResultGroup` | Título de categoría + badge con contador + lista. |
-| `SearchResultRow` | Variantes: `artist`, `label`, `show` (imagen + título + meta). |
-| `SearchPage` | `app/(public)/search/page.tsx` — resultados con layout de dos columnas en `lg+` (filtros + lista). |
-| `lib/search/*` | Capa de datos: `searchPublic(q, filters)` que hoy puede ser **mock** o agregación de llamadas existentes. |
+| `PublicSearchTrigger` | Magnifier button (optional on mobile) or compact `input` on desktop. |
+| `SearchOverlay` / `SearchModal` | Full-screen layer or anchored under the header: large input, empty/loading/grouped-results states. |
+| `SearchResultGroup` | Category title + count badge + list. |
+| `SearchResultRow` | Variants: `artist`, `label`, `show` (image + title + meta). |
+| `SearchPage` | `app/(public)/search/page.tsx` — results with a two-column layout on `lg+` (filters + list). |
+| `lib/search/*` | Data layer: `searchPublic(q, filters)` which can be **mock** today or an aggregation of existing calls. |
 
-**Estilos:** reutilizar `text-text-primary`, `bg-surface`, bordes `var(--color-border)`, acento en matches; en dark mode, overlay con `bg-surface` y sombra, no blanco puro forzado si el tema es oscuro.
+**Styles:** reuse `text-text-primary`, `bg-surface`, borders via `var(--color-border)`, and accent highlights; in dark mode, use a `bg-surface` overlay and shadow (avoid forcing pure white if the theme is dark).
 
 ---
 
-## 5. Desktop vs mobile (recomendación)
+## 5. Desktop vs mobile (recommendation)
 
-| Plataforma | Propuesta |
+| Platform | Proposal |
 |------------|-----------|
-| **Desktop (lg+)** | Input de búsqueda en `PublicNavbar` (a la derecha del bloque de links o integrado al centro-derecha), o icono lupa que abre overlay. Coherente con Proton: barra siempre visible. |
-| **Mobile** | **Opción 1 (mínima fricción):** entrada “Search” en `HamburgerMenu` que navega a `/search` o abre overlay a pantalla completa. **Opción 2:** icono lupa en header (como Proton) si aceptás una fila más densa. **Opción 3:** solo `/search` enlazado desde menú y footer (sin icono en header). |
+| **Desktop (lg+)** | Search input in `PublicNavbar` (to the right of the links block or integrated in the center-right), or a magnifier icon that opens an overlay. Consistent with Proton: always-visible bar. |
+| **Mobile** | **Option 1 (lowest friction):** a “Search” entry in `HamburgerMenu` that navigates to `/search` or opens a full-screen overlay. **Option 2:** a magnifier icon in the header (like Proton) if you accept a denser top row. **Option 3:** only `/search` linked from menu and footer (no header icon). |
 
-Documentar en implementación la opción elegida para no duplicar puntos de entrada.
-
----
-
-## 6. Comportamiento técnico
-
-- **Debounce** del input (150–300 ms) antes de llamar a red / filtrar.  
-- **Cancelación** de requests anteriores (`AbortController`) al cambiar `q`.  
-- **Estados:** vacío (copy + ilustración opcional), cargando, resultados, vacío real (“Sin resultados”), error de red.  
-- **Accesibilidad:** `role="combobox"` / `aria-expanded` en dropdown, foco atrapado en modal, **Escape** cierra overlay.  
-- **SEO:** página `/search` con `metadata` dinámica opcional; resultados principalmente cliente si la búsqueda es dinámica.
+Document the chosen option in implementation so you don’t duplicate entry points.
 
 ---
 
-## 7. Datos y API (honestidad técnica)
+## 6. Technical behavior
 
-El sitio oficial tiene un **backend de búsqueda unificado**. En nuestro repo, hoy **no** hay un único endpoint documentado tipo `search(query)` en `lib/api/`.
+- **Debounce** the input (150–300 ms) before calling the network / filtering.  
+- **Cancel** previous requests (`AbortController`) when `q` changes.  
+- **States:** empty (copy + optional illustration), loading, results, true empty (“No results”), network error.  
+- **Accessibility:** `role="combobox"` / `aria-expanded` for dropdowns, focus-trap in modal, **Escape** closes the overlay.  
+- **SEO:** `/search` page with optional dynamic `metadata`; results are mostly client-side if search is interactive.
 
-**Estrategia por fases:**
+---
 
-| Fase | Fuente | Alcance |
+## 7. Data and API (technical honesty)
+
+The official site has a **unified search backend**. In this repo, today there is **no** single documented endpoint like `search(query)` under `lib/api/`.
+
+**Phased strategy:**
+
+| Phase | Source | Scope |
 |------|--------|---------|
-| **MVP** | Agregar llamadas existentes (`radioMixes`, `labels`, etc.) y **filtrar en cliente** por substring sobre conjuntos acotados (últimos N mixes, lista de labels cargada). | Bueno para demo; no escala. |
-| **MVP+** | Endpoint dedicado en backend Proton (si se expone) o **Route Handler** Next (`app/api/search`) que proxy + cache. | Necesita contrato real. |
-| **Objetivo** | Índice de búsqueda (Algolia, Meilisearch, o API GraphQL `search`) | Paridad con protonradio.com. |
+| **MVP** | Aggregate existing calls (`radioMixes`, `labels`, etc.) and **filter client-side** via substring over bounded sets (latest N mixes, loaded labels list). | Good for a demo; doesn’t scale. |
+| **MVP+** | Dedicated endpoint in Proton’s backend (if exposed) or a Next **Route Handler** (`app/api/search`) that proxies + caches. | Requires a real contract. |
+| **Target** | Search index (Algolia, Meilisearch, or a GraphQL `search` API) | Parity with protonradio.com. |
 
-Registrar en implementación qué fase está activa para no prometer paridad sin backend.
-
----
-
-## 8. Seguridad y límites
-
-- Sanitizar `q` en logs y evitar inyectar HTML en highlights (usar texto escapado o fragmentos controlados).  
-- Rate limit en route handler si exponemos proxy público.
+Record in implementation which phase is active so we don’t promise parity without a backend.
 
 ---
 
-## 9. Checklist de implementación (orden sugerido)
+## 8. Security and limits
 
-1. [ ] Ruta `app/(public)/search/page.tsx` + lectura de `searchParams.q`.  
-2. [ ] Barra de búsqueda reutilizable + estado vacío inspirado en referencia (*What are you looking for?* — copy propio).  
-3. [ ] Integración datos MVP (mock o filtros sobre datos ya cargados).  
-4. [ ] Entrada desde `Navbar` (desktop) y desde `HamburgerMenu` (mobile).  
-5. [ ] Dropdown predictivo (opcional).  
-6. [ ] Sidebar de filtros en página de resultados (opcional, fase 2).  
-7. [ ] Sustituir MVP por API real cuando exista contrato.
+- Sanitize `q` in logs and avoid injecting HTML for highlights (use escaped text or controlled fragments).  
+- Rate limit the route handler if you expose a public proxy.
 
 ---
 
-## 10. Referencias en el repo
+## 9. Implementation checklist (suggested order)
 
-- Layout público: `app/(public)/layout.tsx`, `components/public/Navbar.tsx`, `components/public/HamburgerMenu.tsx`.  
-- Tema: `lib/store/themeStore.ts`, `components/public/PublicThemeToggle.tsx`.  
-- Datos relacionados: `lib/api/mixes.ts`, `lib/api/labels.ts`, `lib/api/protonApi.ts`.  
+1. [ ] Route `app/(public)/search/page.tsx` + read `searchParams.q`.  
+2. [ ] Reusable search bar + empty state inspired by the reference (*What are you looking for?* — custom copy).  
+3. [ ] MVP data integration (mock or filters over already-loaded data).  
+4. [ ] Entry points from `Navbar` (desktop) and `HamburgerMenu` (mobile).  
+5. [ ] Predictive dropdown (optional).  
+6. [ ] Filters sidebar on the results page (optional, phase 2).  
+7. [ ] Replace MVP with a real API once a contract exists.
 
 ---
 
-## 11. Resumen ejecutivo
+## 10. References in the repo
 
-**Propuesta:** buscador público con **URL `/search?q=`**, resultados **agrupados por tipo** como en Proton Radio, **overlay o página completa** según viewport, integración **desktop en navbar** y **mobile vía menú (y opcionalmente icono lupa)**. La **paridad total** depende de un **endpoint de búsqueda** o de un índice externo; hasta entonces, un **MVP** con datos agregados/filtrados documenta el UX y deja listo el cableado para API real.
+- Public layout: `app/(public)/layout.tsx`, `components/public/Navbar.tsx`, `components/public/HamburgerMenu.tsx`.  
+- Theme: `lib/store/themeStore.ts`, `components/public/PublicThemeToggle.tsx`.  
+- Related data: `lib/api/mixes.ts`, `lib/api/labels.ts`, `lib/api/protonApi.ts`.  
+
+---
+
+## 11. Executive summary
+
+**Proposal:** a public search with **URL `/search?q=`**, results **grouped by type** like Proton Radio, **overlay or full page** depending on viewport, **desktop navbar** integration and **mobile via menu (and optionally a magnifier icon)**. Full parity depends on a dedicated **search endpoint** or an external index; until then, an **MVP** with aggregated/filtered data documents the UX and keeps the wiring ready for a real API.

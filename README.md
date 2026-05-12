@@ -6,7 +6,7 @@
 
 This project combines a **B2B admin dashboard** (artist management, contracts, royalties) with a **B2C streaming platform** (radio, shows, charts). Built with a modern stack focused on performance, code quality, and scalability.
 
-**Product / dashboard vision (Spanish):** [`docs/README-dashboard-vision-roadmap.md`](docs/README-dashboard-vision-roadmap.md) — persona producer, sidebar *Producer tools* / *Platform*; auth público: Sign in → `/login` (pestañas prototipo).
+**Product / dashboard vision:** [`docs/README-dashboard-vision-roadmap.md`](docs/README-dashboard-vision-roadmap.md) — producer persona, sidebar *Producer tools* / *Platform*; public auth: Sign in → `/login` (prototype tabs).
 
 ---
 
@@ -24,46 +24,46 @@ This project combines a **B2B admin dashboard** (artist management, contracts, r
 
 ---
 
-## Stack Tecnológico
+## Technology stack
 
 ### Core
 
-| Tecnología | Rol | Por qué |
+| Technology | Role | Why |
 |---|---|---|
-| **Next.js** (App Router) | Framework principal | SSR nativo, SEO para perfiles públicos de artistas, routing eficiente |
-| **TypeScript** | Lenguaje | Seguridad de tipos crítica para el manejo de regalías y contratos |
-| **Tailwind CSS** | Estilos | Design system consistente, dark mode, desarrollo responsive mobile-first |
+| **Next.js** (App Router) | Main framework | Native SSR, SEO for public artist profiles, efficient routing |
+| **TypeScript** | Language | Type safety is critical when modeling royalties and contracts |
+| **Tailwind CSS** | Styling | Consistent design system, dark mode, responsive mobile-first development |
 
-### Data & Estado
+### Data & State
 
-| Tecnología | Rol | Por qué |
+| Technology | Role | Why |
 |---|---|---|
-| **TanStack Query** | Server state | Caching automático para contratos y métricas; evita refetches innecesarios |
-| **Zustand** | Client state | Estado global del reproductor de audio; liviano, sin interrupciones al navegar |
+| **TanStack Query** | Server state | Automatic caching for contracts and metrics; avoids unnecessary refetches |
+| **Zustand** | Client state | Global audio player state; lightweight, uninterrupted across navigation |
 
 ### UI & Visualización
 
-| Tecnología | Rol | Por qué |
+| Technology | Role | Why |
 |---|---|---|
-| **Lucide React** | Íconos | Minimalistas, livianos, optimizados para dark mode |
-| **Recharts / Tremor** | Gráficos | Métricas de performance estilo "Spotify for Artists", fácil personalización |
+| **Lucide React** | Icons | Minimal, lightweight, dark-mode friendly |
+| **Recharts / Tremor** | Charts | “Spotify for Artists”-style performance metrics, easy to customize |
 
 ---
 
-## Sitios de Referencia
+## Reference sites
 
-| Sitio | URL | Descripción |
+| Site | URL | Description |
 |---|---|---|
-| **Proton Radio** (actual) | [protonradio.com](https://www.protonradio.com/) | Área pública — radio en vivo, shows, charts |
-| **SoundSystem** (actual) | [soundsystem.protonradio.com](https://soundsystem.protonradio.com/) | Dashboard privado de artistas — subida de tracks, contratos, regalías |
+| **Proton Radio** (current) | [protonradio.com](https://www.protonradio.com/) | Public area — live radio, shows, charts |
+| **SoundSystem** (current) | [soundsystem.protonradio.com](https://soundsystem.protonradio.com/) | Private artist dashboard — track uploads, contracts, royalties |
 
-> El rediseño **unifica ambos sitios** bajo un único dominio y sistema de autenticación compartido.
+> The redesign **unifies both sites** under a single domain and a shared authentication system.
 
 ---
 
-## Estructura de Páginas
+## Page structure
 
-> **Idioma:** La plataforma es 100% en **inglés** — Proton Radio es una comunidad internacional de música electrónica.
+> **Language:** the platform is 100% **English** — Proton Radio is an international electronic music community.
 
 ### Public Area — `proton.radio` (Radio B2C)
 Accessible to listeners and fans without an account. SSR-optimized for SEO.
@@ -102,13 +102,13 @@ Requires authentication. Management panel for artists and producers.
 
 ---
 
-## Arquitectura del Proyecto (Next.js App Router)
+## Project architecture (Next.js App Router)
 
 ```
 proton/
 ├── app/
-│   ├── (public)/                   # Grupo: área pública de la radio
-│   │   ├── page.tsx                # / — Home con reproductor en vivo
+│   ├── (public)/                   # Group: public radio area
+│   │   ├── page.tsx                # / — Home with live player
 │   │   ├── shows/
 │   │   │   └── page.tsx            # /shows
 │   │   ├── charts/
@@ -116,10 +116,10 @@ proton/
 │   │   ├── labels/
 │   │   │   └── page.tsx            # /labels
 │   │   └── [artist-name]/
-│   │       └── page.tsx            # /naial — Perfil público del artista
+│   │       └── page.tsx            # /naial — Public artist profile
 │   │
-│   ├── (dashboard)/                # Grupo: panel privado (requiere auth)
-│   │   ├── layout.tsx              # Layout con sidebar del dashboard
+│   ├── (dashboard)/                # Group: private panel (requires auth)
+│   │   ├── layout.tsx              # Layout with dashboard sidebar
 │   │   ├── dashboard/
 │   │   │   ├── page.tsx            # /dashboard — Inicio y perfil
 │   │   │   ├── performance/
@@ -137,16 +137,16 @@ proton/
 │   └── globals.css
 │
 ├── components/
-│   ├── ui/                         # Componentes base del Design System
-│   ├── public/                     # Navbar pública, cards de shows, etc.
-│   ├── dashboard/                  # Sidebar, métricas, tablas de releases
+│   ├── ui/                         # Design system primitives
+│   ├── public/                     # Public navbar, show cards, etc.
+│   ├── dashboard/                  # Sidebar, metrics, releases tables
 │   └── player/                     # Global Player (Zustand)
 │
 ├── lib/
-│   ├── api/                        # Fetchers con TanStack Query
-│   └── store/                      # Stores de Zustand (player, auth)
+│   ├── api/                        # Fetchers (TanStack Query + server fetch)
+│   └── store/                      # Zustand stores (player, auth)
 │
-├── types/                          # Tipos TypeScript globales
+├── types/                          # Global TypeScript types
 │   ├── artist.ts
 │   ├── track.ts
 │   ├── contract.ts
@@ -157,52 +157,52 @@ proton/
 
 ---
 
-## Módulos Principales
+## Main modules
 
-### B2C — Radio Pública
-- [ ] Home con reproductor en vivo (`/`)
-- [ ] Archivo de shows y grilla de horarios (`/shows`)
-- [ ] Charts por género (`/charts`)
-- [ ] Directorio de labels (`/labels`)
-- [ ] Perfil público del artista con SSR/SEO (`/[artist-name]`)
+### B2C — Public radio
+- [ ] Home with live player (`/`)
+- [ ] Shows archive and schedule grid (`/shows`)
+- [ ] Genre charts (`/charts`)
+- [ ] Labels directory (`/labels`)
+- [ ] Public artist profile with SSR/SEO (`/[artist-name]`)
 
-### B2B — Dashboard SoundSystem
-- [ ] Página de inicio con perfil del artista (`/dashboard`)
-- [ ] Métricas de performance y mapas de calor (`/dashboard/performance`)
-- [ ] Gestión de releases y estado de tracks (`/dashboard/releases`)
-- [ ] Timeline de contratos (`/dashboard/contracts`)
-- [ ] Sistema de regalías y configuración de cobro (`/dashboard/royalties`)
-- [ ] Configuración de cuenta (`/dashboard/settings`)
+### B2B — SoundSystem dashboard
+- [ ] Home page with artist profile (`/dashboard`)
+- [ ] Performance metrics and heatmaps (`/dashboard/performance`)
+- [ ] Releases management and track status (`/dashboard/releases`)
+- [ ] Contracts timeline (`/dashboard/contracts`)
+- [ ] Royalties system and payout settings (`/dashboard/royalties`)
+- [ ] Account settings (`/dashboard/settings`)
 
-### Componentes Transversales
-- [ ] Navbar adaptativa (pública / privada)
-- [ ] Global Player persistente (Zustand)
-- [ ] Sistema de autenticación unificado (`/login`, `/register`)
+### Cross-cutting components
+- [ ] Adaptive navbar (public / private)
+- [ ] Persistent Global Player (Zustand)
+- [ ] Unified authentication module (`/login`, `/register`)
 
 ---
 
 ## Design System
 
-- **Modo:** Dark mode como estándar — "High Contrast Dark Mode" para reducir la fatiga visual de productores que trabajan largas sesiones frente al monitor
-- **Referencia visual:** Diseño en Figma *(link pendiente)*
+- **Mode:** dark mode as the default — “High Contrast Dark Mode” to reduce visual fatigue for producers working long sessions
+- **Visual reference:** Figma design *(link pending)*
 
 ### Paleta de Colores
 
-#### Deep Studio (Paleta Principal)
-Inspirada en la interfaz de un DAW (Ableton) y el ambiente de un club oscuro.
+#### Deep Studio (main palette)
+Inspired by a DAW interface (Ableton) and the atmosphere of a dark club.
 
-| Token | Hex | Uso |
+| Token | Hex | Usage |
 |---|---|---|
-| `background` | `#0B0E14` | Fondo principal — negro azulado profundo (no negro puro) |
-| `surface` | `#181C25` | Cards y paneles — genera efecto de "flotación" sobre el fondo |
-| `accent` | `#E67E22` | Proton Orange — botones, estados activos, highlights (color principal de marca) |
-| `text-primary` | `#FFFFFF` | Títulos y nombres de artista |
-| `text-secondary` | `#94A3B8` | Metadata, descripciones — gris azulado de alta legibilidad |
+| `background` | `#0B0E14` | Main background — deep blue-black (not pure black) |
+| `surface` | `#181C25` | Cards and panels — creates a “floating” effect on the background |
+| `accent` | `#E67E22` | Proton Orange — buttons, active states, highlights (primary brand color) |
+| `text-primary` | `#FFFFFF` | Titles and artist names |
+| `text-secondary` | `#94A3B8` | Metadata, descriptions — high-legibility blue-gray |
 
-#### Colores Legacy (Acentos de Marca)
-Heredados de la versión anterior. Se mantienen como acentos sutiles para preservar el ADN visual de Proton.
+#### Legacy colors (brand accents)
+Inherited from the previous version. Kept as subtle accents to preserve Proton’s visual DNA.
 
-| Elemento | Hex | Módulo |
+| Element | Hex | Module |
 |---|---|---|
 | **Orange** | `#E67E22` | Shows / Uploads |
 | **Teal** | `#1ABC9C` | Labels / Management |
@@ -213,81 +213,81 @@ Heredados de la versión anterior. Se mantienen como acentos sutiles para preser
 
 ### Tipografía
 
-#### Display & Títulos — Plus Jakarta Sans
-Geométrica, moderna, de terminación limpia. Referencia al diseño industrial de equipos de audio (Teenage Engineering).
+#### Display & headings — Plus Jakarta Sans
+Geometric, modern, clean finish. Reference: industrial design language of audio hardware (Teenage Engineering).
 
-| Estilo | Especificación | Uso |
+| Style | Spec | Usage |
 |---|---|---|
-| **H1 - Artist Name** | Bold Italic / 32px | Nombre del artista — el ángulo da dinamismo sin verse anticuado |
-| **H2 - Section Title** | SemiBold / 18px / Uppercase / letter-spacing 5% | Títulos de sección — look premium |
+| **H1 - Artist Name** | Bold Italic / 32px | Artist name — the angle adds dynamism without feeling dated |
+| **H2 - Section Title** | SemiBold / 18px / Uppercase / letter-spacing 5% | Section titles — premium feel |
 
-#### UI & Data — Inter
-Estándar de la industria para dashboards. Legibilidad insuperable en tamaños pequeños (12–14px) en mobile.
+#### UI & data — Inter
+Industry standard for dashboards. Excellent legibility at small sizes (12–14px) on mobile.
 
-| Estilo | Especificación | Uso |
+| Style | Spec | Usage |
 |---|---|---|
-| **Metric Value** | Medium / 24px | Números de métricas (12 tracks, 0 mixes) |
-| **Label / Metadata** | Regular / 12px | Textos del sidebar y etiquetas |
+| **Metric Value** | Medium / 24px | Metric numbers (12 tracks, 0 mixes) |
+| **Label / Metadata** | Regular / 12px | Sidebar text and labels |
 
 ---
 
-### Efectos y Componentes Visuales
+### Effects and visual components
 
-**Borde de perfil (foto de artista)**
+**Profile border (artist photo)**
 ```css
-/* Efecto "glow LED de estudio" */
+/* “Studio LED glow” effect */
 border: 3px solid transparent;
 background: linear-gradient(#181C25, #181C25) padding-box,
             linear-gradient(135deg, #00FF9D, transparent) border-box;
 ```
 
-**Cards / Superficies**
+**Cards / surfaces**
 ```css
-/* Borde de "cristal" — sin sombras negras */
+/* “Glass” border — no heavy black shadows */
 border: 1px solid rgba(255, 255, 255, 0.05);
 background: #181C25;
 ```
 
-> Configurar estos estilos como **Text Styles** y **Color Styles** en Figma para un handoff a desarrollo limpio y ordenado.
+> Configure these as **Text Styles** and **Color Styles** in Figma for a clean handoff to development.
 
 ---
 
-## Decisiones Técnicas Clave
+## Key technical decisions
 
-> **¿Por qué Next.js y no Vite/React puro?**
-> El streaming de audio y las listas de tracks cargan significativamente más rápido con SSR. Además, si los perfiles de artistas necesitan ser indexados por Google en el futuro, Next.js lo gestiona de forma nativa sin configuración adicional.
+> **Why Next.js instead of plain Vite/React?**
+> Audio streaming and track lists load significantly faster with SSR. Also, if artist profiles need to be indexed by Google in the future, Next.js handles it natively without extra configuration.
 
-> **¿Por qué TypeScript?**
-> En una plataforma que maneja dinero (regalías) y contratos legales, los errores de tipo como tratar un `null` como un `number` pueden tener consecuencias reales. TypeScript es la primera línea de defensa.
+> **Why TypeScript?**
+> In a platform that handles money (royalties) and legal contracts, type errors like treating `null` as a `number` can have real consequences. TypeScript is the first line of defense.
 
-> **¿Por qué Zustand y no Redux?**
-> El reproductor de audio necesita estado global liviano. Redux añade overhead innecesario para este caso de uso; Zustand resuelve lo mismo con mucho menos boilerplate.
+> **Why Zustand instead of Redux?**
+> The audio player needs lightweight global state. Redux adds unnecessary overhead for this use case; Zustand solves the same problem with much less boilerplate.
 
 ---
 
 ## Roadmap
 
-- [ ] Configuración inicial del proyecto (Next.js + TypeScript + Tailwind)
-- [ ] Setup de TanStack Query y Zustand
-- [ ] Implementación del Design System base
-- [ ] Módulo de gestión de artistas
-- [ ] Módulo de contratos y regalías
-- [ ] Reproductor de audio global
-- [ ] Perfiles públicos de artistas
-- [ ] Métricas y gráficos de performance
+- [ ] Initial project setup (Next.js + TypeScript + Tailwind)
+- [ ] TanStack Query + Zustand setup
+- [ ] Base Design System implementation
+- [ ] Artist management module
+- [ ] Contracts and royalties module
+- [ ] Global audio player
+- [ ] Public artist profiles
+- [ ] Performance metrics and charts
 - [ ] Deploy
 
 ---
 
-## Estado del Proyecto
+## Project status
 
-| Área | Estado |
+| Area | Status |
 |---|---|
-| Documentación / README | 🟡 En construcción |
-| Design System (Figma) | 🟡 En progreso |
-| Configuración del proyecto | ⬜ Pendiente |
-| Páginas en blanco (scaffolding) | ⬜ Pendiente |
-| Componentes UI base | ⬜ Pendiente |
-| Integración de datos reales | ⬜ Pendiente |
+| Documentation / README | 🟡 In progress |
+| Design System (Figma) | 🟡 In progress |
+| Project setup | ⬜ Pending |
+| Blank pages (scaffolding) | ⬜ Pending |
+| Base UI components | ⬜ Pending |
+| Real data integration | ⬜ Pending |
 
-> **Próximo paso:** crear el proyecto Next.js y generar todas las páginas en blanco con su estructura de rutas, para tener el scaffolding completo listo para diseñar e implementar módulo por módulo.
+> **Next step:** create the Next.js project and generate all blank pages with the route structure, so the full scaffolding is ready to design and implement module by module.

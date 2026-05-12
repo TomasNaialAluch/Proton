@@ -1,7 +1,7 @@
 "use client";
 
 import { FileText, CheckCircle2, Clock, Building2, Disc3, ExternalLink } from "lucide-react";
-import DashboardBreadcrumb from "@/components/dashboard/DashboardBreadcrumb";
+import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
 import { mockContracts, CONTRACT_LABEL_COLORS } from "@/lib/mock/contracts";
 
 function formatDate(dateStr: string) {

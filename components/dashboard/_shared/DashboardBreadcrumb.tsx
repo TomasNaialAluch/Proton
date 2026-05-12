@@ -5,6 +5,7 @@ import { ChevronRight } from "lucide-react";
 
 export type BreadcrumbItem = { label: string; href?: string };
 
+/** Shared by producer and label-manager dashboard pages. */
 export default function DashboardBreadcrumb({ items }: { items: BreadcrumbItem[] }) {
   return (
     <nav aria-label="Breadcrumb" className="mb-4">
