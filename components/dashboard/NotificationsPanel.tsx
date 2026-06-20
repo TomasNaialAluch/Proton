@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, Bell, Music, DollarSign, FileText, TrendingUp, CheckCheck } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { X, Bell, Music, DollarSign, FileText, TrendingUp, CheckCheck, MessageSquareText } from "lucide-react";
 
 interface Notification {
   id: number;
@@ -11,9 +12,21 @@ interface Notification {
   description: string;
   time: string;
   read: boolean;
+  /** Route to navigate to when the notification is clicked. */
+  href?: string;
 }
 
 const INITIAL_NOTIFICATIONS: Notification[] = [
+  {
+    id: 0,
+    icon: MessageSquareText,
+    iconColor: "#E67E22",
+    title: "New feedback received",
+    description: "Lume left feedback on \"Emotional Damage\".",
+    time: "2 h ago",
+    read: false,
+    href: "/dashboard/feedback/fb-1",
+  },
   {
     id: 1,
     icon: Music,
@@ -67,6 +80,7 @@ interface NotificationsPanelProps {
 }
 
 export default function NotificationsPanel({ open, onClose }: NotificationsPanelProps) {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>(INITIAL_NOTIFICATIONS);
 
   useEffect(() => {
@@ -125,12 +139,20 @@ export default function NotificationsPanel({ open, onClose }: NotificationsPanel
             </div>
           ) : (
             <ul className="divide-y divide-[var(--color-border)]">
-              {notifications.map(({ id, icon: Icon, iconColor, title, description, time, read }) => (
+              {notifications.map(({ id, icon: Icon, iconColor, title, description, time, read, href }) => (
                 <li
                   key={id}
+                  onClick={
+                    href
+                      ? () => {
+                          onClose();
+                          router.push(href);
+                        }
+                      : undefined
+                  }
                   className={`flex gap-3 px-5 py-4 transition-colors hover:bg-[var(--color-border)]/40 ${
                     !read ? "bg-accent/5" : ""
-                  }`}
+                  } ${href ? "cursor-pointer" : ""}`}
                 >
                   {/* Icon */}
                   <div

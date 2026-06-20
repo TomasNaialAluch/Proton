@@ -1,264 +1,264 @@
-# Barra de navegación pública — análisis UX/UI exhaustivo
+# Public navbar — exhaustive UX/UI analysis
 
-Documento de trabajo para el rediseño propio de la zona pública: describe **el estado del header**, la **saturación que percibe el ojo**, la solución **§8.7** (un enlace **Sign in** → `/login` con pestañas, sin API), y **cómo no repetir** la prueba de dos botones en la franja.
+Working document for the public-area redesign: describes **the current header state**, the **saturation the eye perceives**, the **§8.7** solution (a single **Sign in** link → `/login` with tabs, no API), and **how not to repeat** the two-buttons-in-the-strip experiment.
 
-**Ámbito:** `PublicNavbar`, drawer (`HamburgerMenu`), `NavbarSearch`, `PublicThemeToggle`. No incluye footer ni player global.
-
----
-
-## 0. Síntesis honesta (lo que le pasa a la barra a simple vista)
-
-En **una sola franja** de 64px de alto el usuario ve, en desktop: **marca** + **cuatro enlaces** de sección + a la derecha, en secuencia, **búsqueda** (aunque arranque en icono), **tres pictogramas/rueditas de tema** y un **botón naranja entero** (“For Artists”). Eso es **mucha señal competidora** en poco ancho, sobre todo en el **cluster derecho**: el ojo no hace “análisis de taxonomía”, hace **conteo visual** y termina con la impresión de **demasiadas cosas en la barra**.
-
-Eso **no** se soluciona diciendo que el centro está vacío: el vacío no quita que el **bloque derecho** esté abarrotado de significados distintos (buscar, pintar el sitio, ir al panel de artistas).
-
-**Evidencia en el propio rediseño:** en una iteración se **sumaron** en esa misma fila **Sign in** y **Create account** (placeholder). **Cargó más la barra** y reforzó justo la sensación de exceso; por eso **esos controles se sacaron del código** y el análisis **no** propone “pegotear” dos botones más sin reagrupar. El fallo de esa prueba no es el README: es la **física** del header en una sola línea.
-
-El documento que sigue desglosa *por qué* se siente así y *qué* se puede hacer cuando haya auth de verdad, sin asumir que hoy haya entradas de cuenta en el repo.
+**Scope:** `PublicNavbar`, drawer (`HamburgerMenu`), `NavbarSearch`, `PublicThemeToggle`. Does not include the footer or the global player.
 
 ---
 
-## 1. Objetivo de este análisis
+## 0. Honest synthesis (what happens to the bar at a glance)
 
-- Fijar **criterio de producto** antes de volver a tocar el header: **percepción de saturación** es un riesgo real, no un detalle.
-- Relacionar **inventario técnico** con **carga visual** (no confundir “pocos tipos de componente” con “poca carga en el ojo”).
-- Proponer **cómo** integrar Sign in / Create account **sin** repetir la iteración que apretó la barra (menú único, solo “Sign in”, etc.).
+In **a single 64px-tall strip** the desktop user sees: **brand** + **four section links** + on the right, in sequence, **search** (even if it starts as an icon), **three theme pictograms/switch**, and a **full orange button** (“For Artists”). That’s **a lot of competing signal** in limited width, especially in the **right cluster**: the eye doesn’t do “taxonomy analysis”, it does **visual counting**, and ends up with the impression of **too many things in the bar**.
 
----
+That is **not** solved by saying the center is empty: emptiness doesn’t change the fact that the **right block** is crowded with different meanings (search, paint the site, go to the artist panel).
 
-## 2. Método y criterios usados
+**Evidence in the redesign itself:** in one iteration **Sign in** and **Create account** (placeholder) were **added** to that same row. It **loaded the bar more** and reinforced exactly the feeling of excess; that’s why **those controls were removed from the code**, and the analysis does **not** propose “bolting on” two more buttons without regrouping. The failure of that test isn’t the README — it’s the **physics** of a single-line header.
 
-- **Inspección heurística** (Nielsen, versión resumida): visibilidad del estado, consistencia, prevención de error, flexibilidad, estética minimalista, reconocimiento, documentación (en este caso, affordance de controles).
-- **Leyes de tiempos de respuesta** (Hick–Hyman): más alternativas **independientes** en un mismo tramo de UI incrementan el tiempo de decisión.
-- **Carga cognitiva** (Sweller, aplicado a UI): distinguir carga **intrínseca** (tarea “qué quiero hacer”) e **extrínseca** (cómo de difícil es operar la interfaz en ese tramo).
-- **Ley de Fitts**: distancia y tamaño de los targets en el cluster derecho.
-- **Patrones de escaneo** (Nielsen Norman, resumen): en cabeceras web, frecuente patrón en **F** o barra superior horizontal seguida de salto al contenido.
-
-Ninguno de estos métodos “prohíbe” un número fijo de ítems; sí advierten cuando **varias intenciones distintas** compiten en **poco espacio lineal**.
+The rest of this document breaks down *why* it feels that way and *what* can be done once real auth exists, without assuming the repo currently has account entries.
 
 ---
 
-## 3. Inventario detallado del estado actual
+## 1. Goal of this analysis
 
-### 3.1 Desktop (`lg` y superior, ~1024px+)
-
-**Altura fija aparente:** `h-16` (64px) — una sola franja; todo compite en altura similar.
-
-| Orden visual (izquierda → derecha) | Elemento | Tipo de control | Función semántica |
-|-------------------------------------|----------|-----------------|-------------------|
-| 1 | Icono + texto “Proton” | `Link` | Marca, retorno a home |
-| 2–5 | Radio, Shows, Charts, Labels | `Link` ×4 | Navegación **primaria de contenido** |
-| 6 | Lupa (colapsada) / campo al expandir | `button` + `input` | **Descubrimiento** (búsqueda global MVP) |
-| 7 | Sol — interruptor — Luna | `button` (switch) | **Preferencia de apariencia** |
-| 8 | **Sign in** + icono | `Link` → `/login` | **Una sola entrada** a cuenta (§8.7); registro en la página |
-| 9 | “For Artists” + icono dashboard | `Link` | **CTA** creadores → `/dashboard` |
-
-**Conteo:** en la franja derecha entran **búsqueda**, **tema**, **Sign in** (un target) y **For Artists**; los cuatro enlaces de contenido siguen a la izquierda.
-
-### 3.2 Móvil (por debajo del breakpoint `lg`)
-
-En la **barra visible** (64px):
-
-| Elemento | Función |
-|----------|---------|
-| Hamburguesa | Abrir drawer |
-| Marca centrada | Home / identidad |
-
-No hay búsqueda ni tema en la barra fija: se **descargan** al drawer para **no** multiplicar iconos en una fila ya ocupada por marca centrada y menú.
-
-**En el drawer:** Búsqueda, cuatro enlaces de contenido, **Sign in** (misma ruta `/login`), toggle de tema, CTA “For Artists”.
-
-### 3.3 Lo que falta o está diferido (respecto a un producto con auth real)
-
-- **Create account** como **segundo botón** en la barra: **no** (va en la pestaña dentro de `/login`, §8.7).
-- **Sesión iniciada** (avatar, “Mi cuenta”, cerrar sesión): aún no.
-- **Backend / API** de login y registro: prototipo sin integración.
-
-Un **solo** “Sign in” en header cumple la expectativa mínima de “punto de entrada” sin repetir la prueba de **dos** CTAs de cuenta en la misma fila.
+- Set **product criteria** before touching the header again: **perceived saturation** is a real risk, not a detail.
+- Connect **technical inventory** with **visual load** (don’t confuse “few component types” with “low load on the eye”).
+- Propose **how** to integrate Sign in / Create account **without** repeating the iteration that squeezed the bar (single menu, “Sign in” only, etc.).
 
 ---
 
-## 4. Patrón de escaneo y jerarquía visual
+## 2. Methods and criteria used
 
-### 4.1 Lectura típica (LTR, desktop)
+- **Heuristic inspection** (Nielsen, condensed version): visibility of system status, consistency, error prevention, flexibility, minimalist aesthetics, recognition, documentation (in this case, control affordance).
+- **Response-time laws** (Hick–Hyman): more **independent** alternatives in the same UI stretch increase decision time.
+- **Cognitive load** (Sweller, applied to UI): distinguishing **intrinsic** load (the task — “what do I want to do”) from **extraneous** load (how hard the interface is to operate in that stretch).
+- **Fitts’s law**: distance and target size in the right-hand cluster.
+- **Scanning patterns** (Nielsen Norman, summary): on web headers, a frequent **F-pattern** or horizontal top bar followed by a jump to content.
 
-1. **Logo** → ancla de marca.
-2. **Enlaces primarios** (Radio… Labels) → “¿dónde voy dentro del sitio?”
-3. **Ojo salta al margen derecho** → zona de **utilidades globales** y **CTA**.
-
-El margen derecho concentra **alta densidad de decisión** en pocos centímetros: **tipos de decisión distintos** (buscar, tema, **cuenta**, panel de artistas).
-
-### 4.2 Contraste de peso visual
-
-- **For Artists** es el único bloque con **fondo de acento sólido** en ese cluster: CTA **primario** del bloque derecho para creadores.
-- **Sign in** (enlace con borde, hover/focus y estado activo en `/login`) es **secundario** frente al naranja: no compite por relleno sólido.
-- **Búsqueda** minimizada reduce peso hasta que el usuario **elige** expandir: buen mecanismo para **no** competir con el CTA naranja en reposo.
-- **Tema** ocupa ancho fijo (sol + switch + luna): lectura clara pero **siempre visible**: consume anchura lineal de forma estable.
+None of these methods “forbids” a fixed item count; they do warn when **several distinct intentions** compete in **too little linear space**.
 
 ---
 
-## 5. Taxonomía de intenciones vs controles
+## 3. Detailed inventory of the current state
 
-| Intención del usuario | Control actual | ¿Está en barra desktop? |
-|----------------------|----------------|-------------------------|
-| Explorar secciones del sitio | Radio, Shows, Charts, Labels | Sí |
-| Encontrar algo concreto | Búsqueda | Sí (minimizada) |
-| Ajustar lectura (claro/oscuro) | Theme toggle | Sí |
-| Iniciar sesión (oyente) | Sign in → `/login` | Sí (un enlace) |
-| Crear cuenta / registrarse | Pestaña en `/login` | **No** en barra (§8.7) |
-| Acceder como artista al producto B2B | For Artists | Sí |
+### 3.1 Desktop (`lg` and up, ~1024px+)
 
-**Sesión iniciada** (avatar, menú “Mi cuenta”): aún no.
+**Apparent fixed height:** `h-16` (64px) — a single strip; everything competes at similar height.
 
-**Sign in** marca el polo “cuenta oyente” frente a **For Artists** sin poner **dos** CTAs de auth en la misma fila.
+| Visual order (left → right) | Element | Control type | Semantic function |
+|---|---|---|---|
+| 1 | Proton icon + “Proton” text | `Link` | Brand, return to home |
+| 2–5 | Radio, Shows, Charts, Labels | `Link` ×4 | **Primary content** navigation |
+| 6 | Magnifier (collapsed) / field when expanded | `button` + `input` | **Discovery** (global search MVP) |
+| 7 | Sun — switch — Moon | `button` (switch) | **Appearance preference** |
+| 8 | **Sign in** + icon | `Link` → `/login` | **Single entry** to account (§8.7); sign-up lives on the page |
+| 9 | “For Artists” + dashboard icon | `Link` | **CTA** for creators → `/dashboard` |
 
----
+**Count:** the right strip holds **search**, **theme**, **Sign in** (one target), and **For Artists**; the four content links remain on the left.
 
-## 6. Por qué la barra se siente “llena” — y por qué sumar auth empeoró lo que ya se veía
+### 3.2 Mobile (below the `lg` breakpoint)
 
-### 6.1 La base ya era pesada para el ojo
+In the **visible bar** (64px):
 
-En el margen derecho conviven **varios tipos de acción** muy visibles a la vez (búsqueda, interruptor de tema con tres piezas, **Sign in**, CTA sólido). Aunque la búsqueda arranque minimizada, al expandir **ocupa más** y el sector derecho se vuelve **aún más denso**. La lectura de “demasiadas cosas” ya aparecía **antes** de volver a probar dos botones de cuenta en fila; **Sign in** como **único** enlace a `/login` intenta **limitar** ese crecimiento frente a la prueba fallida de dos CTAs.
+| Element | Function |
+|---|---|
+| Hamburger | Open drawer |
+| Centered brand | Home / identity |
 
-### 6.2 Heterogeneidad = más esfuerzo mental en el mismo centímetro
+There’s no search or theme control in the fixed bar: they’re **offloaded** to the drawer to **avoid** multiplying icons in a row already occupied by the centered brand and the menu.
 
-Tres familias en el cluster derecho:
+**In the drawer:** Search, the four content links, **Sign in** (same `/login` route), theme toggle, “For Artists” CTA.
 
-1. **Exploración** (búsqueda)
-2. **Preferencia de interfaz** (tema)
-3. **Conversión / segmento** (For Artists)
+### 3.3 What’s missing or deferred (relative to a product with real auth)
 
-Cada salto de categoría fuerza un **micro-replanteo**. Eso suma carga **extrínseca**: no es solo “muchos íconos”, es **cambiar de pregunta** (¿busco? ¿cambio tema? ¿soy artista?) en el mismo tramo.
+- **Create account** as a **second button** in the bar: **no** (it’s a tab inside `/login`, §8.7).
+- **Signed-in session** (avatar, “My account”, sign out): not yet.
+- **Backend / API** for login and registration: prototype, no integration.
 
-### 6.3 Prueba en el rediseño: añadir Sign in + Create account en la misma fila
-
-Se implementó en el prototipo **colocar dos acciones de cuenta** junto a búsqueda, tema y For Artists. **Resultado:** la barra se vio **más cargada**; al mirarla, **sí** parece “demasiado” — porque **lo es** en términos de **competencia por espacio y atención**. Por eso esa UI **no se mantuvo**: el propio ejercicio sirvió para **validar** el límite del header actual, no para negarlo.
-
-### 6.4 Anchura lineal y Ley de Fitts
-
-En anchos intermedios (`lg` justo por encima del breakpoint), el cluster derecho agrupa **varios targets** seguidos. Cada control extra **sin** agrupación ni separación empeora errores de clic y la sensación de apretura.
-
-### 6.5 El hueco central no “equilibra” el derecho
-
-El espacio entre “Labels” y el cluster derecho **no compensa** visualmente la densidad del margen derecho: el usuario **no mira el centro** cuando busca “qué puedo hacer ya”; mira **logo, links y esquina**. El hueco ayuda al layout, **no** baja el conteo de elementos que compiten en la esquina.
+A **single** “Sign in” in the header meets the minimum “entry point” expectation without repeating the test of **two** account CTAs in the same row.
 
 ---
 
-## 7. El gap Sign in / Create account: implicancias
+## 4. Scanning pattern and visual hierarchy
 
-### 7.1 Expectativa de usuario
+### 4.1 Typical reading (LTR, desktop)
 
-En sitios de radio/streaming, la esquina superior derecha suele alojar **cuenta** o **inicio de sesión**. Su ausencia puede interpretarse como:
+1. **Logo** → brand anchor.
+2. **Primary links** (Radio… Labels) → “where do I go within the site?”
+3. **Eye jumps to the right margin** → zone of **global utilities** and **CTA**.
 
-- Producto **solo lectura** (aceptable en prototipo).
-- O **omisión** no intencionada (riesgo de confianza si el sitio promete funciones futuras ligadas a cuenta).
+The right margin concentrates **high decision density** in a few centimeters: **different kinds of decisions** (search, theme, **account**, artist panel).
 
-### 7.2 Qué pasa si se añaden dos botones **literales** en la misma fila
+### 4.2 Visual weight contrast
 
-Sin rediseño de agrupación, se suman **dos decisiones** más en el mismo tramo lineal:
-
-- Aumenta el **conteo de Hick** en el cluster derecho.
-- Compiten por jerarquía con **For Artists** si se les da demasiado contraste.
-- En anchos **entre `lg` y `xl`**, puede aparecer **overflow**, truncado o salto de línea (anti–patrón en header de una sola altura).
-
-Por eso el análisis **no** recomienda repetir “pegar Sign in y Create account” en la misma fila **sin** reducir peso en otro lado o **reagrupar** — la prueba en prototipo ya mostró el efecto en la barra.
+- **For Artists** is the only block with a **solid accent background** in that cluster: the **primary** CTA of the right block, for creators.
+- **Sign in** (a bordered link, with hover/focus and an active state on `/login`) is **secondary** next to the orange button: it doesn’t compete with solid fill.
+- A **minimized search** reduces weight until the user **chooses** to expand it: a good mechanism to **avoid** competing with the orange CTA at rest.
+- **Theme** occupies a fixed width (sun + switch + moon): clear to read but **always visible**: it consumes linear width steadily.
 
 ---
 
-## 8. Estrategias posibles para incorporar auth (cuando exista producto)
+## 5. Taxonomy of intentions vs. controls
 
-Estas son **alternativas de diseño**; ninguna está implementada en el código actual.
+| User intention | Current control | Is it in the desktop bar? |
+|---|---|---|
+| Explore site sections | Radio, Shows, Charts, Labels | Yes |
+| Find something specific | Search | Yes (minimized) |
+| Adjust reading mode (light/dark) | Theme toggle | Yes |
+| Sign in (listener) | Sign in → `/login` | Yes (one link) |
+| Create an account / sign up | Tab inside `/login` | **No** in the bar (§8.7) |
+| Access the B2B product as an artist | For Artists | Yes |
 
-### 8.1 Un solo entry “Account” (dropdown o sheet)
+**Signed-in session** (avatar, “My account” menu): not yet.
 
-- **Ventaja:** un target en barra; dentro, Sign in, Create account, ayuda legal.
-- **Costo:** implementación de menú accesible (`aria-expanded`, foco, Escape).
-
-### 8.2 Solo “Sign in” en barra
-
-- **Create account** como enlace secundario **en la pantalla de login** (patrón muy común).
-- **Ventaja:** menos anchura; jerarquía clara (la mayoría de usuarios recurrentes van a login).
-
-### 8.3 Sign in como texto; Create account solo en footer o modal desde login
-
-- **Ventaja:** minimiza competencia con For Artists.
-- **Riesgo:** registro menos visible (solo aceptable si métricas lo permiten).
-
-### 8.4 Cuenta solo en móvil dentro del drawer (no en barra fija)
-
-- **Ventaja:** la barra móvil sigue siendo hamburger + marca.
-- **Desventaja:** en desktop sigue faltando entrada visible si no se añade nada en `lg+`.
-
-### 8.5 Separador visual entre bloques
-
-- Entre “utilidades oyente” (búsqueda + futura cuenta) y “For Artists”, un **margen mayor** o línea vertical sutil puede **reducir errores de clic** y refuerzo semántico, sin añadir nuevos textos.
-
-### 8.6 Segunda fila de header solo en home (patrón promo / subnav)
-
-- Solo si el negocio lo exige; aumenta altura y complejidad operativa (sticky, sombras, accesibilidad).
-
-### 8.7 Foros, literatura breve y propuesta: un botón → página de login / registro
-
-**Dónde se discute “demasiados ítems en la nav” (comunidad UX, no “foro random”):** en **UX Stack Exchange** (Q&A con votos, referencia habitual en la industria) aparecen hilos directamente útiles:
-
-- *UX alternative for too many navigation items* — alternativas cuando hay muchos ítems de primer nivel. [https://ux.stackexchange.com/questions/107069/ux-alternative-for-too-many-navigation-items](https://ux.stackexchange.com/questions/107069/ux-alternative-for-too-many-navigation-items)
-- *Navigation too long, any real case solves this issue?* — casos reales y recortar / reagrupar. [https://ux.stackexchange.com/questions/107133/navigation-too-long-any-real-case-solves-this-issue](https://ux.stackexchange.com/questions/107133/navigation-too-long-any-real-case-solves-this-issue)
-- *Large Number of Menu Items and UX* — muchos items y trade-offs. [https://ux.stackexchange.com/questions/55196/large-number-of-menu-items-and-ux](https://ux.stackexchange.com/questions/55196/large-number-of-menu-items-and-ux)
-- *Pros and cons of an overflowing horizontal scrollable nav bar* — por qué el scroll horizontal en la barra suele ser mala idea; refuerza **no** apilar sin límite. [https://ux.stackexchange.com/questions/135434/what-are-the-pros-and-cons-with-an-overflowing-horizontal-scrollable-nav-bar](https://ux.stackexchange.com/questions/135434/what-are-the-pros-and-cons-with-an-overflowing-horizontal-scrollable-nav-bar)
-
-**Síntesis de lo que suelen recomendar (y encaja con buenas prácticas amplias):** **reorganizar la IA**, **agrupar** o **sacar a un segundo nivel** (submenú, “More”, hamburguesa en móvil), **priorizar** lo visible y evitar filas interminables; en barra horizontal, muchas veces se sugiere **reducir el número de destinos al primer vistazo** en lugar de añadir scroll lateral al menú.
-
-**Posible solución (anotada): un solo control en la barra con feedback claro → una página donde entrar o crear cuenta**
-
-- **Idea:** en el header, **un único botón o enlace** (p. ej. “Sign in” / “Account”) con **estado hover/focus evidente** y que **navegue** a una **ruta dedicada** (`/login`, `/account`, etc.) donde el usuario elija **iniciar sesión** o **registrarse** (pestañas, dos bloques o formulario único con enlace “Create account”).
-- **Encaje con teoría / práctica habitual:** reduce **ítems de primer nivel** en la barra (menos competencia con búsqueda, tema y “For Artists”), alinea con **una entrada clara** hacia el espacio de cuenta — mismo espíritu que **§8.2** (“solo Sign in en barra” + registro en la pantalla siguiente). Es coherente con **simplificar elecciones en la cabecera** y mover el detalle al siguiente paso (NN/g y estudios de homepage suelen insistir en **claridad de rutas críticas** y **evitar duplicar destinos** innecesarios en la misma zona).
-- **Baymard** y otros centros publican guías para **simplificar sign-in** (menos fricción en el camino al login); tener **una sola puerta** desde la barra y **decidir login vs registro en la página** suele ser **mejor** que dos botones grandes en la franja ya saturada.
-- **Matiz:** el botón debe tener **etiqueta inequívoca** (“Sign in”, “Log in”, “Account”) y la página destino debe cumplir **expectativa** (no landing vacío); en **móvil** puede repetirse la misma idea o vivir en el drawer si la barra sigue minimalista.
+**Sign in** marks the “listener account” pole against **For Artists**, without putting **two** auth CTAs in the same row.
 
 ---
 
-## 9. Accesibilidad y densidad
+## 6. Why the bar feels “full” — and why adding auth made what was already visible worse
 
-- Cada nuevo control en la misma fila debe mantener **área mínima** razonable (~44×44 CSS px en táctil; en desktop el estándar suele ser algo menor pero consistente).
-- **Orden de foco** (teclado): logo → primarios → búsqueda → tema → [futura cuenta] → For Artists. Saltos bruscos si el orden visual no coincide con el DOM.
-- **Etiquetas**: “For Artists” ya distingue audiencia; futuros “Sign in” deben evitar ambigüedad con el dashboard de artistas.
+### 6.1 The baseline was already heavy on the eye
 
----
+The right margin holds **several kinds of action** that are all highly visible at once (search, a three-piece theme switch, **Sign in**, a solid CTA). Even though search starts minimized, expanding it **takes up more** room and makes the right side **even denser**. The “too many things” read **already existed** before testing two account buttons in a row again; **Sign in** as the **only** link to `/login` tries to **limit** that growth compared with the failed two-CTA test.
 
-## 10. Tabla resumen: tensión “añadir cuenta” vs “no sobrecargar”
+### 6.2 Heterogeneity = more mental effort per centimeter
 
-| Enfoque | Reduce densidad percibida | Riesgo |
-|---------|---------------------------|--------|
-| Un botón en barra → página login/registro (§8.7) | Alto (un solo target) | Página destino debe cumplir expectativa; registro puede ser tab secundario |
-| Dropdown “Account” | Alto | Más desarrollo y patrones A11Y |
-| Solo Sign in en barra | Medio–alto | Registro menos visible |
-| Cuenta solo en drawer móvil | Medio en móvil | Inconsistencia desktop/móvil si no se compensa |
-| Dos botones explícitos en barra (como en la prueba) | Muy bajo | **Saturación** visible; colisión con tema, búsqueda y CTA; confirma el límite del header actual |
+Three families in the right cluster:
 
----
+1. **Exploration** (search)
+2. **Interface preference** (theme)
+3. **Conversion / segment** (For Artists)
 
-## 11. Referencias en el repo (estado al redactar)
+Every category jump forces a **micro-rethink**. That adds **extraneous** load: it’s not just “many icons”, it’s **changing the question** (am I searching? changing theme? am I an artist?) within the same stretch.
 
-| Pieza | Archivo |
-|--------|---------|
-| Barra pública | `components/public/Navbar.tsx` |
-| Drawer móvil | `components/public/HamburgerMenu.tsx` |
-| Búsqueda minimizada | `components/public/NavbarSearch.tsx` |
-| Tema claro/oscuro | `components/public/PublicThemeToggle.tsx` |
-| Layout zona pública | `app/(public)/layout.tsx` |
-| Página `/login` (pestañas inicio / registro, prototipo sin API) | `app/(public)/login/page.tsx`, `app/(public)/login/layout.tsx`, `components/public/LoginSignUpView.tsx` |
+### 6.3 Test in the redesign: adding Sign in + Create account in the same row
 
-**Patrón §8.7 en código:** un único control **Sign in** (desktop + bloque en drawer) enlaza a **`/login`**; crear cuenta está en la **segunda pestaña** de esa página, no como segundo botón en la franja superior.
+The prototype implemented **placing two account actions** next to search, theme, and For Artists. **Result:** the bar looked **more loaded**; looking at it, it **does** feel like “too much” — because it **is**, in terms of **competition for space and attention**. That’s why that UI **wasn’t kept**: the exercise itself served to **confirm** the current header’s limit, not to disprove it.
+
+### 6.4 Linear width and Fitts’s law
+
+At intermediate widths (`lg` just above the breakpoint), the right cluster groups **several targets** in a row. Every extra control **without** grouping or separation worsens click errors and the feeling of crowding.
+
+### 6.5 The center gap doesn’t “balance” the right side
+
+The space between “Labels” and the right cluster does **not** visually compensate for the density of the right margin: the user doesn’t **look at the center** when scanning “what can I do right now”; they look at the **logo, links, and corner**. The gap helps the layout but does **not** lower the count of elements competing in the corner.
 
 ---
 
-## 12. Conclusión
+## 7. The Sign in / Create account gap: implications
 
-1. A **ojo de usuario**, la barra sigue siendo **densa** a la derecha (búsqueda + tema en tres piezas + **un solo** Sign in + CTA naranja). El hueco central **no diluye** esa impresión.
-2. **Sumar dos botones** (Sign in + Create account) **en la misma fila** del header **recargó** la barra en la prueba anterior; por eso se descartó ese layout.
-3. La implementación actual sigue **§8.7**: **un enlace** a **`/login`** y **registro en la página** (pestaña), en línea con **§8.2** y la tabla de la **sección 10**.
-4. Los formularios son **prototipo** hasta existir backend; el foco del rediseño es **densidad** y **una sola puerta** visible en barra.
+### 7.1 User expectation
+
+On radio/streaming sites, the top-right corner usually holds **account** or **sign-in**. Its absence can be read as:
+
+- A **read-only** product (acceptable for a prototype).
+- Or an **unintentional omission** (a trust risk if the site promises future account-linked features).
+
+### 7.2 What happens if two **literal** buttons are added in the same row
+
+Without a regrouping redesign, **two more decisions** are added in the same linear stretch:
+
+- It raises the **Hick count** in the right cluster.
+- They compete for hierarchy with **For Artists** if given too much contrast.
+- At widths **between `lg` and `xl`**, **overflow**, truncation, or line wrapping can appear (an anti-pattern in a single-height header).
+
+That’s why the analysis does **not** recommend repeating “bolt Sign in and Create account together” in the same row **without** reducing weight elsewhere or **regrouping** — the prototype test already showed the effect on the bar.
 
 ---
 
-*Última actualización: implementado §8.7 (`/login` + Sign in en navbar/drawer); sin API de auth.*
+## 8. Possible strategies for adding auth (once the product exists)
+
+These are **design alternatives**; none is implemented in the current code.
+
+### 8.1 A single “Account” entry (dropdown or sheet)
+
+- **Advantage:** one target in the bar; inside it, Sign in, Create account, legal help.
+- **Cost:** building an accessible menu (`aria-expanded`, focus, Escape).
+
+### 8.2 Only “Sign in” in the bar
+
+- **Create account** as a secondary link **on the login screen** (a very common pattern).
+- **Advantage:** less width; clear hierarchy (most returning users go to login).
+
+### 8.3 Sign in as text; Create account only in the footer or a modal from login
+
+- **Advantage:** minimizes competition with For Artists.
+- **Risk:** sign-up is less visible (only acceptable if metrics allow it).
+
+### 8.4 Account only on mobile, inside the drawer (not in the fixed bar)
+
+- **Advantage:** the mobile bar stays hamburger + brand.
+- **Disadvantage:** on desktop, the entry is still missing if nothing is added at `lg+`.
+
+### 8.5 Visual separator between blocks
+
+- Between “listener utilities” (search + future account) and “For Artists”, a **larger margin** or a subtle vertical line can **reduce click errors** and reinforce semantics, without adding new text.
+
+### 8.6 A second header row, home-only (promo / subnav pattern)
+
+- Only if the business requires it; it increases height and operational complexity (sticky, shadows, accessibility).
+
+### 8.7 Forums, brief literature, and proposal: one button → login/sign-up page
+
+**Where “too many nav items” gets discussed (a real UX community, not a “random forum”):** **UX Stack Exchange** (a voted Q&A site, a standard industry reference) has directly useful threads:
+
+- *UX alternative for too many navigation items* — alternatives when there are many top-level items. [https://ux.stackexchange.com/questions/107069/ux-alternative-for-too-many-navigation-items](https://ux.stackexchange.com/questions/107069/ux-alternative-for-too-many-navigation-items)
+- *Navigation too long, any real case solves this issue?* — real cases, trimming / regrouping. [https://ux.stackexchange.com/questions/107133/navigation-too-long-any-real-case-solves-this-issue](https://ux.stackexchange.com/questions/107133/navigation-too-long-any-real-case-solves-this-issue)
+- *Large Number of Menu Items and UX* — many items and trade-offs. [https://ux.stackexchange.com/questions/55196/large-number-of-menu-items-and-ux](https://ux.stackexchange.com/questions/55196/large-number-of-menu-items-and-ux)
+- *Pros and cons of an overflowing horizontal scrollable nav bar* — why horizontal scroll in the bar is usually a bad idea; reinforces **not** stacking without a limit. [https://ux.stackexchange.com/questions/135434/what-are-the-pros-and-cons-with-an-overflowing-horizontal-scrollable-nav-bar](https://ux.stackexchange.com/questions/135434/what-are-the-pros-and-cons-with-an-overflowing-horizontal-scrollable-nav-bar)
+
+**Synthesis of what’s usually recommended (and matches broad good practice):** **reorganize the IA**, **group**, or **push down to a second level** (submenu, “More”, hamburger on mobile), **prioritize** what’s visible, and avoid endless rows; for a horizontal bar, the common suggestion is to **reduce the number of first-glance destinations** rather than add lateral scroll to the menu.
+
+**Possible solution (annotated): a single control in the bar with clear feedback → a page to sign in or create an account**
+
+- **Idea:** in the header, **a single button or link** (e.g. “Sign in” / “Account”) with an **evident hover/focus state** that **navigates** to a **dedicated route** (`/login`, `/account`, etc.) where the user chooses to **sign in** or **sign up** (tabs, two blocks, or a single form with a “Create account” link).
+- **Fit with theory / common practice:** reduces **top-level items** in the bar (less competition with search, theme, and “For Artists”), aligns with **one clear entry** to the account space — same spirit as **§8.2** (“only Sign in in the bar” + sign-up on the next screen). It’s consistent with **simplifying choices in the header** and moving detail to the next step (NN/g and homepage studies usually stress **clarity of critical paths** and **avoiding duplicate destinations** unnecessarily in the same zone).
+- **Baymard** and other research groups publish guidance on **simplifying sign-in** (less friction on the path to login); having **one single door** from the bar and **deciding login vs. sign-up on the page** is usually **better** than two big buttons in an already-saturated strip.
+- **Nuance:** the button needs an **unambiguous label** (“Sign in”, “Log in”, “Account”) and the destination page must meet **expectations** (not an empty landing page); on **mobile** the same idea can repeat or live in the drawer if the bar stays minimal.
+
+---
+
+## 9. Accessibility and density
+
+- Every new control in the same row must keep a reasonable **minimum area** (~44×44 CSS px on touch; on desktop the standard is usually a bit smaller but consistent).
+- **Focus order** (keyboard): logo → primary links → search → theme → [future account] → For Artists. Abrupt jumps occur if visual order doesn’t match DOM order.
+- **Labels**: “For Artists” already distinguishes the audience; future “Sign in” entries must avoid ambiguity with the artist dashboard.
+
+---
+
+## 10. Summary table: the “add account” vs. “don’t overload” tension
+
+| Approach | Reduces perceived density | Risk |
+|---|---|---|
+| One button in the bar → login/sign-up page (§8.7) | High (a single target) | Destination page must meet expectations; sign-up can be a secondary tab |
+| “Account” dropdown | High | More development and A11Y patterns |
+| Only Sign in in the bar | Medium–high | Sign-up is less visible |
+| Account only in the mobile drawer | Medium on mobile | Desktop/mobile inconsistency if not compensated |
+| Two explicit buttons in the bar (as tested) | Very low | Visible **saturation**; collides with theme, search, and CTA; confirms the current header’s limit |
+
+---
+
+## 11. References in the repo (state at time of writing)
+
+| Piece | File |
+|---|---|
+| Public bar | `components/public/Navbar.tsx` |
+| Mobile drawer | `components/public/HamburgerMenu.tsx` |
+| Minimized search | `components/public/NavbarSearch.tsx` |
+| Light/dark theme | `components/public/PublicThemeToggle.tsx` |
+| Public-area layout | `app/(public)/layout.tsx` |
+| `/login` page (sign-in / sign-up tabs, no-API prototype) | `app/(public)/login/page.tsx`, `app/(public)/login/layout.tsx`, `components/public/LoginSignUpView.tsx` |
+
+**§8.7 pattern in code:** a single **Sign in** control (desktop + drawer block) links to **`/login`**; account creation lives on the **second tab** of that page, not as a second button in the top strip.
+
+---
+
+## 12. Conclusion
+
+1. To the **user’s eye**, the bar is still **dense** on the right (search + a three-piece theme control + **a single** Sign in + the orange CTA). The center gap does **not** dilute that impression.
+2. **Adding two buttons** (Sign in + Create account) **in the same row** of the header **overloaded** the bar in the earlier test; that’s why that layout was dropped.
+3. The current implementation follows **§8.7**: **one link** to **`/login`** with **sign-up on the page** (a tab), in line with **§8.2** and the table in **section 10**.
+4. The forms are a **prototype** until a backend exists; the focus of the redesign is **density** and **a single visible door** in the bar.
+
+---
+
+*Last updated: §8.7 implemented (`/login` + Sign in in navbar/drawer); no auth API.*

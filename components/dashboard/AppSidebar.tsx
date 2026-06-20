@@ -8,7 +8,7 @@ import {
   User, TrendingUp, DollarSign, FileText, Settings,
   Radio, Tag, Disc3, Link as LinkIcon, BarChart3, Mic2, Building2,
   Bell, PanelLeftClose, PanelLeftOpen, ExternalLink, ChevronRight, ChevronDown,
-  Sun, Moon, CircleHelp,
+  Sun, Moon, CircleHelp, MessageSquareText, Compass,
 } from "lucide-react";
 import { mockArtist } from "@/lib/mock/artist";
 import { platformHubLinkActive } from "@/lib/dashboard/platformHub";
@@ -25,6 +25,8 @@ const dashboardLinks = [
   { label: "Performance", icon: TrendingUp, href: "/dashboard/performance" },
   { label: "Royalties",   icon: DollarSign, href: "/dashboard/royalties" },
   { label: "Contracts",   icon: FileText,   href: "/dashboard/contracts" },
+  { label: "Discover",    icon: Compass,    href: "/dashboard/discover" },
+  { label: "Feedback",    icon: MessageSquareText, href: "/dashboard/feedback" },
   {
     label: "Settings",
     icon: Settings,

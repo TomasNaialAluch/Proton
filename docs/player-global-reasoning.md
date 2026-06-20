@@ -1,97 +1,97 @@
-# Reproductor global: decisiones y razonamiento
+# Global player: decisions and reasoning
 
-## Contexto
+## Context
 
-**Proton Radio (sitio público en producción)**  
-Tras el cambio a YouTube, el flujo habitual en protonradio.com es que el *call to action* del show **lleva al vídeo en YouTube** (enlace en el DOM, no un reproductor de audio integrado en la misma página para ese contenido).
+**Proton Radio (the public production site)**
+Since the move to YouTube, the usual flow on protonradio.com is that the show's *call to action* **leads to the YouTube video** (a link in the DOM, not an audio player embedded in that same page for that content).
 
-**Esta aplicación (rediseño / área pública)**  
-El hero `NowPlayingHero` usa un `<button>` que dispara `play(mix)` sobre el **store global** (`playerStore`) y el **`GlobalPlayer`** en el layout. Es un modelo distinto: **reproducción (y futuro audio) dentro de la app**, no redirección al show en YouTube como acción principal del “play” del hero.
+**This app (redesign / public area)**
+The `NowPlayingHero` hero uses a `<button>` that triggers `play(mix)` on the **global store** (`playerStore`) and the **`GlobalPlayer`** in the layout. It's a different model: **playback (and future audio) inside the app**, not redirecting to the YouTube show as the hero's main "play" action.
 
-No es que uno esté “mal”: son **decisiones de producto** distintas. Este repo prioriza experiencia unificada en la propia web.
-
----
-
-## Objetivo de UX
-
-Mantener el reproductor como está conceptualmente (estado global, barra inferior), pero:
-
-1. **Minimizable**: poder colapsar la barra ancha cuando molesta al leer o navegar.
-2. **Modo FAB** (*floating action button*): en estado minimizado, mostrar un control compacto fijo (esquina inferior, típicamente), con carátula y play/pause (y opcionalmente expandir).
-3. **Navegación sin bloqueo**: poder recorrer **toda la página / las rutas del layout** con el reproductor **minimizado**, sin perder el contexto de lo que suena.
+Neither is "wrong": these are different **product decisions**. This repo prioritizes a unified experience on the site itself.
 
 ---
 
-## Razonamiento técnico (alto nivel)
+## UX goal
 
-| Tema | Decisión |
+Keep the player conceptually as it is (global state, bottom bar), but:
+
+1. **Minimizable**: be able to collapse the wide bar when it gets in the way of reading or navigating.
+2. **FAB mode** (*floating action button*): in minimized state, show a compact fixed control (typically in a corner), with artwork and play/pause (and optionally expand).
+3. **Unblocked navigation**: be able to browse **the whole page / the layout's routes** with the player **minimized**, without losing the context of what's playing.
+
+---
+
+## Technical reasoning (high level)
+
+| Topic | Decision |
 |------|----------|
-| **¿Dónde vive el UI?** | `GlobalPlayer` en **`app/layout.tsx`** (raíz) para que **no se desmonte** al ir de `(public)` a `(dashboard)` u otras rutas. |
-| **¿Dónde guardar “expandido vs minimizado”?** | Estado en **Zustand** (`playerStore`), p. ej. `playerChrome: 'expanded' \| 'minimized'`, para que el modo **persista al navegar** en toda la app. |
-| **Barra expandida** | Comportamiento actual: `fixed` abajo, ancho completo, `z-50`. Botón explícito para **minimizar**. |
-| **Modo FAB** | `fixed` en esquina (p. ej. `bottom` + `right`), tamaño táctil adecuado, mismo store de `currentMix` / `isPlaying`. Clic para **expandir** de nuevo. |
-| **Espacio del contenido (`main`)** | `PublicMain` y `DashboardMainArea` usan `usePlayerBottomPaddingClass` (`pb-36` / `pb-6`). |
-| **Audio real** | Cuando exista `<audio>` u otro motor, debe vivir en el mismo árbol que no se desmonta (layout / `GlobalPlayer`) para que minimizar y navegar **no corten** la reproducción. |
+| **Where does the UI live?** | `GlobalPlayer` in **`app/layout.tsx`** (root) so it **never unmounts** when moving between `(public)` and `(dashboard)` or other routes. |
+| **Where to store "expanded vs. minimized"?** | State in **Zustand** (`playerStore`), e.g. `playerChrome: 'expanded' \| 'minimized'`, so the mode **persists across navigation** throughout the app. |
+| **Expanded bar** | Current behavior: `fixed` at the bottom, full width, `z-50`. Explicit button to **minimize**. |
+| **FAB mode** | `fixed` in a corner (e.g. `bottom` + `right`), appropriate touch target size, same `currentMix` / `isPlaying` store. Click to **expand** again. |
+| **Content space (`main`)** | `PublicMain` and `DashboardMainArea` use `usePlayerBottomPaddingClass` (`pb-36` / `pb-6`). |
+| **Real audio** | Once an `<audio>` element or other engine exists, it must live in the same tree that never unmounts (layout / `GlobalPlayer`) so minimizing and navigating **never cut off** playback. |
 
 ---
 
-## Reproductor actual y audio futuro en Proton
+## Current player and future audio in Proton
 
-Mantenemos el reproductor **como está** (barra global + FAB, motor con `<audio>` y `ProtonMix.audioUrl` opcional) **a propósito**: el día que Proton exponga **streams HTTP(S) directos** (o `audioUrl` en GraphQL), podremos enchufar ese audio al mismo flujo **sin rehacer** el modelo de estado ni el layout. El `<audio>` de `usePlayerAudioEngine` y el store ya son el sitio natural para “audio de verdad”.
+We keep the player **as it is** (global bar + FAB, engine with `<audio>` and an optional `ProtonMix.audioUrl`) **on purpose**: the day Proton exposes **direct HTTP(S) streams** (or `audioUrl` in GraphQL), we'll be able to plug that audio into the same flow **without rebuilding** the state model or the layout. The `<audio>` element in `usePlayerAudioEngine` and the store are already the natural place for "real audio".
 
-Hasta entonces, muchos mixes solo tienen **`youtubeId`** en la API, no URL de audio; eso es independiente de cómo quede montada la UI.
-
----
-
-## Contenido solo en YouTube: elección explícita del usuario
-
-En **protonradio.com** el flujo habitual es **abrir el vídeo en YouTube** (misma pestaña o nueva). En esta app no forzamos una sola opción: cuando el “play” implique **solo un enlace a YouTube** (p. ej. mix sin `audioUrl` pero con `youtubeId`), la idea es **preguntar al usuario** qué prefiere:
-
-1. **Abrir YouTube en otra pestaña** — comportamiento cercano al sitio oficial (el usuario sigue en la web en la pestaña actual).
-2. **Mini reproductor en la página** — embed minimizado (p. ej. en la zona del FAB o un panel flotante con iframe + **YouTube IFrame API**) para ver el vídeo pequeño y **seguir navegando** en la misma pestaña.
-
-Así se respeta el paralelo con protonradio (opción A) y se ofrece la experiencia “dentro del rediseño” (opción B) sin sustituir por completo el modelo hasta que exista audio directo.
+Until then, many mixes only have a **`youtubeId`** in the API, not an audio URL; that's independent of how the UI ends up assembled.
 
 ---
 
-## Cómo implementarlo (borrador técnico)
+## Content that's only on YouTube: an explicit user choice
 
-| Pieza | Rol |
-|-------|-----|
-| **Detección** | En el handler de play (p. ej. `NowPlayingHero` / quien llame a `play(mix)`): si `mix.audioUrl` existe → flujo actual con `<audio>`. Si no hay `audioUrl` pero sí `youtubeId` → no reproducir aún; disparar el flujo de elección. |
-| **UI de elección** | Un **modal** o **popover** accesible (“¿Abrir en YouTube o reproducir aquí minimizado?”) con dos acciones claras + cancelar. Opcional: recordar preferencia en `localStorage` (`youtubePlaybackPreference: 'tab' \| 'mini'`). |
-| **Opción pestaña** | `window.open` con la URL de YouTube y `target` `_blank`, flags `noopener,noreferrer`. No hace falta iframe. |
-| **Opción mini** | Montar un iframe oculto o pequeño controlado por [YouTube IFrame API](https://developers.google.com/youtube/iframe_api_reference): sincronizar play/pause (y opcionalmente tiempo) con `playerStore` / `usePlayerAudioEngine` o un **segundo “motor”** solo para YouTube cuando no hay `<audio>`. El FAB puede mostrar el vídeo en miniatura o la carátula + controles que mandan al API. |
-| **Estado** | Extender el store si hace falta: p. ej. `playbackSource: 'audio' \| 'youtube' \| null` para saber qué componente está activo y evitar dos fuentes sonando a la vez. |
-| **Accesibilidad / móvil** | Autoplay con sonido suele requerir gesto del usuario (el modal cumple ese gesto). Probar tamaños mínimos del embed y políticas del navegador. |
+On **protonradio.com** the usual flow is to **open the video on YouTube** (same tab or a new one). In this app we don't force a single option: when "play" would mean **only a YouTube link** (e.g. a mix without `audioUrl` but with `youtubeId`), the idea is to **ask the user** what they'd prefer:
 
-La implementación concreta vivirá en `components/player/global-player/` y posiblemente un hook tipo `useYouTubePlayer`; este apartado solo fija **intención** y **mapa de trabajo**.
+1. **Open YouTube in another tab** — close to the official site's behavior (the user stays on the web app in the current tab).
+2. **Mini player on the page** — a minimized embed (e.g. in the FAB area or a floating panel with an iframe + the **YouTube IFrame API**) to watch the small video and **keep browsing** in the same tab.
+
+This respects the parallel with protonradio (option A) and offers the "within the redesign" experience (option B), without fully replacing the model until direct audio exists.
 
 ---
 
-## Resumen
+## How to implement it (technical draft)
 
-- **Proton en producción** = enlace al show en YouTube como flujo principal del contenido en vivo/archivo en ese sitio.
-- **Esta app** = reproductor global propio; la evolución natural de UX es **minimizar → FAB** para no competir con la lectura y la navegación, sin cambiar el modelo de “reproducir en la app”.
-- **Futuro** = mismo reproductor + `audioUrl` cuando Proton lo ofrezca; **YouTube** = diálogo usuario **pestaña nueva vs mini reproductor**, no sustituir aún el stack de audio por iframe para todos los casos.
+| Piece | Role |
+|-------|------|
+| **Detection** | In the play handler (e.g. `NowPlayingHero` / whoever calls `play(mix)`): if `mix.audioUrl` exists → the current `<audio>` flow. If there's no `audioUrl` but there is a `youtubeId` → don't play yet; trigger the choice flow. |
+| **Choice UI** | An accessible **modal** or **popover** ("Open on YouTube or play here, minimized?") with two clear actions + cancel. Optional: remember the preference in `localStorage` (`youtubePlaybackPreference: 'tab' \| 'mini'`). |
+| **Tab option** | `window.open` with the YouTube URL and `target` `_blank`, with `noopener,noreferrer` flags. No iframe needed. |
+| **Mini option** | Mount a hidden or small iframe controlled by the [YouTube IFrame API](https://developers.google.com/youtube/iframe_api_reference): sync play/pause (and optionally time) with `playerStore` / `usePlayerAudioEngine` or a **second "engine"** just for YouTube when there's no `<audio>`. The FAB can show the video thumbnail or the artwork + controls that talk to the API. |
+| **State** | Extend the store if needed: e.g. `playbackSource: 'audio' \| 'youtube' \| null` to know which component is active and avoid two sources playing at once. |
+| **Accessibility / mobile** | Autoplay with sound usually requires a user gesture (the modal satisfies that gesture). Test minimum embed sizes and browser policies. |
 
-Este documento fija el **por qué** y el **qué**; la implementación vive en `components/player/global-player/` (ver `README` en esa carpeta).
+The concrete implementation will live in `components/player/global-player/` and possibly a hook like `useYouTubePlayer`; this section only sets **intent** and a **work map**.
 
 ---
 
-## Estructura de código
+## Summary
 
-| Ruta | Rol |
-|------|-----|
-| `components/player/global-player/GlobalPlayer.tsx` | Orquesta barra expandida vs FAB según `playerChrome` |
-| `components/player/global-player/PlayerExpandedBar.tsx` | Barra inferior ancha + botón minimizar |
-| `components/player/global-player/PlayerFab.tsx` | FAB esquina inferior derecha + expandir |
-| `components/player/global-player/PlayerArtwork.tsx` | Carátula reutilizable (DRY) |
-| `components/player/global-player/PlayerSeekBar.tsx` | Franja superior minimal (~3px) + seek invisible |
-| `components/player/global-player/PlayerVolumeControl.tsx` | Volumen + mute |
-| `components/player/global-player/usePlayerAudioEngine.ts` | `<audio>` y sincronía con Zustand |
-| `components/player/global-player/PublicMain.tsx` | `<main>` público; padding vía `usePlayerBottomPaddingClass` |
-| `components/player/global-player/usePlayerBottomPaddingClass.ts` | `pb-36` / `pb-6` según reproductor |
-| `components/dashboard/DashboardMainArea.tsx` | Columna dashboard con el mismo padding inferior |
-| `components/player/global-player/index.ts` | Exports del módulo |
-| `components/player/GlobalPlayer.tsx` | Re-export por compatibilidad con imports antiguos |
+- **Proton in production** = a link to the show on YouTube as the main flow for live/archive content on that site.
+- **This app** = its own global player; the natural UX evolution is **minimize → FAB** so it doesn't compete with reading and navigation, without changing the "play inside the app" model.
+- **Future** = the same player + `audioUrl` once Proton offers it; **YouTube** = a user dialog of **new tab vs. mini player**, not yet replacing the audio stack with an iframe for every case.
+
+This document fixes the **why** and the **what**; the implementation lives in `components/player/global-player/` (see the `README` in that folder).
+
+---
+
+## Code structure
+
+| Path | Role |
+|------|------|
+| `components/player/global-player/GlobalPlayer.tsx` | Orchestrates the expanded bar vs. FAB depending on `playerChrome` |
+| `components/player/global-player/PlayerExpandedBar.tsx` | Wide bottom bar + minimize button |
+| `components/player/global-player/PlayerFab.tsx` | Bottom-right corner FAB + expand |
+| `components/player/global-player/PlayerArtwork.tsx` | Reusable artwork (DRY) |
+| `components/player/global-player/PlayerSeekBar.tsx` | Minimal top strip (~3px) + invisible seek |
+| `components/player/global-player/PlayerVolumeControl.tsx` | Volume + mute |
+| `components/player/global-player/usePlayerAudioEngine.ts` | `<audio>` and sync with Zustand |
+| `components/player/global-player/PublicMain.tsx` | Public `<main>`; padding via `usePlayerBottomPaddingClass` |
+| `components/player/global-player/usePlayerBottomPaddingClass.ts` | `pb-36` / `pb-6` depending on the player |
+| `components/dashboard/DashboardMainArea.tsx` | Dashboard column with the same bottom padding |
+| `components/player/global-player/index.ts` | Module exports |
+| `components/player/GlobalPlayer.tsx` | Re-export for compatibility with older imports |
