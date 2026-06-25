@@ -8,6 +8,8 @@ This project combines a **B2B admin dashboard** (artist management, contracts, r
 
 **Product / dashboard vision:** [`docs/README-dashboard-vision-roadmap.md`](docs/README-dashboard-vision-roadmap.md) — producer persona, sidebar *Producer tools* / *Platform*; public auth: Sign in → `/login` (prototype tabs).
 
+**Interview prep (ES):** [`GUIA-ENTREVISTA.md`](GUIA-ENTREVISTA.md) — guía día a día para la entrevista técnica con Mateo (browser, JS, React, arquitectura del prototipo).
+
 ---
 
 ## What this project demonstrates
