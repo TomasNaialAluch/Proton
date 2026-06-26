@@ -1,34 +1,34 @@
-# Proton Radio — Registro de trabajo y guía de implementación
+# Proton Radio — Work Log and Implementation Guide
 
 ---
 
-## ✅ Dashboard (B2B) — Lo que ya se construyó en esta sesión
+## ✅ Dashboard (B2B) — What was built in this session
 
-Todo lo de abajo fue implementado y está en el área `/dashboard`. El proyecto corre con Next.js 15, TypeScript, Tailwind CSS v4 y TanStack Query.
+Everything below was implemented and is located in the `/dashboard` area. The project runs on Next.js 15, TypeScript, Tailwind CSS v4, and TanStack Query.
 
-**Visión de producto / roadmap (sidebar Producer tools + Platform, auth):** [`docs/README-dashboard-vision-roadmap.md`](docs/README-dashboard-vision-roadmap.md).
+**Product vision / roadmap (sidebar Producer tools + Platform, auth):** [`docs/README-dashboard-vision-roadmap.md`](docs/README-dashboard-vision-roadmap.md).
 
 ---
 
-### 1. Página de Contratos — `/dashboard/contracts`
+### 1. Contracts Page — `/dashboard/contracts`
 
-**Archivo:** `app/(dashboard)/dashboard/contracts/page.tsx`
+**File:** `app/(dashboard)/dashboard/contracts/page.tsx`
 **Mock data:** `lib/mock/contracts.ts`
-**Tipos:** `types/contract.ts`
+**Types:** `types/contract.ts`
 
-Página completa de contratos del artista con:
+Complete artist contracts page with:
 
-- **3 cards de resumen:** Total de contratos · Firmados · Cantidad de labels
-- **Alerta de contratos pendientes** (banner amber, condicional)
-- **Lista de contratos** con layout dual:
-  - Mobile: layout compacto con ícono de color por label, nombre del release, label y fecha
-  - Desktop: tabla con columnas Fecha · Release · Label · Estado · Contrato (link PDF)
-- **Desglose por label** al final de la página: nombre, releases contados, colores únicos por label
-- **Colores por label** definidos en `CONTRACT_LABEL_COLORS`: `outer-space-oasis` → violeta `#A78BFA`, `toxic-astronaut` → verde `#34D399`
-- **Estados de contrato:** `signed` (verde), `pending` (amber), `expired` (rojo) — con íconos Lucide
+- **3 summary cards:** Total contracts · Signed · Number of labels
+- **Pending contracts alert** (amber banner, conditional)
+- **Contracts list** with dual layout:
+  - Mobile: compact layout with color icon per label, release name, label, and date
+  - Desktop: table with columns Date · Release · Label · Status · Contract (PDF link)
+- **Breakdown by label** at the bottom of the page: name, release count, unique colors per label
+- **Colors per label** defined in `CONTRACT_LABEL_COLORS`: `outer-space-oasis` → purple `#A78BFA`, `toxic-astronaut` → green `#34D399`
+- **Contract statuses:** `signed` (green), `pending` (amber), `expired` (red) — with Lucide icons
 
-**Releases mock actuales:**
-| Release | Label | Estado |
+**Current mock releases:**
+| Release | Label | Status |
 |---|---|---|
 | Tied Inside | Outer Space Oasis | Signed |
 | Mind Altered | Outer Space Oasis | Signed |
@@ -37,170 +37,170 @@ Página completa de contratos del artista con:
 
 ---
 
-### 2. Página de Royalties — `/dashboard/royalties`
+### 2. Royalties Page — `/dashboard/royalties`
 
-**Archivo:** `app/(dashboard)/dashboard/royalties/page.tsx`
+**File:** `app/(dashboard)/dashboard/royalties/page.tsx`
 **Mock data:** `lib/mock/royalties.ts`
 
-Página principal de royalties con:
+Main royalties page with:
 
-- **Card de acumulado total** con barra de progreso hacia el umbral de pago (`$50 USD`)
-- **Card de próximo statement** (fecha + período)
-- **Card de método de pago** (USDC en Base via Coinbase Commerce)
-- **Historial de statements** — lista de períodos trimestrales con:
-  - Período (ej. "Q1 2026"), rango de fechas, monto, estado (withheld/paid)
-  - Botón CSV → link directo a `soundsystem.protonradio.com` con `id` y `qid` reales
-  - Flecha para ir al detalle de cada statement
-
----
-
-### 3. Detalle de Statement — `/dashboard/royalties/[qid]`
-
-**Archivo:** `app/(dashboard)/dashboard/royalties/[qid]/page.tsx`
-
-Página de detalle por quarter con 4 tablas:
-
-1. **Release Summary** — releases del período, ventas y streams (este quarter vs. acumulado)
-2. **Track Sales & Streams** — por track: vendidos, streams, store, porcentaje de royalty, monto
-3. **Stores & Services** — breakdown por plataforma (Spotify, Beatport, etc.)
-4. **Advance & Expense Debits** — descuentos de mastering, diseño, etc. en amber (con nota explicativa)
-
-- Header con botón de descarga CSV directo a la URL real de Proton SoundSystem
-- Cuando no hay detalle disponible: estado vacío con botón de descarga
-- Breadcrumb: Dashboard → Royalties → Período
-- `PRO_USER_ID = 67325` hardcodeado para los links de descarga
+- **Total accumulated card** with progress bar toward payout threshold (`$50 USD`)
+- **Next statement card** (date + period)
+- **Payment method card** (USDC on Base via Coinbase Commerce)
+- **Statement history** — list of quarterly periods with:
+  - Period (e.g., "Q1 2026"), date range, amount, status (withheld/paid)
+  - CSV button → direct link to `soundsystem.protonradio.com` with real `id` and `qid`
+  - Arrow to go to detail for each statement
 
 ---
 
-### 4. Página de Performance — `/dashboard/performance`
+### 3. Statement Detail — `/dashboard/royalties/[qid]`
 
-**Archivo:** `app/(dashboard)/dashboard/performance/page.tsx`
+**File:** `app/(dashboard)/dashboard/royalties/[qid]/page.tsx`
 
-La página más compleja del dashboard. Usa **TanStack Query** para traer tracks reales de la API de Proton:
+Quarterly detail page with 4 tables:
+
+1. **Release Summary** — period releases, sales and streams (this quarter vs. cumulative)
+2. **Track Sales & Streams** — per track: sold, streams, store, royalty percentage, amount
+3. **Stores & Services** — breakdown by platform (Spotify, Beatport, etc.)
+4. **Advance & Expense Debits** — deductions for mastering, design, etc. in amber (with explanation note)
+
+- Header with CSV download button direct to real Proton SoundSystem URL
+- When detail not available: empty state with download button
+- Breadcrumb: Dashboard → Royalties → Period
+- `PRO_USER_ID = 67325` hardcoded for download links
+
+---
+
+### 4. Performance Page — `/dashboard/performance`
+
+**File:** `app/(dashboard)/dashboard/performance/page.tsx`
+
+The most complex dashboard page. Uses **TanStack Query** to fetch real tracks from Proton API:
 
 - **4 KPI cards:** Total Streams · Total Sales · Tracks · Top Track
-- **Gráfico de streams** (`StreamsChart` con Recharts) — filtrable por rango: 30D / 3M / 6M / 1Y / All
-- **Donut de géneros** (`GenreDonut` con Recharts) — distribución de streams por género
-- **Tabla de tracks** con:
-  - Filtros por categoría: Tracks · Releases · Labels · Genres
-  - Buscador en tiempo real (filtra por título o label)
-  - Ordenamiento por Streams / Sales / Date (toggle asc/desc)
-  - Skeleton loading state durante la carga de la API
-- Datos mock en `lib/mock/performance.ts` (streams y ventas por `trackId`)
-- Géneros en `TRACK_GENRES` — diccionario `trackId → genre`
+- **Streams chart** (`StreamsChart` with Recharts) — filterable by range: 30D / 3M / 6M / 1Y / All
+- **Genre donut** (`GenreDonut` with Recharts) — streams distribution by genre
+- **Tracks table** with:
+  - Filters by category: Tracks · Releases · Labels · Genres
+  - Real-time search (filters by title or label)
+  - Sorting by Streams / Sales / Date (toggle asc/desc)
+  - Skeleton loading state during API fetch
+- Mock data in `lib/mock/performance.ts` (streams and sales per `trackId`)
+- Genres in `TRACK_GENRES` — dictionary `trackId → genre`
 
 ---
 
-### 5. Panel de Notificaciones — `NotificationsPanel`
+### 5. Notifications Panel — `NotificationsPanel`
 
-**Archivo:** `components/dashboard/NotificationsPanel.tsx`
+**File:** `components/dashboard/NotificationsPanel.tsx`
 
-Drawer lateral que se desliza desde la derecha (`translate-x-full` → `translate-x-0`):
+Sidebar drawer that slides in from the right (`translate-x-full` → `translate-x-0`):
 
-- Backdrop con blur que cierra el panel al hacer click
-- Cierra con `Escape`
-- 5 notificaciones mock: new release approved, royalties available, streams spike, pending contract, release rejected
-- Puntos de lectura naranja en las no leídas
-- Badge con contador de no leídas en el header
-- Botón "Clear all" en el footer
-- Estado vacío con ícono `CheckCheck` cuando no quedan notificaciones
+- Blur backdrop that closes panel on click
+- Closes with `Escape`
+- 5 mock notifications: new release approved, royalties available, streams spike, pending contract, release rejected
+- Orange read indicators on unread notifications
+- Badge with unread counter in header
+- "Clear all" button in footer
+- Empty state with `CheckCheck` icon when no notifications remain
 
-Se conecta tanto desde **DashboardNavbar** (mobile) como desde **AppSidebar** (desktop).
-
----
-
-### 6. Sidebar colapsable — `AppSidebar`
-
-**Archivo:** `components/dashboard/AppSidebar.tsx`
-
-Sidebar desktop (`lg:flex`) con:
-
-- **Toggle collapse** — se guarda en `localStorage` (`proton-sidebar-collapsed`). Expandido: 256px, colapsado: 64px, con transición CSS de 300ms
-- **Ancho colapsado:** solo íconos centrados con `title` tooltip
-- **Logo** (imagen `logo txt.png`) visible solo cuando está expandido
-- **Campana de notificaciones** (abre `NotificationsPanel`) con badge naranja
-- **Links de navegación:** Artists · Performance · Royalties · Contracts · Settings — con highlight naranja en la ruta activa
-- **Producer tools:** Release Links (ruta dentro del dashboard)
-- **Platform:** Shows · Labels · DJ Mixes → hub `/dashboard/platform`. **Public site:** Radio · Shows · Charts · Labels (rutas públicas; sale del dashboard). **Performance** en nav Dashboard.
-- **Footer:** avatar del artista + link a settings/profile + botón collapse/expand
+Connected from both **DashboardNavbar** (mobile) and **AppSidebar** (desktop).
 
 ---
 
-### 7. Navbar mobile — `DashboardNavbar`
+### 6. Collapsible Sidebar — `AppSidebar`
 
-**Archivo:** `components/dashboard/DashboardNavbar.tsx`
+**File:** `components/dashboard/AppSidebar.tsx`
 
-Navbar sticky mobile-only (`lg:hidden`) con:
+Desktop sidebar (`lg:flex`) with:
 
-- Botón hamburger (izquierda) → abre `HamburgerMenu`
-- Logo "Proton" centrado
-- Botón campana (derecha) → abre `NotificationsPanel` (con badge naranja)
+- **Collapse toggle** — saved to `localStorage` (`proton-sidebar-collapsed`). Expanded: 256px, collapsed: 64px, with 300ms CSS transition
+- **Collapsed width:** icons only, centered with `title` tooltip
+- **Logo** (image `logo txt.png`) visible only when expanded
+- **Notifications bell** (opens `NotificationsPanel`) with orange badge
+- **Navigation links:** Artists · Performance · Royalties · Contracts · Settings — with orange highlight on active route
+- **Producer tools:** Release Links (route within dashboard)
+- **Platform:** Shows · Labels · DJ Mixes → hub `/dashboard/platform`. **Public site:** Radio · Shows · Charts · Labels (public routes; exits dashboard). **Performance** in Dashboard nav.
+- **Footer:** artist avatar + link to settings/profile + collapse/expand button
+
+---
+
+### 7. Mobile Navbar — `DashboardNavbar`
+
+**File:** `components/dashboard/DashboardNavbar.tsx`
+
+Sticky mobile-only navbar (`lg:hidden`) with:
+
+- Hamburger button (left) → opens `HamburgerMenu`
+- "Proton" logo centered
+- Notifications bell button (right) → opens `NotificationsPanel` (with orange badge)
 
 ---
 
 ### 8. Dashboard Store — Zustand
 
-**Archivo:** `lib/store/dashboardStore.ts`
+**File:** `lib/store/dashboardStore.ts`
 
-Store Zustand con `persist` middleware para el layout de widgets del dashboard:
+Zustand store with `persist` middleware for dashboard widget layout:
 
 ```typescript
 interface DashboardState {
-  widgetOrder: WidgetId[];      // orden arrastrable de widgets
-  hiddenWidgets: WidgetId[];    // widgets ocultados por el usuario
+  widgetOrder: WidgetId[];      // draggable widget order
+  hiddenWidgets: WidgetId[];    // widgets hidden by user
   setWidgetOrder, hideWidget, showWidget, resetLayout
 }
 ```
 
 Widgets: `streams` · `latest-tracks` · `streams-by-release` · `royalties`
-Persistido en `localStorage` bajo la key `proton-dashboard-layout`.
+Persisted to `localStorage` under key `proton-dashboard-layout`.
 
 ---
 
-### Resumen de archivos creados/modificados en esta sesión
+### Summary of files created/modified in this session
 
-| Archivo | Estado | Qué hace |
+| File | Status | What it does |
 |---|---|---|
-| `app/(dashboard)/dashboard/contracts/page.tsx` | ✅ Nuevo | Página completa de contratos |
-| `app/(dashboard)/dashboard/royalties/page.tsx` | ✅ Mejorado | Historial + progress bar + payout config |
-| `app/(dashboard)/dashboard/royalties/[qid]/page.tsx` | ✅ Nuevo | Detalle de statement con 4 tablas |
-| `app/(dashboard)/dashboard/performance/page.tsx` | ✅ Mejorado | KPIs + gráficos + tabla de tracks con search/sort |
-| `components/dashboard/NotificationsPanel.tsx` | ✅ Nuevo | Drawer de notificaciones |
-| `components/dashboard/DashboardNavbar.tsx` | ✅ Actualizado | Conecta campana → NotificationsPanel |
-| `components/dashboard/AppSidebar.tsx` | ✅ Actualizado | Sidebar colapsable + campana + notificaciones |
-| `components/dashboard/DashboardContent.tsx` | ✅ Actualizado | Layout principal del dashboard |
-| `components/dashboard/BottomNav.tsx` | ✅ Actualizado | Nav inferior mobile |
-| `lib/mock/contracts.ts` | ✅ Nuevo | 4 contratos mock con colores por label |
-| `lib/mock/royalties.ts` | ✅ Actualizado | Statements trimestrales + payout config |
-| `lib/store/dashboardStore.ts` | ✅ Nuevo | Zustand store para layout de widgets |
-| `types/contract.ts` | ✅ Actualizado | Tipos de Contract |
-| `types/royalty.ts` | ✅ Actualizado | Tipos de Royalty y Statement |
+| `app/(dashboard)/dashboard/contracts/page.tsx` | ✅ New | Complete contracts page |
+| `app/(dashboard)/dashboard/royalties/page.tsx` | ✅ Enhanced | History + progress bar + payout config |
+| `app/(dashboard)/dashboard/royalties/[qid]/page.tsx` | ✅ New | Statement detail with 4 tables |
+| `app/(dashboard)/dashboard/performance/page.tsx` | ✅ Enhanced | KPIs + charts + tracks table with search/sort |
+| `components/dashboard/NotificationsPanel.tsx` | ✅ New | Notifications drawer |
+| `components/dashboard/DashboardNavbar.tsx` | ✅ Updated | Connects bell → NotificationsPanel |
+| `components/dashboard/AppSidebar.tsx` | ✅ Updated | Collapsible sidebar + bell + notifications |
+| `components/dashboard/DashboardContent.tsx` | ✅ Updated | Dashboard main layout |
+| `components/dashboard/BottomNav.tsx` | ✅ Updated | Mobile bottom nav |
+| `lib/mock/contracts.ts` | ✅ New | 4 mock contracts with colors per label |
+| `lib/mock/royalties.ts` | ✅ Updated | Quarterly statements + payout config |
+| `lib/store/dashboardStore.ts` | ✅ New | Zustand store for widget layout |
+| `types/contract.ts` | ✅ Updated | Contract types |
+| `types/royalty.ts` | ✅ Updated | Royalty and Statement types |
 
 ---
 
-## 🗺️ Public Area Guide — Próximos pasos (B2C)
+## 🗺️ Public Area Guide — Next Steps (B2C)
 
-> Guía de implementación para el área pública (`(public)`) — la parte B2C de la plataforma.
-> El dashboard (`(dashboard)`) ya tiene su base construida. Este documento es la hoja de ruta para construir lo que sería **protonradio.com**: radio en vivo, shows, charts, labels y perfiles de artistas.
+> Implementation guide for the public area (`(public)`) — the B2C part of the platform.
+> The dashboard (`(dashboard)`) already has its foundation built. This document is the roadmap to build what would be **protonradio.com**: live radio, shows, charts, labels, and artist profiles.
 
 ---
 
-## Contexto rápido
+## Quick Context
 
-| Área | Ruta base | Audiencia | Estado |
+| Area | Base Route | Audience | Status |
 |---|---|---|---|
-| **Dashboard (B2B)** | `/dashboard` | Artistas, productores, labels | ✅ En construcción |
-| **Public (B2C)** | `/` | Oyentes, fans | ⬜ Todo por hacer |
+| **Dashboard (B2B)** | `/dashboard` | Artists, producers, labels | ✅ In progress |
+| **Public (B2C)** | `/` | Listeners, fans | ⬜ To be built |
 
-El área pública **unifica** lo que hoy son dos sitios separados: `protonradio.com` (radio) y `soundsystem.protonradio.com` (dashboard). El acceso al dashboard se hace desde el navbar público con un botón **"For Artists"** → `/dashboard`.
+The public area **unifies** what today are two separate sites: `protonradio.com` (radio) and `soundsystem.protonradio.com` (dashboard). Dashboard access is through the public navbar with a **"For Artists"** button → `/dashboard`.
 
 ---
 
-## Estructura de archivos — ya existe (en blanco)
+## File Structure — already exists (empty)
 
 ```
 app/(public)/
-├── layout.tsx                ← Layout vacío — aquí van Navbar + Global Player
+├── layout.tsx                ← Empty layout — Navbar + Global Player go here
 ├── page.tsx                  ← / — Home
 ├── shows/page.tsx            ← /shows
 ├── charts/page.tsx           ← /charts
@@ -208,13 +208,13 @@ app/(public)/
 └── [artist-name]/page.tsx    ← /naial, /andy-green, etc.
 ```
 
-**Todos los archivos existen pero están vacíos.** El trabajo es construirlos uno por uno siguiendo esta guía.
+**All files exist but are empty.** The work is to build them one by one following this guide.
 
 ---
 
-## API — GraphQL real disponible
+## API — Real GraphQL available
 
-Ya configurada y funcionando en `lib/api/protonApi.ts`:
+Already configured and working in `lib/api/protonApi.ts`:
 
 ```
 Endpoint: https://api.protonradio.com/graphql
@@ -222,13 +222,13 @@ Headers:
   Content-Type: application/json
   origin: https://www.protonradio.com
   referer: https://www.protonradio.com/
-Cache: revalidate cada 300s (5 min) — Next.js fetch cache
+Cache: revalidate every 300s (5 min) — Next.js fetch cache
 ```
 
-### Queries ya probadas (usadas en el dashboard)
+### Already tested queries (used in dashboard)
 
 ```graphql
-# Artista con tracks
+# Artist with tracks
 query GetArtistWithTracks($id: ID!) {
   artist(id: $id) {
     id
@@ -248,12 +248,12 @@ query GetArtistWithTracks($id: ID!) {
 }
 ```
 
-### Queries a explorar para el área pública
+### Queries to explore for public area
 
-Estas queries **probablemente existen** — hay que testearlas contra la API:
+These queries **probably exist** — need to test against the API:
 
 ```graphql
-# Shows / Mixes recientes
+# Recent shows / mixes
 query GetLatestMixes($limit: Int, $genre: String) {
   mixes(limit: $limit, genre: $genre) {
     id
@@ -265,7 +265,7 @@ query GetLatestMixes($limit: Int, $genre: String) {
   }
 }
 
-# Show específico (para página de detalle)
+# Specific show (for detail page)
 query GetMix($id: ID!) {
   mix(id: $id) {
     id
@@ -277,7 +277,7 @@ query GetMix($id: ID!) {
   }
 }
 
-# Charts por género
+# Charts by genre
 query GetCharts($genre: String!) {
   charts(genre: $genre) {
     position
@@ -291,7 +291,7 @@ query GetCharts($genre: String!) {
   }
 }
 
-# Lista de labels
+# List of labels
 query GetLabels {
   labels {
     id
@@ -302,7 +302,7 @@ query GetLabels {
   }
 }
 
-# Artistas de un label
+# Artists from a label
 query GetLabelArtists($id: ID!) {
   label(id: $id) {
     id
@@ -322,13 +322,13 @@ query GetNowPlaying {
 }
 ```
 
-> **Cómo testear:** Usar una herramienta como [Altair GraphQL](https://altairgraphql.dev/) o simplemente `fetch` desde la consola del browser apuntando al endpoint con los headers correctos. También se puede hacer introspección (`__schema`) para ver todos los tipos disponibles.
+> **How to test:** Use a tool like [Altair GraphQL](https://altairgraphql.dev/) or simply `fetch` from the browser console pointing to the endpoint with the correct headers. You can also do introspection (`__schema`) to see all available types.
 
 ---
 
-## Cómo agregar una nueva query a la API
+## How to add a new query to the API
 
-Crear el fetcher en `lib/api/` siguiendo el patrón existente:
+Create the fetcher in `lib/api/` following the existing pattern:
 
 ```typescript
 // lib/api/shows.ts
@@ -362,7 +362,7 @@ export async function fetchLatestMixes(limit = 12): Promise<ProtonMix[]> {
 }
 ```
 
-En el componente Server (RSC), llamar directamente sin TanStack Query — el área pública usa SSR:
+In the Server component (RSC), call directly without TanStack Query — the public area uses SSR:
 
 ```typescript
 // app/(public)/shows/page.tsx
@@ -374,45 +374,45 @@ export default async function ShowsPage() {
 }
 ```
 
-> El dashboard usa TanStack Query porque es Client Component con interactividad. Las páginas públicas son Server Components → `async/await` directo.
+> The dashboard uses TanStack Query because it's a Client Component with interactivity. Public pages are Server Components → direct `async/await`.
 
 ---
 
-## Design System — resumen para el área pública
+## Design System — summary for public area
 
-El design system ya está definido en `globals.css`. El área pública usa **dark mode por defecto** (`data-theme="dark"`).
+The design system is already defined in `globals.css`. The public area uses **dark mode by default** (`data-theme="dark"`).
 
-### Colores
+### Colors
 
-| Token CSS | Dark Mode | Uso |
+| CSS Token | Dark Mode | Usage |
 |---|---|---|
-| `--color-background` | `#0B0E14` | Fondo principal |
-| `--color-surface` | `#181C25` | Cards y paneles |
-| `--color-accent` | `#E67E22` | Proton Orange — CTAs, activos |
-| `--color-text-primary` | `#FFFFFF` | Títulos, nombres |
-| `--color-text-secondary` | `#94A3B8` | Metadata, subtítulos |
-| `--color-border` | `rgba(255,255,255,0.06)` | Bordes sutiles |
+| `--color-background` | `#0B0E14` | Main background |
+| `--color-surface` | `#181C25` | Cards and panels |
+| `--color-accent` | `#E67E22` | Proton Orange — CTAs, active states |
+| `--color-text-primary` | `#FFFFFF` | Titles, names |
+| `--color-text-secondary` | `#94A3B8` | Metadata, subtitles |
+| `--color-border` | `rgba(255,255,255,0.06)` | Subtle borders |
 
-### Acentos por sección (brand colors heredados)
+### Section accents (legacy brand colors)
 
-| Color | Hex | Sección |
+| Color | Hex | Section |
 |---|---|---|
 | **Orange** | `#E67E22` | Shows, uploads, live |
 | **Teal** | `#1ABC9C` | Labels, management |
 | **Purple** | `#9B59B6` | DJ Mixes |
 | **Green** | `#27AE60` | Royalties, account |
 
-### Tipografía
+### Typography
 
 ```css
-font-display: "Plus Jakarta Sans"  /* Títulos — Bold Italic para nombres de artista */
-font-ui:      "Inter"              /* UI, metadata, tablas */
+font-display: "Plus Jakarta Sans"  /* Titles — Bold Italic for artist names */
+font-ui:      "Inter"              /* UI, metadata, tables */
 ```
 
-### Efectos clave
+### Key Effects
 
 ```css
-/* Borde de artista — "glow LED de estudio" */
+/* Artist border — "studio LED glow" */
 background: linear-gradient(#181C25, #181C25) padding-box,
             linear-gradient(135deg, #00FF9D, transparent) border-box;
 
@@ -423,16 +423,16 @@ border: 1px solid rgba(255, 255, 255, 0.05);
 
 ---
 
-## Páginas — plan detallado
+## Pages — detailed plan
 
 ### 1. `PublicLayout` — `app/(public)/layout.tsx`
 
-**Prioridad: PRIMERA — todo lo demás depende de esto.**
+**Priority: FIRST — everything else depends on this.**
 
-Componentes a crear:
-- `PublicNavbar` — logo + links + hamburger menu + botón "For Artists"
-- `GlobalPlayer` — player persistente en el bottom (Zustand store)
-- Wrapper con `data-theme="dark"`
+Components to create:
+- `PublicNavbar` — logo + links + hamburger menu + "For Artists" button
+- `GlobalPlayer` — persistent bottom player (Zustand store)
+- Wrapper with `data-theme="dark"`
 
 ```tsx
 // app/(public)/layout.tsx
@@ -451,24 +451,24 @@ export default function PublicLayout({ children }) {
 
 ### 2. `PublicNavbar` — `components/public/PublicNavbar.tsx`
 
-Basado en el menú real de protonradio.com (ver capturas):
+Based on the real menu from protonradio.com (see screenshots):
 
-**Desktop:** logo izquierda | links centro | "For Artists" botón naranja derecha
+**Desktop:** logo left | links center | "For Artists" orange button right
 
-**Mobile:** logo centro | hamburger derecha
+**Mobile:** logo center | hamburger right
 
-**Hamburger menu — contenido:**
+**Hamburger menu — content:**
 ```
 Radio          →  /
 Shows          →  /shows
 Charts         →  /charts
 Labels         →  /labels
 ──────────────────────────
-For Artists    →  /dashboard    (CTA naranja, botón)
+For Artists    →  /dashboard    (orange CTA, button)
 ──────────────────────────
-[si logueado]
+[if logged in]
   Naialmusic
-  → Naial (artista)
+  → Naial (artist)
   → Discovery Mode
   → Track Stack
   → Inbox
@@ -476,7 +476,7 @@ For Artists    →  /dashboard    (CTA naranja, botón)
   → Sign Out
 ```
 
-Estado activo: highlight naranja en el link de la ruta actual (`usePathname`).
+Active state: orange highlight on the current route link (`usePathname`).
 
 ---
 

@@ -37,6 +37,14 @@ export default function NotificationsPage() {
           />
         </SettingsSection>
 
+        <SettingsSection title="Connections">
+          <ToggleField
+            label="Suggested connections"
+            hint="Get notified when the platform thinks another producer would be a great match to collaborate with, based on your feedback history. Independent of Feedback and Discover — you keep using both either way."
+            enabled={n.connectionSuggestions}
+          />
+        </SettingsSection>
+
         <SettingsSection title="Discovery Mode">
           <ToggleField
             label="Discovery Mode Invites"

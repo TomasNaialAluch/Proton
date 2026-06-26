@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { X, Bell, Music, DollarSign, FileText, TrendingUp, CheckCheck, MessageSquareText } from "lucide-react";
+import { X, Bell, Music, DollarSign, FileText, TrendingUp, CheckCheck, MessageSquareText, Users, MessageCircle } from "lucide-react";
 
 interface Notification {
   id: number;
@@ -17,6 +17,26 @@ interface Notification {
 }
 
 const INITIAL_NOTIFICATIONS: Notification[] = [
+  {
+    id: -1,
+    icon: MessageCircle,
+    iconColor: "#1ABC9C",
+    title: "You're connected with Darko",
+    description: "You both said yes — you can message each other now.",
+    time: "30 min ago",
+    read: false,
+    href: "/dashboard/connections/chat/convo-1",
+  },
+  {
+    id: -2,
+    icon: Users,
+    iconColor: "#9B59B6",
+    title: "New connection suggested",
+    description: "We think you and Vesna would make a great pair — see why.",
+    time: "1 h ago",
+    read: false,
+    href: "/dashboard/connections/conn-1",
+  },
   {
     id: 0,
     icon: MessageSquareText,

@@ -20,6 +20,9 @@ import {
   ChevronRight,
   ChevronDown,
   CircleHelp,
+  Compass,
+  MessageSquareText,
+  Users,
 } from "lucide-react";
 import { useThemeStore } from "@/lib/store/themeStore";
 import Link from "next/link";
@@ -83,6 +86,9 @@ const dashboardLinks = [
   { label: "Performance", icon: TrendingUp, href: "/dashboard/performance"            },
   { label: "Royalties",   icon: DollarSign, href: "/dashboard/royalties"              },
   { label: "Contracts",   icon: FileText,   href: "/dashboard/contracts"              },
+  { label: "Discover",    icon: Compass,    href: "/dashboard/discover"               },
+  { label: "Feedback",    icon: MessageSquareText, href: "/dashboard/feedback"         },
+  { label: "Connections", icon: Users,      href: "/dashboard/connections"            },
   { label: "Settings",    icon: Settings,   href: "/dashboard/settings/account"       },
 ];
 

@@ -45,6 +45,7 @@ export const mockAccount = {
     discoveryModeReport:    true,
     releaseLinksNotify:     true,
     releaseLinksEmail:      "artist@email.com",
+    connectionSuggestions:  true,
   },
 
   // Discovery Mode
