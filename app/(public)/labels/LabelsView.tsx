@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { fetchLabels } from "@/lib/api/labels";
 import type { ProtonLabel } from "@/types/label";
 import LabelCard from "@/components/public/LabelCard";
+import LabelCardSkeleton from "@/components/public/LabelCardSkeleton";
 
 export default function LabelsView() {
   const [labels, setLabels] = useState<ProtonLabel[] | null>(null);
@@ -33,9 +34,11 @@ export default function LabelsView() {
       </div>
 
       {labels === null ? (
-        <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-          Loading labels…
-        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <LabelCardSkeleton key={i} />
+          ))}
+        </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
           {labels.map((label) => (

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { fetchCharts, type ChartEntry } from "@/lib/api/charts";
 import ChartRow from "@/components/public/ChartRow";
+import ChartRowSkeleton from "@/components/public/ChartRowSkeleton";
 import GenreChip from "@/components/public/GenreChip";
 
 const GENRES = [
@@ -82,11 +83,8 @@ export default function ChartsView() {
         </div>
 
         <div className="flex flex-col">
-          {chart === null && (
-            <p className="text-sm px-3 py-6" style={{ color: "var(--color-text-secondary)" }}>
-              Loading chart…
-            </p>
-          )}
+          {chart === null &&
+            Array.from({ length: 10 }).map((_, i) => <ChartRowSkeleton key={i} />)}
           {chart?.map((entry) => (
             <ChartRow key={entry.track.id} entry={entry} />
           ))}
