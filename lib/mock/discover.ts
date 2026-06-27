@@ -4,6 +4,10 @@ import type { FeedbackProducer } from "@/types/feedback";
 export interface DiscoverTrack extends Track {
   producer: FeedbackProducer;
   label: string;
+  /** When the producer opened this track to feedback — drives the "Newest" sort. Not `releaseDate`. */
+  openedForFeedbackAt: string;
+  /** How much feedback it already has — drives the "Most feedback" sort (data-driven stand-in for "featured"). */
+  feedbackCount: number;
 }
 
 /**
@@ -85,6 +89,10 @@ function buildTrack(index: number): DiscoverTrack {
   const bpm = 118 + Math.floor(pseudoRandom(index + 1) * 18); // 118–136
   const key = KEYS[index % KEYS.length];
 
+  const daysAgo = Math.floor(pseudoRandom(index + 101) * 30); // opened sometime in the last 30 days
+  const openedForFeedbackAt = new Date(Date.now() - daysAgo * 86_400_000).toISOString();
+  const feedbackCount = Math.floor(pseudoRandom(index + 211) * 40); // 0–39
+
   return {
     id: `disc-${index + 1}`,
     title: `${adjective} ${noun} (${mix})`,
@@ -101,6 +109,8 @@ function buildTrack(index: number): DiscoverTrack {
     openForFeedback: true,
     producer: owner.producer,
     label: owner.label,
+    openedForFeedbackAt,
+    feedbackCount,
   };
 }
 
