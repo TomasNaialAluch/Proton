@@ -4,6 +4,7 @@ import { useState, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { TrendingUp, Music2, Disc3, Star, Search } from "lucide-react";
 import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
+import Skeleton from "@/components/ui/Skeleton";
 import StreamsChart from "@/components/dashboard/StreamsChart";
 import GenreDonut from "@/components/dashboard/GenreDonut";
 import { fetchArtistWithTracks } from "@/lib/api/artist";
@@ -91,24 +92,28 @@ export default function PerformancePage() {
           <KpiCard
             icon={<TrendingUp size={14} />}
             label="Total Streams"
-            value={isLoading ? "—" : totalStreams(tracks).toString()}
+            value={totalStreams(tracks).toString()}
             accent
+            isLoading={isLoading}
           />
           <KpiCard
             icon={<Disc3 size={14} />}
             label="Total Sales"
-            value={isLoading ? "—" : totalSales(tracks).toString()}
+            value={totalSales(tracks).toString()}
+            isLoading={isLoading}
           />
           <KpiCard
             icon={<Star size={14} />}
             label="Top Track"
-            value={isLoading ? "—" : (topTrack(tracks)?.title ?? "—")}
+            value={topTrack(tracks)?.title ?? "—"}
             small
+            isLoading={isLoading}
           />
           <KpiCard
             icon={<Music2 size={14} />}
             label="Releases"
-            value={isLoading ? "—" : new Set(tracks.map((t) => t.release.id)).size.toString()}
+            value={new Set(tracks.map((t) => t.release.id)).size.toString()}
+            isLoading={isLoading}
           />
         </section>
 
@@ -120,7 +125,7 @@ export default function PerformancePage() {
               <h2 className="text-sm font-medium text-text-primary">Streams over time</h2>
               <span className="text-xs text-accent font-medium">+37% ↑</span>
             </div>
-            <Suspense fallback={<div className="h-40 animate-pulse rounded-lg bg-[var(--color-border)]" />}>
+            <Suspense fallback={<Skeleton className="h-40" />}>
               <StreamsChart />
             </Suspense>
           </section>
@@ -128,9 +133,9 @@ export default function PerformancePage() {
           <section className="bg-surface rounded-2xl border border-[var(--color-border)] p-4">
             <h2 className="text-sm font-medium text-text-primary mb-3">Streams by Genre</h2>
             {isLoading ? (
-              <div className="h-48 animate-pulse rounded-lg bg-[var(--color-border)]" />
+              <Skeleton className="h-48" />
             ) : (
-              <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-[var(--color-border)]" />}>
+              <Suspense fallback={<Skeleton className="h-48" />}>
                 <GenreDonut tracks={tracks} />
               </Suspense>
             )}
@@ -175,7 +180,7 @@ export default function PerformancePage() {
           {isLoading ? (
             <div className="p-4 space-y-3">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-10 rounded-lg animate-pulse bg-[var(--color-border)]" />
+                <Skeleton key={i} className="h-10" />
               ))}
             </div>
           ) : (
@@ -254,13 +259,14 @@ export default function PerformancePage() {
 // ── Sub-components ─────────────────────────────────────────────
 
 function KpiCard({
-  icon, label, value, accent = false, small = false,
+  icon, label, value, accent = false, small = false, isLoading = false,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
   accent?: boolean;
   small?: boolean;
+  isLoading?: boolean;
 }) {
   return (
     <div className="bg-surface rounded-xl border border-[var(--color-border)] px-3 py-4 flex flex-col gap-2">
@@ -268,9 +274,13 @@ function KpiCard({
         {icon}
         <span className="text-xs font-medium">{label}</span>
       </div>
-      <span className={`font-semibold tabular-nums text-text-primary truncate ${small ? "text-base" : "text-2xl"}`}>
-        {value}
-      </span>
+      {isLoading ? (
+        <Skeleton className={small ? "h-5 w-16" : "h-7 w-16"} />
+      ) : (
+        <span className={`font-semibold tabular-nums text-text-primary truncate ${small ? "text-base" : "text-2xl"}`}>
+          {value}
+        </span>
+      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronRight, Play } from "lucide-react";
+import Skeleton from "@/components/ui/Skeleton";
 import type { DashboardWidgetProps } from "./types";
 
 export function LatestTracksWidget({ isLoading, topTracks }: DashboardWidgetProps) {
@@ -18,7 +19,7 @@ export function LatestTracksWidget({ isLoading, topTracks }: DashboardWidgetProp
       {isLoading ? (
         <div className="space-y-3 px-4 pb-4">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-10 animate-pulse rounded-lg bg-[var(--color-border)]" />
+            <Skeleton key={i} className="h-10" />
           ))}
         </div>
       ) : (

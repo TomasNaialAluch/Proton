@@ -39,6 +39,7 @@ import { fetchArtistWithTracks } from "@/lib/api/artist";
 import { mockArtist } from "@/lib/mock/artist";
 import { useDashboardStore, WidgetId, DEFAULT_WIDGET_ORDER } from "@/lib/store/dashboardStore";
 import { DASHBOARD_WIDGETS, WIDGET_META, type DashboardWidgetProps } from "./widgets";
+import Skeleton from "@/components/ui/Skeleton";
 
 // ── Manage widgets modal (full catalog + on-board feedback) ─────────────────
 
@@ -371,9 +372,9 @@ export default function DashboardContent() {
 
       {/* ── Stat cards (fixed, no customizable) ── */}
       <section className="grid grid-cols-3 gap-3 mb-6 lg:gap-4">
-        <StatCard icon={<Music2 size={14} />}    label="Tracks"   value={isLoading ? "—" : totalTracks} />
-        <StatCard icon={<TrendingUp size={14} />} label="Releases" value={isLoading ? "—" : new Set(tracks.map((t) => t.release.id)).size} accent />
-        <StatCard icon={<Disc3 size={14} />}      label="Labels"   value={isLoading ? "—" : new Set(tracks.map((t) => t.release.label.id)).size} />
+        <StatCard icon={<Music2 size={14} />}    label="Tracks"   value={totalTracks} isLoading={isLoading} />
+        <StatCard icon={<TrendingUp size={14} />} label="Releases" value={new Set(tracks.map((t) => t.release.id)).size} accent isLoading={isLoading} />
+        <StatCard icon={<Disc3 size={14} />}      label="Labels"   value={new Set(tracks.map((t) => t.release.label.id)).size} isLoading={isLoading} />
       </section>
 
       {/* ── Toolbar (sticky in edit mode so Add / Done stay visible while scrolling) ── */}
@@ -517,11 +518,13 @@ function StatCard({
   label,
   value,
   accent = false,
+  isLoading = false,
 }: {
   icon: React.ReactNode;
   label: string;
   value: number | string;
   accent?: boolean;
+  isLoading?: boolean;
 }) {
   return (
     <div className="bg-surface rounded-xl border border-[var(--color-border)] px-3 py-4 flex flex-col gap-2">
@@ -529,9 +532,13 @@ function StatCard({
         {icon}
         <span className="text-xs font-medium">{label}</span>
       </div>
-      <span className={`text-2xl font-medium tabular-nums ${accent ? "text-accent" : "text-text-primary"}`}>
-        {value}
-      </span>
+      {isLoading ? (
+        <Skeleton className="h-7 w-12" />
+      ) : (
+        <span className={`text-2xl font-medium tabular-nums ${accent ? "text-accent" : "text-text-primary"}`}>
+          {value}
+        </span>
+      )}
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { Suspense } from "react";
 import StreamsChart from "../StreamsChart";
+import Skeleton from "@/components/ui/Skeleton";
 import type { DashboardWidgetProps } from "./types";
 
 export function StreamsWidget(_props: DashboardWidgetProps) {
@@ -14,7 +15,7 @@ export function StreamsWidget(_props: DashboardWidgetProps) {
         </div>
         <span className="text-xs font-medium text-accent">+37% ↑</span>
       </div>
-      <Suspense fallback={<div className="h-40 animate-pulse rounded-lg bg-[var(--color-border)]" />}>
+      <Suspense fallback={<Skeleton className="h-40" />}>
         <StreamsChart />
       </Suspense>
     </section>

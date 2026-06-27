@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useState, type ReactNode } from "react";
 import { usePrototypeViewStore } from "@/lib/store/prototypeViewStore";
+import Skeleton from "@/components/ui/Skeleton";
 
 /**
  * Zustand `persist` rehydrates from localStorage asynchronously. Until then, the
@@ -36,9 +37,18 @@ export default function PrototypePersistGate({ children }: { children: ReactNode
   }, []);
 
   if (!ready) {
+    /** AppSidebar renders outside this gate (it's SSR'd as a layout sibling),
+     * so only the content column needs a skeleton — a fake sidebar here
+     * would duplicate the real one already on screen. */
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-2 p-10">
-        <p className="text-sm text-text-secondary">Loading dashboard…</p>
+      <div className="max-w-lg mx-auto px-5 pt-6 pb-24 lg:pb-10 lg:max-w-3xl lg:px-10 w-full">
+        <Skeleton className="h-4 w-40 mb-6" />
+        <Skeleton className="h-7 w-56 mb-6" />
+        <div className="space-y-4">
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
+        </div>
       </div>
     );
   }
