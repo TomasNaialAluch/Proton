@@ -10,6 +10,7 @@ import {
   LABEL_DEMO_CATALOG_NOTICE,
 } from "@/lib/mock/labelDemoTracks";
 import type { ProtonLabel } from "@/types/label";
+import Skeleton from "@/components/ui/Skeleton";
 
 export default function LabelDetailView() {
   const params = useParams();
@@ -55,10 +56,21 @@ export default function LabelDetailView() {
 
   if (labels === null || !label) {
     return (
-      <div className="max-w-4xl mx-auto px-4 md:px-6 py-10">
-        <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-          Loading…
-        </p>
+      <div className="max-w-4xl mx-auto px-4 md:px-6 py-10 flex flex-col gap-8">
+        <Skeleton className="h-4 w-16" />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <Skeleton className="w-20 h-20 rounded-xl shrink-0" />
+          <div className="min-w-0 space-y-2">
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+        </div>
+        <div className="space-y-3">
+          <Skeleton className="h-3 w-24" />
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-10" />
+          ))}
+        </div>
       </div>
     );
   }
