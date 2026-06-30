@@ -6,7 +6,7 @@ import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   User, TrendingUp, DollarSign, FileText, Settings,
-  Radio, Tag, Disc3, Link as LinkIcon, BarChart3, Mic2, Building2,
+  Radio, Tag, Disc3, Link as LinkIcon, BarChart3, Mic2,
   Bell, PanelLeftClose, PanelLeftOpen, ExternalLink, ChevronRight, ChevronDown,
   Sun, Moon, CircleHelp, MessageSquareText, Compass, Users,
 } from "lucide-react";
@@ -496,7 +496,7 @@ export default function AppSidebar() {
         {view === "label_manager" ? (
           !collapsed && (
             <Link
-              href={LABEL_MANAGER_ENTRY}
+              href="/dashboard/settings/account"
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg
                 hover:bg-[var(--color-border)] transition-colors mb-1"
             >
@@ -505,12 +505,12 @@ export default function AppSidebar() {
                 style={{ background: "linear-gradient(135deg, var(--color-accent), transparent)" }}
               >
                 <div className="flex size-full items-center justify-center rounded-full bg-surface text-accent">
-                  <Building2 size={14} strokeWidth={1.75} aria-hidden />
+                  <Settings size={14} strokeWidth={1.75} aria-hidden />
                 </div>
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-medium text-text-primary truncate">Label workspace</p>
-                <p className="text-xs text-text-secondary">Roster · catalog · reporting</p>
+                <p className="text-sm font-medium text-text-primary truncate">Settings</p>
+                <p className="text-xs text-text-secondary">Account · sign out</p>
               </div>
             </Link>
           )
@@ -541,13 +541,13 @@ export default function AppSidebar() {
 
         {view === "label_manager" && collapsed && (
           <Link
-            href={LABEL_MANAGER_ENTRY}
-            title="Label workspace — Roster"
-            aria-label="Label workspace — open roster"
+            href="/dashboard/settings/account"
+            title="Settings — account · sign out"
+            aria-label="Settings — account, sign out"
             className="mb-1 flex w-full justify-center"
           >
             <span className="inline-flex size-10 items-center justify-center rounded-lg text-accent transition-colors hover:bg-[var(--color-border)]">
-              <Building2 size={18} strokeWidth={1.75} aria-hidden />
+              <Settings size={18} strokeWidth={1.75} aria-hidden />
             </span>
           </Link>
         )}

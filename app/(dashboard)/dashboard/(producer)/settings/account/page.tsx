@@ -1,3 +1,5 @@
+"use client";
+
 import {
   User, Star, CreditCard, Zap, Link2,
   Download, Bell, Sparkles, ChevronRight, ChevronLeft,
@@ -5,6 +7,8 @@ import {
 import Link from "next/link";
 import { mockAccount } from "@/lib/mock/account";
 import DemoSignOutButton from "@/components/dashboard/DemoSignOutButton";
+import { usePrototypeViewStore } from "@/lib/store/prototypeViewStore";
+import { LABEL_MANAGER_ENTRY, PRODUCER_ENTRY } from "@/lib/dashboard/dashboardShellRouting";
 
 const sections = [
   {
@@ -61,13 +65,16 @@ const sections = [
 ];
 
 export default function AccountSettingsPage() {
+  const view = usePrototypeViewStore((s) => s.view);
+  const backHref = view === "label_manager" ? LABEL_MANAGER_ENTRY : PRODUCER_ENTRY;
+
   return (
     <div className="min-h-screen bg-background">
 
       <header className="sticky top-0 z-30 flex items-center gap-3 px-5 py-4
         border-b border-[var(--color-border)] bg-background/80 backdrop-blur-md">
         <Link
-          href="/dashboard"
+          href={backHref}
           className="size-8 rounded-full flex items-center justify-center
             bg-[var(--color-border)] hover:opacity-80 transition-opacity shrink-0"
         >

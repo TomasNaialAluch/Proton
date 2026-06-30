@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import {
   safeDashboardCallbackUrl,
   safePublicReturnUrl,
@@ -20,6 +20,10 @@ type Tab = "signin" | "signup";
  */
 export default function LoginSignUpView() {
   const [tab, setTab] = useState<Tab>("signin");
+  /** Immediate feedback the moment the demo CTA is tapped — navigation + dashboard
+   *  hydration take a couple seconds, and an unresponsive-looking button reads as
+   *  broken rather than "still loading" (see docs/feature-skeletons-loading.md). */
+  const [pending, setPending] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackRaw = searchParams.get("callbackUrl");
@@ -28,11 +32,13 @@ export default function LoginSignUpView() {
   const isDashboardGate = returnPath != null;
 
   function completeDashboardAccess() {
+    setPending(true);
     setDemoSessionCookie();
     router.push(returnPath!);
   }
 
   function completePublicAccount() {
+    setPending(true);
     setPublicDemoSessionCookie();
     router.push(publicReturn);
   }
@@ -184,9 +190,16 @@ export default function LoginSignUpView() {
             />
           </label>
           <div className="login-prototype-cta-ring">
-            <button type="submit" className="login-prototype-cta-btn">
-              <span>
-                {isDashboardGate ? "Continue to artist dashboard" : "Continue on Proton Radio"}
+            <button type="submit" disabled={pending} className="login-prototype-cta-btn">
+              <span className="flex items-center gap-2">
+                {pending && <Loader2 size={16} className="animate-spin" aria-hidden />}
+                {pending
+                  ? isDashboardGate
+                    ? "Opening dashboard…"
+                    : "Continuing…"
+                  : isDashboardGate
+                    ? "Continue to artist dashboard"
+                    : "Continue on Proton Radio"}
               </span>
               <span className="login-prototype-cta-btn-sub">Tap here · prototype</span>
             </button>
@@ -257,18 +270,23 @@ export default function LoginSignUpView() {
           </label>
           {isDashboardGate ? (
             <div className="login-prototype-cta-ring">
-              <button type="submit" className="login-prototype-cta-btn">
-                <span>Create account & open dashboard</span>
+              <button type="submit" disabled={pending} className="login-prototype-cta-btn">
+                <span className="flex items-center gap-2">
+                  {pending && <Loader2 size={16} className="animate-spin" aria-hidden />}
+                  {pending ? "Opening dashboard…" : "Create account & open dashboard"}
+                </span>
                 <span className="login-prototype-cta-btn-sub">Tap here · prototype</span>
               </button>
             </div>
           ) : (
             <button
               type="submit"
-              className="w-full py-3 rounded-lg text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              disabled={pending}
+              className="w-full py-3 rounded-lg text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-70 flex items-center justify-center gap-2"
               style={{ background: "var(--color-accent)" }}
             >
-              Create account & continue
+              {pending && <Loader2 size={16} className="animate-spin" aria-hidden />}
+              {pending ? "Continuing…" : "Create account & continue"}
             </button>
           )}
         </form>
