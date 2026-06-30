@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Compass, Tag, Play, Pause } from "lucide-react";
+import { Compass, Tag, Play, Pause, ArrowDownUp } from "lucide-react";
 import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
 import FilterDropdown from "@/components/dashboard/discover/FilterDropdown";
 import CoverArt, { genreColor, genreColorBg } from "@/components/dashboard/discover/CoverArt";
@@ -11,11 +11,19 @@ import { usePreviewStore } from "@/lib/store/previewStore";
 
 const PAGE_SIZE = 12;
 
+type SortOption = "newest" | "feedback";
+
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: "newest", label: "Newest" },
+  { value: "feedback", label: "Most feedback" },
+];
+
 export default function DiscoverPage() {
   const genres = discoverGenres();
   const labels = discoverLabels();
   const [genre, setGenre] = useState<string | null>(null);
   const [label, setLabel] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   /** Only one card preview plays at a time, via a single shared <audio>. */
@@ -52,10 +60,16 @@ export default function DiscoverPage() {
   };
 
   const filtered = useMemo(() => {
-    return mockDiscoverTracks.filter(
+    const matches = mockDiscoverTracks.filter(
       (t) => (!genre || t.genre === genre) && (!label || t.label === label)
     );
-  }, [genre, label]);
+    const sorted = [...matches].sort((a, b) =>
+      sortBy === "newest"
+        ? +new Date(b.openedForFeedbackAt) - +new Date(a.openedForFeedbackAt)
+        : b.feedbackCount - a.feedbackCount
+    );
+    return sorted;
+  }, [genre, label, sortBy]);
 
   const visible = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
@@ -76,7 +90,7 @@ export default function DiscoverPage() {
 
       {/* ── Filter bar ── */}
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[var(--color-border)]
-        bg-surface px-4 py-3 mb-6">
+        bg-surface px-4 py-3 mb-3">
         <div className="flex items-center gap-1.5 text-text-secondary">
           <Compass size={14} />
           <span className="text-xs font-semibold uppercase tracking-wider">Filters</span>
@@ -96,6 +110,30 @@ export default function DiscoverPage() {
         <span className="ml-auto text-xs text-text-secondary">
           {filtered.length} {filtered.length === 1 ? "track" : "tracks"}
         </span>
+      </div>
+
+      {/* ── Sort bar — reorders, doesn't narrow results, so it's separate from Filters ── */}
+      <div className="flex flex-wrap items-center gap-3 mb-6 px-1">
+        <div className="flex items-center gap-1.5 text-text-secondary">
+          <ArrowDownUp size={13} />
+          <span className="text-xs font-semibold uppercase tracking-wider">Sort</span>
+        </div>
+        <div className="flex gap-1 rounded-lg border border-[var(--color-border)] bg-surface p-0.5">
+          {SORT_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setSortBy(opt.value)}
+              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors
+                ${sortBy === opt.value
+                  ? "bg-accent text-white"
+                  : "text-text-secondary hover:text-text-primary"
+                }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Shared preview player — only one card plays at a time. */}

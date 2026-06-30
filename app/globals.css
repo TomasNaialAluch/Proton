@@ -40,6 +40,36 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* ── Scrollbars: themed via design tokens, no OS-native bar ─────────────── */
+/* --color-border alone (7%/6% opacity) is too faint for a thumb — mix with
+   text-secondary so it reads in both light and dark without being loud. */
+:root {
+  --color-scrollbar-thumb: color-mix(in srgb, var(--color-text-secondary) 35%, transparent);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-scrollbar-thumb) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-scrollbar-thumb);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-text-secondary);
+}
+
 /* ── /login Sign in: animated green ring so prototype testers spot “Continue” ── */
 @keyframes login-prototype-border-flow {
   0% {

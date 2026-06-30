@@ -40,29 +40,17 @@ export default function PrototypePersistGate({ children }: { children: ReactNode
   }, []);
 
   if (!ready) {
+    /** AppSidebar renders outside this gate (it's SSR'd as a layout sibling),
+     * so only the content column needs a skeleton — a fake sidebar here
+     * would duplicate the real one already on screen. */
     return (
-      <div className="flex flex-1" aria-busy="true" aria-label="Loading dashboard">
-        {/* Sidebar shell — mirrors AppSidebar's structure so the real one mounts without a jump. */}
-        <aside className="hidden lg:flex w-64 shrink-0 flex-col h-screen border-r border-[var(--color-border)] bg-surface px-5 py-4 gap-6">
-          <div className="flex items-center justify-between">
-            <Skeleton className="h-8 w-28" />
-            <Skeleton circle className="size-6" />
-          </div>
-          <div className="flex flex-col gap-2">
-            {Array.from({ length: 7 }).map((_, i) => (
-              <Skeleton key={i} className="h-9 w-full" />
-            ))}
-          </div>
-        </aside>
-
-        {/* Content shell — generic page shape, not route-specific. */}
-        <div className="flex-1 max-w-lg mx-auto px-5 pt-8 pb-24 lg:pb-10 lg:max-w-3xl lg:px-10 w-full">
-          <Skeleton className="h-7 w-40 mb-6" />
-          <div className="grid grid-cols-1 gap-3 mb-4">
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-24 w-full" />
-          </div>
+      <div className="max-w-lg mx-auto px-5 pt-6 pb-24 lg:pb-10 lg:max-w-3xl lg:px-10 w-full">
+        <Skeleton className="h-4 w-40 mb-6" />
+        <Skeleton className="h-7 w-56 mb-6" />
+        <div className="space-y-4">
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
         </div>
       </div>
     );

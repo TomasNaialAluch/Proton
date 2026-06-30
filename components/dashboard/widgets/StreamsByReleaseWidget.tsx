@@ -2,6 +2,7 @@
 
 import { Suspense } from "react";
 import ReleasesChart from "../ReleasesChart";
+import Skeleton from "@/components/ui/Skeleton";
 import type { DashboardWidgetProps } from "./types";
 
 export function StreamsByReleaseWidget({ tracks, isLoading }: DashboardWidgetProps) {
@@ -14,9 +15,9 @@ export function StreamsByReleaseWidget({ tracks, isLoading }: DashboardWidgetPro
         </div>
       </div>
       {isLoading ? (
-        <div className="h-48 animate-pulse rounded-lg bg-[var(--color-border)]" />
+        <Skeleton className="h-48" />
       ) : (
-        <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-[var(--color-border)]" />}>
+        <Suspense fallback={<Skeleton className="h-48" />}>
           <ReleasesChart tracks={tracks} />
         </Suspense>
       )}
