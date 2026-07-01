@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { fetchLatestMixes } from "@/lib/api/mixes";
 import type { ProtonMix } from "@/types/mix";
 import MixCard from "@/components/public/MixCard";
+import MixCardSkeleton from "@/components/public/MixCardSkeleton";
 import GenreChip from "@/components/public/GenreChip";
 
 const GENRES = [
@@ -73,9 +74,11 @@ export default function ShowsView() {
       </div>
 
       {mixes === null ? (
-        <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-          Loading shows…
-        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <MixCardSkeleton key={i} />
+          ))}
+        </div>
       ) : mixes.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {mixes.map((mix) => (

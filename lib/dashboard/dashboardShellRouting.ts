@@ -23,6 +23,9 @@ export const LABEL_MANAGER_NAV_LINKS: readonly {
 /**
  * Producer-only routes: not used by the label-manager MVP shell (except `/dashboard/releases`,
  * which is shared and branches in-page).
+ *
+ * `/dashboard/settings` is deliberately excluded here — it's shared by both shells (it's
+ * where sign-out lives), so it must not bounce a label-manager user back to Roster.
  */
 export function isProducerShellPath(pathname: string): boolean {
   if (pathname === "/dashboard") return true;
@@ -30,7 +33,6 @@ export function isProducerShellPath(pathname: string): boolean {
   if (pathname.startsWith("/dashboard/royalties")) return true;
   if (pathname.startsWith("/dashboard/contracts")) return true;
   if (pathname.startsWith("/dashboard/platform")) return true;
-  if (pathname.startsWith("/dashboard/settings")) return true;
   return false;
 }
 
