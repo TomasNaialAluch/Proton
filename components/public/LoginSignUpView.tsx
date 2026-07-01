@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import {
   safeDashboardCallbackUrl,
@@ -10,6 +11,7 @@ import {
   setDemoSessionCookie,
   setPublicDemoSessionCookie,
 } from "@/lib/auth/demoSession";
+import { fetchArtistWithTracks, NAIAL_ARTIST_ID } from "@/lib/api/artist";
 
 type Tab = "signin" | "signup";
 
@@ -25,6 +27,7 @@ export default function LoginSignUpView() {
    *  broken rather than "still loading" (see docs/feature-skeletons-loading.md). */
   const [pending, setPending] = useState(false);
   const router = useRouter();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const callbackRaw = searchParams.get("callbackUrl");
   const returnPath = safeDashboardCallbackUrl(callbackRaw);
@@ -34,6 +37,14 @@ export default function LoginSignUpView() {
   function completeDashboardAccess() {
     setPending(true);
     setDemoSessionCookie();
+    /** Fire the artist+tracks fetch now, in parallel with the route transition,
+     * instead of waiting for DashboardContent/Performance to mount and request it —
+     * same queryKey, so their `useQuery` picks up this in-flight/cached result
+     * instead of re-fetching. Not awaited: navigation shouldn't wait on it. */
+    queryClient.prefetchQuery({
+      queryKey: ["artist", NAIAL_ARTIST_ID],
+      queryFn: () => fetchArtistWithTracks(NAIAL_ARTIST_ID),
+    });
     router.push(returnPath!);
   }
 
