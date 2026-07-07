@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { ChevronDown, Pause, Play, SkipBack, SkipForward, X } from "lucide-react";
+import { startPlayback } from "@/lib/player/startPlayback";
 import { usePlayerStore } from "@/lib/store/playerStore";
 import { usePlayerAudio } from "./PlayerAudioContext";
 import PlayerArtwork from "./PlayerArtwork";
 import PlayerSeekBar from "./PlayerSeekBar";
 import PlayerYoutubeNotice from "./PlayerYoutubeNotice";
-import PlayerYouTubeQualityControl from "./PlayerYouTubeQualityControl";
 
 /**
  * Dashboard móvil: sobre BottomNav (`bottom-16`).
@@ -21,6 +21,11 @@ export default function PlayerDashboardMobile() {
   const audioApi = usePlayerAudio();
   const isYoutube = playbackSource === "youtube";
   const [expanded, setExpanded] = useState(false);
+
+  const skipToNext = () => {
+    const next = usePlayerStore.getState().advanceQueue();
+    if (next) startPlayback(next, { auto: true });
+  };
   /** YouTube necesita el nodo del iframe montado; si solo miramos `expanded`, un frame colapsado rompe el embed. */
   const showExpanded = isYoutube || expanded;
 
@@ -129,6 +134,7 @@ export default function PlayerDashboardMobile() {
               </button>
               <button
                 type="button"
+                onClick={skipToNext}
                 className="p-2 text-[var(--color-text-secondary)]"
                 aria-label="Next"
               >
@@ -136,9 +142,6 @@ export default function PlayerDashboardMobile() {
               </button>
             </div>
           </div>
-          {audioApi.youtubeQualityControls ? (
-            <PlayerYouTubeQualityControl variant="compact" />
-          ) : null}
         </>
       )}
     </div>

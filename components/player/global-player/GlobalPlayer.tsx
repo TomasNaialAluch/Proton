@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import type { ProtonMix } from "@/types/mix";
 import { useIsMaxLg } from "@/lib/hooks/useMediaQuery";
 import { usePlayerStore } from "@/lib/store/playerStore";
@@ -52,6 +53,11 @@ export default function GlobalPlayer() {
   const pathname = usePathname();
   const isMaxLg = useIsMaxLg();
   const dashboardMobileUi = pathname.startsWith("/dashboard") && isMaxLg;
+
+  /** Restores the queue (by id, re-fetched) from a previous session — once on mount. */
+  useEffect(() => {
+    void usePlayerStore.getState().hydrateQueue();
+  }, []);
 
   const surfaceKey = dashboardMobileUi
     ? "dm"

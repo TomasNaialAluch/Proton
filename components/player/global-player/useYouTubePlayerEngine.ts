@@ -13,11 +13,7 @@ import {
   loadYoutubeIframeApi,
   type YtPlayerLite,
 } from "@/lib/player/loadYoutubeIframeApi";
-import {
-  readYoutubeVideoQualityPreference,
-  writeYoutubeVideoQualityPreference,
-} from "@/lib/player/youtubeQualityPreference";
-import { sortYoutubeQualityIds } from "@/lib/player/youtubeQualityLabels";
+import { startPlayback } from "@/lib/player/startPlayback";
 import { usePlayerStore } from "@/lib/store/playerStore";
 import type { PlayerAudioApi } from "./PlayerAudioContext";
 
@@ -85,41 +81,10 @@ export function useYouTubePlayerEngine(
   const [duration, setDuration] = useState(0);
   const [volume, setVolumeState] = useState(1);
   const [muted, setMuted] = useState(false);
-  const [actualQualityId, setActualQualityId] = useState("unknown");
-  const [availableQualityIds, setAvailableQualityIds] = useState<string[]>([]);
-  const [preferredQualityId, setPreferredQualityState] = useState("");
 
   useEffect(() => {
     setVolumeState(readStoredVolume());
-    setPreferredQualityState(readYoutubeVideoQualityPreference());
   }, []);
-
-  const applyQualityPreferenceToPlayer = useCallback(
-    (p: YtPlayerLite, pref: string) => {
-      try {
-        if (!pref.trim()) {
-          p.setPlaybackQualityRange("small", "highres");
-          return;
-        }
-        p.setPlaybackQualityRange(pref, pref);
-      } catch {
-        /* ignore */
-      }
-    },
-    []
-  );
-
-  const setPreferredQualityId = useCallback(
-    (qualityId: string) => {
-      const next = qualityId.trim();
-      setPreferredQualityState(next);
-      writeYoutubeVideoQualityPreference(next);
-      const p = playerRef.current;
-      if (!p) return;
-      applyQualityPreferenceToPlayer(p, next);
-    },
-    [applyQualityPreferenceToPlayer]
-  );
 
   useEffect(() => {
     if (!active || !mix.youtubeId?.trim()) return;
@@ -163,17 +128,6 @@ export function useYouTubePlayerEngine(
               const v0 = readStoredVolume();
               setVolumeState(v0);
               p.setVolume(v0 * 100);
-              const pref = readYoutubeVideoQualityPreference();
-              setPreferredQualityState(pref);
-              if (pref.trim()) {
-                applyQualityPreferenceToPlayer(p, pref);
-              }
-              try {
-                setActualQualityId(p.getPlaybackQuality() ?? "unknown");
-                setAvailableQualityIds(p.getAvailableQualityLevels() ?? []);
-              } catch {
-                /* ignore */
-              }
               if (usePlayerStore.getState().isPlaying) {
                 p.playVideo();
               } else {
@@ -218,7 +172,10 @@ export function useYouTubePlayerEngine(
             }
           },
           onStateChange: (e: { data: number }) => {
-            if (e.data === 0) usePlayerStore.getState().pause();
+            if (e.data === 0) {
+              const next = usePlayerStore.getState().advanceQueue();
+              if (next) startPlayback(next, { auto: true });
+            }
           },
           onError: (e: unknown) => {
             if (embedFailTimer !== undefined) {
@@ -266,10 +223,8 @@ export function useYouTubePlayerEngine(
       playerRef.current = null;
       setCurrentTime(0);
       setDuration(0);
-      setActualQualityId("unknown");
-      setAvailableQualityIds([]);
     };
-  }, [active, applyQualityPreferenceToPlayer, mix.id, mix.youtubeId]);
+  }, [active, mix.id, mix.youtubeId]);
 
   /** Si el usuario (store) pide play pero el iframe no reproduce ni avanza el tiempo en varios segundos. */
   useEffect(() => {
@@ -371,20 +326,6 @@ export function useYouTubePlayerEngine(
         if (Number.isFinite(t)) setCurrentTime(t);
         const d = p.getDuration();
         if (Number.isFinite(d) && d > 0) setDuration(d);
-        const q = p.getPlaybackQuality();
-        if (typeof q === "string" && q) setActualQualityId(q);
-        const levels = p.getAvailableQualityLevels();
-        if (Array.isArray(levels) && levels.length > 0) {
-          setAvailableQualityIds((prev) => {
-            if (
-              prev.length === levels.length &&
-              prev.every((x, i) => x === levels[i])
-            ) {
-              return prev;
-            }
-            return levels;
-          });
-        }
       } catch {
         /* ignore */
       }
@@ -457,11 +398,6 @@ export function useYouTubePlayerEngine(
     []
   );
 
-  const sortedAvailableIds = useMemo(
-    () => sortYoutubeQualityIds(availableQualityIds),
-    [availableQualityIds]
-  );
-
   if (!active || !mix.youtubeId?.trim()) {
     return inactiveYoutubeApi();
   }
@@ -476,11 +412,5 @@ export function useYouTubePlayerEngine(
     muted,
     toggleMute,
     youtubeMountRef: mountRef,
-    youtubeQualityControls: {
-      preferredQualityId,
-      setPreferredQualityId,
-      actualQualityId,
-      availableQualityIds: sortedAvailableIds,
-    },
   };
 }

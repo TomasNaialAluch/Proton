@@ -16,8 +16,16 @@ import { youtubeWatchUrl } from "@/lib/player/youtubeWatchUrl";
  *
  * Para YouTube con preferencia «mini», consulta la Data API antes de abrir
  * el embed; si no se puede embeber, abre un modal de aviso.
+ *
+ * `opts.auto`: avance automático de cola (fin de track → siguiente), sin
+ * gesto del usuario detrás. Si no hay preferencia guardada, en este caso no
+ * corresponde abrir el modal de elección (quedaría flotando sin que nadie
+ * lo haya pedido) — se asume «mini» para seguir escuchando en la app.
  */
-export async function startPlaybackAsync(mix: ProtonMix): Promise<void> {
+export async function startPlaybackAsync(
+  mix: ProtonMix,
+  opts?: { auto?: boolean }
+): Promise<void> {
   const store = usePlayerStore.getState();
   const hasYoutubeId = Boolean(mix.youtubeId?.trim());
 
@@ -29,11 +37,13 @@ export async function startPlaybackAsync(mix: ProtonMix): Promise<void> {
   if (hasYoutubeId) {
     const vid = mix.youtubeId.trim();
     const pref = readYoutubePlaybackPreference();
-    if (pref === "tab") {
+    const effectivePref = pref ?? (opts?.auto ? "mini" : null);
+
+    if (effectivePref === "tab") {
       window.open(youtubeWatchUrl(vid), "_blank", "noopener,noreferrer");
       return;
     }
-    if (pref === "mini") {
+    if (effectivePref === "mini") {
       const hints = await fetchYoutubeVideoHintsClient(vid);
       if (hints && shouldBlockMiniPlayer(hints)) {
         store.setYoutubeMiniBlocked({ mix, hints });
@@ -49,8 +59,8 @@ export async function startPlaybackAsync(mix: ProtonMix): Promise<void> {
   store.play(mix, "audio");
 }
 
-export function startPlayback(mix: ProtonMix): void {
-  void startPlaybackAsync(mix);
+export function startPlayback(mix: ProtonMix, opts?: { auto?: boolean }): void {
+  void startPlaybackAsync(mix, opts);
 }
 
 /** Para tests o llamadas internas que necesiten forzar el modo. */

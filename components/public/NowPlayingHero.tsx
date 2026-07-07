@@ -4,6 +4,7 @@ import { Play } from "lucide-react";
 import { startPlayback } from "@/lib/player/startPlayback";
 import { usePlayerStore } from "@/lib/store/playerStore";
 import type { ProtonMix } from "@/types/mix";
+import LikeButton from "./LikeButton";
 
 interface NowPlayingHeroProps {
   mix: ProtonMix;
@@ -62,15 +63,21 @@ export default function NowPlayingHero({ mix }: NowPlayingHeroProps) {
             </p>
           </div>
 
-          {/* Play button */}
-          <button
-            onClick={() => startPlayback(mix)}
-            className="inline-flex items-center gap-3 w-fit px-6 py-3 rounded-full text-sm font-semibold text-white transition-opacity hover:opacity-90"
-            style={{ background: "var(--color-accent)" }}
-          >
-            <Play size={16} fill="white" />
-            {isActive ? "Now Playing" : "Play Live Stream"}
-          </button>
+          {/* Play + Like */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => startPlayback(mix)}
+              className="inline-flex items-center gap-3 w-fit px-6 py-3 rounded-full text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              style={{ background: "var(--color-accent)" }}
+            >
+              <Play size={16} fill="white" />
+              {isActive ? "Now Playing" : "Play Live Stream"}
+            </button>
+            <LikeButton
+              mixId={mix.id}
+              className="size-11 rounded-full border border-white/20 bg-white/10 hover:bg-white/20"
+            />
+          </div>
         </div>
       </div>
     </section>

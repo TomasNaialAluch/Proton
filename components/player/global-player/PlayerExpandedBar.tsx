@@ -3,11 +3,12 @@
 import { ChevronDown, Pause, Play, SkipBack, SkipForward, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useIsMaxLg } from "@/lib/hooks/useMediaQuery";
+import { startPlayback } from "@/lib/player/startPlayback";
 import { usePlayerStore } from "@/lib/store/playerStore";
 import PlayerArtwork from "./PlayerArtwork";
+import PlayerQueueButton from "./PlayerQueueButton";
 import PlayerSeekBar from "./PlayerSeekBar";
 import PlayerVolumeControl from "./PlayerVolumeControl";
-import PlayerYouTubeQualityControl from "./PlayerYouTubeQualityControl";
 import { useDashboardPlayerInsetClass } from "./useDashboardPlayerInsetClass";
 import { usePlayerAudio } from "./PlayerAudioContext";
 import { useFabYoutubeVideoSize } from "./useFabYoutubeVideoSize";
@@ -21,6 +22,11 @@ export default function PlayerExpandedBar() {
   const { currentMix, isPlaying, toggle, setPlayerChrome, clearPlayer } =
     usePlayerStore();
   const audioApi = usePlayerAudio();
+
+  const skipToNext = () => {
+    const next = usePlayerStore.getState().advanceQueue();
+    if (next) startPlayback(next, { auto: true });
+  };
 
   const isMobile = useIsMaxLg();
   const ytResize = useFabYoutubeVideoSize(
@@ -114,6 +120,7 @@ export default function PlayerExpandedBar() {
 
           <button
             type="button"
+            onClick={skipToNext}
             className="p-2 text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text-primary)]"
             aria-label="Next"
           >
@@ -122,7 +129,7 @@ export default function PlayerExpandedBar() {
         </div>
 
         <div className="flex min-w-0 flex-1 items-center justify-end gap-2 pl-2 max-md:pl-[4rem] md:pl-24">
-          <PlayerYouTubeQualityControl />
+          <PlayerQueueButton />
           <PlayerVolumeControl />
           <button
             type="button"

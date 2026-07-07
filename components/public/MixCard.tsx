@@ -4,6 +4,8 @@ import { Play } from "lucide-react";
 import { startPlayback } from "@/lib/player/startPlayback";
 import { usePlayerStore } from "@/lib/store/playerStore";
 import type { ProtonMix } from "@/types/mix";
+import LikeButton from "./LikeButton";
+import AddToQueueButton from "@/components/player/global-player/AddToQueueButton";
 
 const MIX_ARTWORK_FALLBACK = "/mix-artwork-fallback-dark-16x9.png";
 
@@ -74,6 +76,23 @@ export default function MixCard({ mix, size = "md" }: MixCardProps) {
             {mix.duration}
           </span>
         )}
+
+        {/* Like — stopPropagation: the whole card already handles clicks via startPlayback */}
+        <LikeButton
+          mixId={mix.id}
+          stopPropagation
+          className="absolute top-2 right-2 size-7 rounded-full bg-black/50"
+        />
+
+        {/* Add to queue — always visible on mobile (no hover there); on desktop only
+            once something is already playing, revealed on hover like the Play overlay. */}
+        <AddToQueueButton
+          mix={mix}
+          stopPropagation
+          className={`absolute bottom-2 left-2 size-7 rounded-full bg-black/50 opacity-100 transition-opacity duration-200 ${
+            currentMix ? "md:opacity-0 md:group-hover:opacity-100" : "md:hidden"
+          }`}
+        />
       </div>
 
       {/* Info */}
