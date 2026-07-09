@@ -31,6 +31,7 @@ export function isProducerShellPath(pathname: string): boolean {
   if (pathname === "/dashboard") return true;
   if (pathname.startsWith("/dashboard/performance")) return true;
   if (pathname.startsWith("/dashboard/royalties")) return true;
+  if (pathname.startsWith("/dashboard/labels")) return true;
   if (pathname.startsWith("/dashboard/contracts")) return true;
   if (pathname.startsWith("/dashboard/platform")) return true;
   return false;

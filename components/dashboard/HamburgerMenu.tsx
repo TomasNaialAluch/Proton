@@ -12,7 +12,7 @@ import {
   Mic2,
   User,
   TrendingUp,
-  FileText,
+  Building2,
   Settings,
   Moon,
   Sun,
@@ -30,6 +30,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { platformHubLinkActive } from "@/lib/dashboard/platformHub";
 import { useHelpAssistantStore } from "@/lib/store/helpAssistantStore";
 import { usePrototypeViewStore } from "@/lib/store/prototypeViewStore";
+import { useContractsStore } from "@/lib/store/contractsStore";
 import { LABEL_MANAGER_NAV_LINKS } from "@/lib/dashboard/dashboardShellRouting";
 
 interface HamburgerMenuProps {
@@ -85,7 +86,8 @@ const dashboardLinks = [
   { label: "Artists",     icon: User,       href: "/dashboard"                        },
   { label: "Performance", icon: TrendingUp, href: "/dashboard/performance"            },
   { label: "Royalties",   icon: DollarSign, href: "/dashboard/royalties"              },
-  { label: "Contracts",   icon: FileText,   href: "/dashboard/contracts"              },
+  { label: "Contracts",   icon: Building2,  href: "/dashboard/contracts"              },
+  { label: "Label Deals", icon: Tag,        href: "/dashboard/labels"                 },
   { label: "Discover",    icon: Compass,    href: "/dashboard/discover"               },
   { label: "Feedback",    icon: MessageSquareText, href: "/dashboard/feedback"         },
   { label: "Connections", icon: Users,      href: "/dashboard/connections"            },
@@ -102,6 +104,9 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
   const isDark = theme === "dark";
   const [platformSectionOpen, setPlatformSectionOpen] = useState(false);
   const [publicSiteSectionOpen, setPublicSiteSectionOpen] = useState(false);
+  const hasPendingContracts = useContractsStore((s) =>
+    s.contracts.some((c) => c.status === "pending_signature")
+  );
 
   useEffect(() => {
     const p = localStorage.getItem("proton-sidebar-platform-open");
@@ -202,7 +207,12 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
                           text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]
                           transition-colors text-sm"
                       >
-                        <Icon size={16} />
+                        <span className="relative inline-flex shrink-0 items-center justify-center">
+                          <Icon size={16} />
+                          {label === "Contracts" && hasPendingContracts && (
+                            <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-amber-500" />
+                          )}
+                        </span>
                         {label}
                       </Link>
                     </li>

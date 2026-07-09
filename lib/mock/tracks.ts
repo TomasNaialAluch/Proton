@@ -13,4 +13,8 @@ export const mockTracks: Track[] = [
   // Release: Tied Inside — Outer Space (OSO176)
   { id: "4", title: "Emotional Damage (Original Mix)",     artistId: "naial", duration: 0, genre: "Progressive",   releaseDate: "2026-03-06", status: "published", audioUrl: "", coverUrl: "", streams: 29, bpm: 125, key: "E min" },
   { id: "5", title: "Tied Inside (Original Mix)",          artistId: "naial", duration: 0, genre: "Progressive",   releaseDate: "2026-03-06", status: "published", audioUrl: "", coverUrl: "", streams: 19, bpm: 124, key: "B min" },
+
+  // Pending release: Dear Deer Music licensing agreement — release date TBA
+  { id: "8", title: "JIK (Original Mix)",                  artistId: "naial", duration: 0, genre: "Melodic House", releaseDate: "", status: "pending", audioUrl: "", coverUrl: "", streams: 0, bpm: 124, key: "A min" },
+  { id: "9", title: "Never Leave (Original Mix)",           artistId: "naial", duration: 0, genre: "Melodic House", releaseDate: "", status: "pending", audioUrl: "", coverUrl: "", streams: 0, bpm: 122, key: "F min" },
 ];

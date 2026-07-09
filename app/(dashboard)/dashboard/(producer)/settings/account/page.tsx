@@ -1,13 +1,14 @@
 "use client";
 
 import {
-  User, Star, CreditCard, Zap, Link2,
+  User, Star, CreditCard, Zap, Link2, PenLine,
   Download, Bell, Sparkles, ChevronRight, ChevronLeft,
 } from "lucide-react";
 import Link from "next/link";
 import { mockAccount } from "@/lib/mock/account";
 import DemoSignOutButton from "@/components/dashboard/DemoSignOutButton";
 import { usePrototypeViewStore } from "@/lib/store/prototypeViewStore";
+import { useSignatureStore } from "@/lib/store/signatureStore";
 import { LABEL_MANAGER_ENTRY, PRODUCER_ENTRY } from "@/lib/dashboard/dashboardShellRouting";
 
 const sections = [
@@ -34,6 +35,12 @@ const sections = [
     icon:    Zap,
     href:    "/dashboard/settings/account/subscriptions",
     summary: "Manage your plan",
+  },
+  {
+    label:   "Signature",
+    icon:    PenLine,
+    href:    "/dashboard/settings/account/signature",
+    summary: "",
   },
   {
     label:   "Connections",
@@ -67,6 +74,12 @@ const sections = [
 export default function AccountSettingsPage() {
   const view = usePrototypeViewStore((s) => s.view);
   const backHref = view === "label_manager" ? LABEL_MANAGER_ENTRY : PRODUCER_ENTRY;
+  const hasSignature = useSignatureStore((s) => s.signature !== null);
+  const resolvedSections = sections.map((s) =>
+    s.label === "Signature"
+      ? { ...s, summary: hasSignature ? "Saved — ready to sign contracts" : "Not created yet" }
+      : s
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -88,7 +101,7 @@ export default function AccountSettingsPage() {
 
       <main className="max-w-lg mx-auto px-5 pt-6 pb-24 lg:pb-10">
         <div className="bg-surface rounded-2xl border border-[var(--color-border)] overflow-hidden">
-          {sections.map(({ label, icon: Icon, href, summary }, i) => (
+          {resolvedSections.map(({ label, icon: Icon, href, summary }, i) => (
             <Link
               key={label}
               href={href}

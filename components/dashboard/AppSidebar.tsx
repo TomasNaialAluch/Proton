@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
-  User, TrendingUp, DollarSign, FileText, Settings,
+  User, TrendingUp, DollarSign, Building2, Settings,
   Radio, Tag, Disc3, Link as LinkIcon, BarChart3, Mic2,
   Bell, PanelLeftClose, PanelLeftOpen, ExternalLink, ChevronRight, ChevronDown,
   Sun, Moon, CircleHelp, MessageSquareText, Compass, Users,
@@ -16,6 +16,7 @@ import { useDashboardSidebarStore } from "@/lib/store/dashboardSidebarStore";
 import { useThemeStore } from "@/lib/store/themeStore";
 import { useHelpAssistantStore } from "@/lib/store/helpAssistantStore";
 import { usePrototypeViewStore } from "@/lib/store/prototypeViewStore";
+import { useContractsStore } from "@/lib/store/contractsStore";
 import { LABEL_MANAGER_ENTRY, LABEL_MANAGER_NAV_LINKS } from "@/lib/dashboard/dashboardShellRouting";
 import NotificationsPanel from "./NotificationsPanel";
 import LabelScopeSwitcher from "@/components/dashboard/label-manager/LabelScopeSwitcher";
@@ -24,7 +25,8 @@ const dashboardLinks = [
   { label: "Artists",     icon: User,       href: "/dashboard" },
   { label: "Performance", icon: TrendingUp, href: "/dashboard/performance" },
   { label: "Royalties",   icon: DollarSign, href: "/dashboard/royalties" },
-  { label: "Contracts",   icon: FileText,   href: "/dashboard/contracts" },
+  { label: "Contracts",   icon: Building2,  href: "/dashboard/contracts" },
+  { label: "Label Deals", icon: Tag,        href: "/dashboard/labels" },
   { label: "Discover",    icon: Compass,    href: "/dashboard/discover" },
   { label: "Feedback",    icon: MessageSquareText, href: "/dashboard/feedback" },
   { label: "Connections", icon: Users,      href: "/dashboard/connections" },
@@ -117,6 +119,9 @@ export default function AppSidebar() {
   const isDark = theme === "dark";
   const openAssistant = useHelpAssistantStore((s) => s.openAssistant);
   const view = usePrototypeViewStore((s) => s.view);
+  const hasPendingContracts = useContractsStore((s) =>
+    s.contracts.some((c) => c.status === "pending_signature")
+  );
 
   useEffect(() => {
     const stored = localStorage.getItem("proton-sidebar-collapsed");
@@ -253,8 +258,11 @@ export default function AppSidebar() {
                             : "text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]"
                           }`}
                       >
-                        <span className={`inline-flex shrink-0 items-center justify-center ${collapsed ? "size-9" : ""}`}>
+                        <span className={`relative inline-flex shrink-0 items-center justify-center ${collapsed ? "size-9" : ""}`}>
                           <Icon size={16} strokeWidth={active ? 2.5 : 1.75} />
+                          {label === "Contracts" && hasPendingContracts && (
+                            <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-amber-500" />
+                          )}
                         </span>
                         {!collapsed && label}
                       </Link>
@@ -612,7 +620,12 @@ export default function AppSidebar() {
 
     </aside>
 
-      <NotificationsPanel open={notifOpen} onClose={() => setNotifOpen(false)} />
+      <NotificationsPanel
+        open={notifOpen}
+        onClose={() => setNotifOpen(false)}
+        anchor="sidebar"
+        sidebarWidth={collapsed ? 64 : 256}
+      />
     </>
   );
 }

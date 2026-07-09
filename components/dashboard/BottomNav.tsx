@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { User, TrendingUp, DollarSign, FileText } from "lucide-react";
+import { User, TrendingUp, DollarSign, Building2, Tag } from "lucide-react";
 import { usePrototypeViewStore } from "@/lib/store/prototypeViewStore";
+import { useContractsStore } from "@/lib/store/contractsStore";
 import { LABEL_MANAGER_NAV_LINKS } from "@/lib/dashboard/dashboardShellRouting";
 
 const producerNavItems = [
   { label: "Artists",     icon: User,       href: "/dashboard"             },
   { label: "Performance", icon: TrendingUp, href: "/dashboard/performance" },
   { label: "Royalties",   icon: DollarSign, href: "/dashboard/royalties"   },
-  { label: "Contracts",   icon: FileText,   href: "/dashboard/contracts"   },
+  { label: "Contracts",   icon: Building2,  href: "/dashboard/contracts"   },
+  { label: "Label Deals", icon: Tag,        href: "/dashboard/labels"      },
 ];
 
 function isActive(pathname: string, href: string) {
@@ -22,6 +24,9 @@ export default function BottomNav() {
   const pathname = usePathname();
   const view = usePrototypeViewStore((s) => s.view);
   const navItems = view === "label_manager" ? LABEL_MANAGER_NAV_LINKS : producerNavItems;
+  const hasPendingContracts = useContractsStore((s) =>
+    s.contracts.some((c) => c.status === "pending_signature")
+  );
 
   return (
     <nav
@@ -38,8 +43,11 @@ export default function BottomNav() {
                   active ? "text-accent" : "text-text-secondary hover:text-text-primary"
                 }`}
               >
-                <span className="inline-flex size-6 shrink-0 items-center justify-center">
+                <span className="relative inline-flex size-6 shrink-0 items-center justify-center">
                   <Icon size={19} strokeWidth={active ? 2.5 : 1.75} className="shrink-0" />
+                  {label === "Contracts" && hasPendingContracts && (
+                    <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-amber-500" />
+                  )}
                 </span>
                 <span className="max-w-full truncate text-center text-[9px] font-medium leading-tight tracking-tight">
                   {label}

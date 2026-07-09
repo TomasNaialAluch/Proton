@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { X, Bell, Music, DollarSign, FileText, TrendingUp, CheckCheck, MessageSquareText, Users, MessageCircle } from "lucide-react";
+import { useContractsStore } from "@/lib/store/contractsStore";
 
 interface Notification {
-  id: number;
+  id: number | string;
   icon: React.ElementType;
   iconColor: string;
   title: string;
@@ -75,15 +76,6 @@ const INITIAL_NOTIFICATIONS: Notification[] = [
     read: false,
   },
   {
-    id: 4,
-    icon: FileText,
-    iconColor: "#F59E0B",
-    title: "Pending contract",
-    description: "The contract with Stellar Records requires your signature.",
-    time: "Yesterday",
-    read: true,
-  },
-  {
     id: 5,
     icon: Music,
     iconColor: "#F87171",
@@ -97,11 +89,30 @@ const INITIAL_NOTIFICATIONS: Notification[] = [
 interface NotificationsPanelProps {
   open: boolean;
   onClose: () => void;
+  /**
+   * "right" (default) — full-height drawer sliding in from the right edge, used on mobile.
+   * "sidebar" — compact popover anchored under the bell button in the left sidebar, so it
+   * opens right where the cursor already is on desktop instead of forcing a look/reach to
+   * the far side of the screen.
+   */
+  anchor?: "right" | "sidebar";
+  /** Left offset (in px) to anchor the popover next to the sidebar. Only used when anchor="sidebar". */
+  sidebarWidth?: number;
 }
 
-export default function NotificationsPanel({ open, onClose }: NotificationsPanelProps) {
+export default function NotificationsPanel({
+  open,
+  onClose,
+  anchor = "right",
+  sidebarWidth = 256,
+}: NotificationsPanelProps) {
   const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>(INITIAL_NOTIFICATIONS);
+  // Select the stable `contracts` array reference and filter in render, not inside the
+  // selector — a selector returning a freshly-filtered array every call breaks zustand's
+  // useSyncExternalStore (infinite "getServerSnapshot" loop).
+  const contracts = useContractsStore((s) => s.contracts);
+  const pendingContracts = contracts.filter((c) => c.status === "pending_signature");
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -109,9 +120,30 @@ export default function NotificationsPanel({ open, onClose }: NotificationsPanel
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  /**
+   * Pending-contract notifications are derived from real data, not stored —
+   * they reflect a contract that's actually waiting on a signature, so
+   * "Clear all" (which only clears the static mock notifications below)
+   * doesn't dismiss them. They disappear on their own once the contract is
+   * signed, same as the nav badge.
+   */
+  const contractNotifications: Notification[] = pendingContracts.map((contract) => ({
+    id: `contract-${contract.id}`,
+    icon: FileText,
+    iconColor: "#F59E0B",
+    title: "Pending contract",
+    description: `The contract with ${contract.label} requires your signature.`,
+    time: "Awaiting signature",
+    read: false,
+    href: `/dashboard/contracts/${contract.id}`,
+  }));
+
+  const allNotifications = [...contractNotifications, ...notifications];
+  const unreadCount = allNotifications.filter((n) => !n.read).length;
 
   const clearAll = () => setNotifications([]);
+
+  const isSidebar = anchor === "sidebar";
 
   return (
     <>
@@ -123,12 +155,21 @@ export default function NotificationsPanel({ open, onClose }: NotificationsPanel
         }`}
       />
 
-      {/* Drawer — slides from the right */}
+      {/* Panel — full-height drawer from the right (mobile), or a compact popover
+          anchored next to the sidebar bell (desktop) so it opens where the mouse already is */}
       <aside
-        className={`fixed top-0 right-0 z-50 h-full w-80 flex flex-col
-          bg-surface border-l border-[var(--color-border)]
-          shadow-2xl transition-transform duration-300 ease-in-out
-          ${open ? "translate-x-0" : "translate-x-full"}`}
+        style={isSidebar ? { left: sidebarWidth + 12 } : undefined}
+        className={
+          isSidebar
+            ? `fixed top-4 z-50 flex max-h-[min(32rem,calc(100vh-2rem))] w-80 flex-col
+               rounded-xl bg-surface border border-[var(--color-border)]
+               shadow-2xl transition-all duration-200 ease-out origin-top-left
+               ${open ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-95 pointer-events-none"}`
+            : `fixed top-0 right-0 z-50 h-full w-80 flex flex-col
+               bg-surface border-l border-[var(--color-border)]
+               shadow-2xl transition-transform duration-300 ease-in-out
+               ${open ? "translate-x-0" : "translate-x-full"}`
+        }
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--color-border)]">
@@ -152,14 +193,14 @@ export default function NotificationsPanel({ open, onClose }: NotificationsPanel
 
         {/* List */}
         <div className="flex-1 overflow-y-auto">
-          {notifications.length === 0 ? (
+          {allNotifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full gap-3 text-text-secondary px-6 text-center">
               <CheckCheck size={36} className="opacity-30" />
               <p className="text-sm">No notifications</p>
             </div>
           ) : (
             <ul className="divide-y divide-[var(--color-border)]">
-              {notifications.map(({ id, icon: Icon, iconColor, title, description, time, read, href }) => (
+              {allNotifications.map(({ id, icon: Icon, iconColor, title, description, time, read, href }) => (
                 <li
                   key={id}
                   onClick={
@@ -203,7 +244,7 @@ export default function NotificationsPanel({ open, onClose }: NotificationsPanel
           )}
         </div>
 
-        {/* Footer — Clear all */}
+        {/* Footer — Clear all (only clears the static ones, see contractNotifications comment) */}
         {notifications.length > 0 && (
           <div className="px-5 py-4 border-t border-[var(--color-border)]">
             <button
