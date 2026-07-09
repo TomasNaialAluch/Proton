@@ -70,7 +70,7 @@ export default function MixCard({ mix, size = "md" }: MixCardProps) {
         {/* Duration badge */}
         {mix.duration && (
           <span
-            className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded text-[10px] font-medium text-white"
+            className="absolute bottom-2 right-2 rounded px-1.5 py-0.5 text-[10px] font-medium text-white"
             style={{ background: "rgba(0,0,0,0.65)" }}
           >
             {mix.duration}

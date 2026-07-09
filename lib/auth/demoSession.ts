@@ -31,6 +31,13 @@ export function clearPublicDemoSessionCookie(): void {
   document.cookie = `${PUBLIC_DEMO_SESSION_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`;
 }
 
+export function hasPublicDemoSession(): boolean {
+  if (typeof document === "undefined") return false;
+  return document.cookie
+    .split("; ")
+    .some((row) => row === `${PUBLIC_DEMO_SESSION_COOKIE}=${PUBLIC_DEMO_SESSION_VALUE}`);
+}
+
 /**
  * Safe in-app return for public flows (`?next=`). Blocks open redirects and dashboard/login.
  */

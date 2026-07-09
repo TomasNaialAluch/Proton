@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronUp, Pause, Play } from "lucide-react";
+import { useIsMaxLg } from "@/lib/hooks/useMediaQuery";
 import { usePlayerStore } from "@/lib/store/playerStore";
 import { usePlayerAudio } from "./PlayerAudioContext";
 import PlayerArtwork from "./PlayerArtwork";
@@ -15,6 +16,10 @@ export default function PlayerFab() {
   const { currentMix, isPlaying, toggle, setPlayerChrome } = usePlayerStore();
   const audioApi = usePlayerAudio();
   const { currentTime, duration, youtubeMountRef } = audioApi;
+  const isMobile = useIsMaxLg();
+  /** Mobile taps the FAB straight into full-screen Now Playing (Spotify/Apple Music
+   *  convention) — desktop keeps going to the normal expanded bar. */
+  const expand = () => setPlayerChrome(isMobile ? "fullscreen" : "expanded");
 
   if (!currentMix) return null;
 
@@ -61,7 +66,7 @@ export default function PlayerFab() {
         ) : (
           <button
             type="button"
-            onClick={() => setPlayerChrome("expanded")}
+            onClick={expand}
             className="flex items-center shrink-0 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]"
             aria-label="Expand player"
           >

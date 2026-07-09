@@ -253,6 +253,8 @@ The task map in §11 is organized by file; this section is the same work organiz
 
 **File:** new `lib/player/queueStorage.ts`, same shape as `lib/player/youtubePreference.ts` (a `STORAGE_KEY`, a `readXxx()`, a `writeXxx()`). Store an array of **mix ids**, not full `ProtonMix` objects (avoids stale cached titles/artwork if mock/API data changes later) — on load, re-hydrate ids against whatever mix list is available (mock array today, a real fetch later). Wire reads/writes into `addToQueue` / `removeFromQueue` / `advanceQueue` in step 1 so persistence isn't bolted on after the fact.
 
+**✅ Implemented** (`lib/player/queueStorage.ts`; wired into `playerStore.ts`'s queue actions + a `hydrateQueue()` action called from `GlobalPlayer.tsx` on mount).
+
 ### Step 4 — Grow `lib/mock/mixes.ts` (lower urgency than originally thought)
 
 **Correction after reading `lib/api/mixes.ts`**: `fetchLatestMixes` hits the **real Proton GraphQL API first** and only falls back to `mockMixes` inside a `catch` (API unreachable). During an actual live demo with network access, `buildRadioQueue`'s artist/genre pools come from the real catalog, not this 12-item file — so this step mainly matters for **offline local development**, not for making the live demo look convincing.
@@ -270,17 +272,25 @@ export function toggleLike(mixId: string): boolean { /* add/remove + write; retu
 ```
 Independent of the queue work in steps 1–4 — can be built in parallel.
 
+**✅ Implemented** (`lib/player/likes.ts`).
+
 ### Step 6 — `LikeButton.tsx`
 
 **File:** new `components/public/LikeButton.tsx` — confirmed by reading the code that `components/public/MixCard.tsx` is the one shared card (used by both the homepage and Shows grid), so this belongs alongside it rather than inside the player folder. Reads `isLiked(mix.id)` for initial state, calls `toggleLike(mix.id)` on tap, heart fills/outlines accordingly. Wire onto: `MixCard.tsx` (**with `e.stopPropagation()`** — the whole card is already one big `onClick={() => startPlayback(mix)}`, see §4), `NowPlayingHero.tsx` (no stopPropagation needed there, Play is already its own separate button), and the player bar for `currentMix`. This is the first visibly demoable piece of the whole feature.
+
+**✅ Implemented** (`components/public/LikeButton.tsx`, wired onto `MixCard.tsx` and `NowPlayingHero.tsx`). Verified live: toggling persists across a reload and doesn't trigger playback on the card.
 
 ### Step 7 — `AddToQueueButton.tsx`
 
 **File:** new `components/player/global-player/AddToQueueButton.tsx`. Needs step 1's `addToQueue` to exist. `MixCard.tsx` doesn't have a separate hover-only Play element to piggyback on — the whole card fades in one centered Play icon on hover (see §4's gotcha) — so this button needs to be its own absolutely-positioned element inside that same hover layer, with its own `stopPropagation`'d `onClick`, only rendered on desktop when `usePlayerStore.getState().currentMix` is non-null. Mobile: always rendered, small, in a card corner, separate tap target from the main play area (per §5).
 
+**✅ Implemented** (`components/player/global-player/AddToQueueButton.tsx`, wired onto `MixCard.tsx`). Verified live via `localStorage` (queue ids updated on click), no unwanted playback trigger.
+
 ### Step 8 — `PlayerQueueButton.tsx` + `PlayerQueueDrawer.tsx`
 
 **Files:** new components in `components/player/global-player/`. Button goes on both `PlayerExpandedBar.tsx` and `PlayerFab.tsx`; opens a drawer/panel listing `queue` (from the store, now persisted per step 3) — title, artist, artwork thumbnail per row, a remove (✕) action calling `removeFromQueue(mixId)`, SoundCloud/Spotify visual language (not a bare unstyled list).
+
+**✅ Implemented**, plus a **Clear** button in the drawer header (empties the whole queue via `setQueue([])`) — added after initial build, wasn't in the original spec but needed once the queue could actually fill up.
 
 ### Step 9 — `lib/player/startMix.ts` (`buildRadioQueue`)
 
@@ -304,9 +314,16 @@ export function buildRadioQueue(
 ```
 `allMixes` should be sourced from `fetchLatestMixes` at call time (the real, larger catalog), not only `lib/mock/mixes.ts` directly — per the §6 correction, the mock file is a fallback the fetcher already handles internally, `buildRadioQueue` doesn't need its own separate mock/real branching. Against the raw 12-mix mock (only relevant if the real API is unreachable), this degrades to "mostly random," which step 4 addresses for that fallback path specifically.
 
+**✅ Implemented** (`lib/player/startMix.ts`) — matches the sketch above exactly.
+
 ### Step 10 — Wire "Start Mix" onto cards/detail views
 
 Calls `buildRadioQueue(seedMix, allMixes, targetCount)` then `addToQueue()` for each result, in order — **does not** call `play()` or touch `isPlaying`/`currentMix`, per §6 ("pressing it does not interrupt what's currently playing"). Lands on `MixCard.tsx` alongside steps 6–7, same `stopPropagation` requirement. Before or during this step: resolve the open question from §6 — does "Start Mix" only ever anchor to one specific seed mix, or can it also fire from an already genre-filtered Shows page with no single seed (in which case `buildRadioQueue` would need a genre-only mode, skipping the "same artist" tier entirely since there'd be no seed artist).
+
+**✅ Implemented, revised after user feedback** (`components/player/global-player/StartMixButton.tsx`). Ended up **not** on `MixCard.tsx` — moved to the player bar (`PlayerExpandedBar.tsx`, next to the queue button) once the user pointed out that's where Spotify/SoundCloud put it, seeded from `currentMix` rather than a card's mix. Not added to `PlayerFab.tsx` (kept the compact mini-player uncluttered). Three refinements beyond the original spec, all from live feedback:
+- **Replaces the queue instead of appending** (`setQueue(related)`, not a loop of `addToQueue`) — otherwise pressing it twice doubled the queue instead of regenerating it.
+- **Accent-colored icon** (not the muted gray of sibling buttons) so it stands out as inviting to tap.
+- **A center-screen toast** ("Starting mix…" immediately on tap, then "Mix started — N tracks queued") — the original 1.2s icon-swap confirmation was too easy to miss entirely.
 
 ### Step 11 — Full-screen player
 
@@ -317,9 +334,23 @@ The step with the most real risk in this whole plan — two changes in `GlobalPl
 
 Once those two are safe: build `PlayerFullscreen.tsx` (hero is the YouTube iframe or a new hero-scale artwork treatment — `PlayerArtwork.tsx`'s existing sizes cap at 48px, not reusable as-is for a hero), add the toggle button to `PlayerExpandedBar.tsx` (desktop), and change `PlayerFab.tsx`'s two `setPlayerChrome("expanded")` call sites to `setPlayerChrome("fullscreen")` when `useIsMaxLg()` is true (mobile only — desktop FAB clicks should keep going to the normal expanded bar). Independent of steps 5–10; can be built in parallel any time after step 1's `PlayerChrome` extension lands. Before starting: decide whether `PlayerDashboardMobile.tsx` (the separate `/dashboard`-mobile mini player) is in scope too, or this stays public-site-only (default assumption).
 
+**✅ Implemented, then corrected** — first pass used a separate `PlayerFullscreen.tsx` component (per the original plan below), which shipped with a real bug: entering full-screen went black instead of growing the existing video. Root cause and fix:
+
+- **Bug**: `surfaceKey` staying in the `"bar"` bucket *did* avoid remounting `GlobalPlayerLoaded` (so the YouTube engine/`YT.Player` instance itself survived) — but `GlobalPlayerLoaded` still picked between two **separate sibling components**, `PlayerExpandedBar` and `PlayerFullscreen`, each rendering its own `<div ref={youtubeMountRef}>`. Toggling full-screen unmounted one component and mounted the other, so React tore down the div holding the iframe and mounted a brand-new (empty) one — the engine's mount `useEffect` never re-ran (its deps hadn't changed), so nothing filled the new div. Net effect: video area goes black, and because the underlying `YT.Player`/iframe was destroyed by the unmount, it's also effectively restarted from scratch next time it *does* get a fresh mount.
+- **Fix**: deleted `PlayerFullscreen.tsx` and merged its layout into `PlayerExpandedBar.tsx` as a single component that handles both `"expanded"` and `"fullscreen"` internally. The `<div ref={youtubeMountRef}>` is now rendered **once**, unconditionally, as the first child of the component's one fixed-position wrapper (whose own className/style still switches between docked-bar and full-viewport-overlay based on `playerChrome`) — only the video's own `style` (position/size, `absolute` within that wrapper) changes between modes, via a CSS `transition`. Because the div never leaves the tree, React reuses the same DOM node and the iframe survives across the toggle — it visually grows/moves instead of reloading. `GlobalPlayer.tsx`'s render branch now routes both `"expanded"` and `"fullscreen"` to the single `PlayerExpandedBar`.
+- The bar-mode video slot switched from *inline-flow* (pushing the title over) to `position: absolute` with a same-sized invisible spacer left in the flow, so the title/controls layout doesn't collide with it — needed once the video could no longer be two different DOM nodes.
+- Kept `PlayerDashboardMobile.tsx` out of scope, per the default assumption (public-site-only).
+- The desktop toggle button (`Maximize2`, `hidden sm:flex`) and `PlayerFab.tsx`'s `useIsMaxLg()`-based expand-to-fullscreen-on-mobile handler are unchanged from the original plan.
+
 ### Step 12 — Listener profile page
 
 New route + page. "My Likes" section reads `getLikedMixIds()` (step 5) and resolves them against the mix catalog for display; "Queue" section reads `queue` from the store (steps 1 + 3). Naturally last among the data-producing steps since it's a read-only surface over everything above. Decide the `PUBLIC_DEMO_SESSION_COOKIE`-gated entry point (§8) as part of this step.
+
+**✅ Implemented** (`app/(public)/library/page.tsx` + `LibraryView.tsx`, plus `lib/hooks/usePublicDemoSession.ts` and `hasPublicDemoSession()` in `lib/auth/demoSession.ts`). Notes:
+- Gated on `PUBLIC_DEMO_SESSION_COOKIE`: without it, `/library` shows a "Sign in" prompt (`/login?next=/library`) instead of content — nothing reads `localStorage` likes/queue until the cookie is present.
+- "My Likes" resolves `getLikedMixIds()` against the catalog via `fetchMixById` (`Promise.all`), rendered as a `MixCard` grid (same skeleton/empty-state pattern as `ShowsView.tsx`).
+- "Queue" reads `usePlayerStore`'s `queue` directly (no extra fetch needed — already full `ProtonMix` objects), rendered as a row list reusing `PlayerArtwork`, with per-row remove and a header "Clear" button — same shape as `PlayerQueueDrawer.tsx`.
+- Nav entry point: `Navbar.tsx` (desktop) and `HamburgerMenu.tsx` (mobile) swap the "Sign in" link for a "Library" link (heart icon) when `usePublicDemoSession()` is true; otherwise "Sign in" stays as-is. Reactive via a small hook that reads the cookie in a `useEffect` (avoids SSR/hydration mismatch, same pattern as `LikeButton.tsx`'s `isLiked` check).
 
 ### Step 13 — End-to-end pass
 

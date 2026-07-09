@@ -12,6 +12,7 @@ interface PlayerQueueDrawerProps {
 export default function PlayerQueueDrawer({ open, onClose }: PlayerQueueDrawerProps) {
   const queue = usePlayerStore((s) => s.queue);
   const removeFromQueue = usePlayerStore((s) => s.removeFromQueue);
+  const setQueue = usePlayerStore((s) => s.setQueue);
 
   if (!open) return null;
 
@@ -28,14 +29,25 @@ export default function PlayerQueueDrawer({ open, onClose }: PlayerQueueDrawerPr
           <span className="text-sm font-semibold text-[var(--color-text-primary)]">
             Up next{queue.length > 0 ? ` (${queue.length})` : ""}
           </span>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close queue"
-            className="text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text-primary)]"
-          >
-            <X size={18} />
-          </button>
+          <div className="flex items-center gap-3">
+            {queue.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setQueue([])}
+                className="text-xs font-medium text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text-primary)]"
+              >
+                Clear
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close queue"
+              className="text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-text-primary)]"
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
         <div className="flex-1 overflow-y-auto">
           {queue.length === 0 ? (

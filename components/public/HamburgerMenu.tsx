@@ -4,9 +4,10 @@ import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { X, Radio, Tv2, BarChart2, Tag, LayoutDashboard, Search, LogIn, CircleHelp } from "lucide-react";
+import { X, Radio, Tv2, BarChart2, Tag, LayoutDashboard, Search, LogIn, CircleHelp, Heart } from "lucide-react";
 import PublicThemeToggle from "./PublicThemeToggle";
 import { useHelpAssistantStore } from "@/lib/store/helpAssistantStore";
+import { usePublicDemoSession } from "@/lib/hooks/usePublicDemoSession";
 
 const PUBLIC_LOGO_SRC = "/Logo%20ISO.png";
 
@@ -25,6 +26,7 @@ interface HamburgerMenuProps {
 export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
   const openAssistant = useHelpAssistantStore((s) => s.openAssistant);
   const pathname = usePathname();
+  const signedIn = usePublicDemoSession();
   const loginHref =
     pathname === "/login"
       ? "/login"
@@ -140,17 +142,31 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
         </div>
 
         <div className="border-t border-[var(--color-border)] px-3 py-3">
-          <Link
-            href={loginHref}
-            onClick={onClose}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors w-full
-              ${pathname === "/login"
-                ? "text-accent bg-accent/10 border border-accent/20"
-                : "text-text-primary border border-[var(--color-border)] hover:bg-[var(--color-border)]"}`}
-          >
-            <LogIn size={16} aria-hidden />
-            Sign in
-          </Link>
+          {signedIn ? (
+            <Link
+              href="/library"
+              onClick={onClose}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors w-full
+                ${pathname === "/library"
+                  ? "text-accent bg-accent/10 border border-accent/20"
+                  : "text-text-primary border border-[var(--color-border)] hover:bg-[var(--color-border)]"}`}
+            >
+              <Heart size={16} aria-hidden />
+              Library
+            </Link>
+          ) : (
+            <Link
+              href={loginHref}
+              onClick={onClose}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors w-full
+                ${pathname === "/login"
+                  ? "text-accent bg-accent/10 border border-accent/20"
+                  : "text-text-primary border border-[var(--color-border)] hover:bg-[var(--color-border)]"}`}
+            >
+              <LogIn size={16} aria-hidden />
+              Sign in
+            </Link>
+          )}
         </div>
 
         {/* Dark mode (alineado con dashboard) */}

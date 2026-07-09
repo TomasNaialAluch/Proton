@@ -36,7 +36,7 @@ function GlobalPlayerLoaded({ mix }: { mix: ProtonMix }) {
       <PlayerAudioProvider value={engine}>
         {dashboardMobileUi ? (
           <PlayerDashboardMobile />
-        ) : playerChrome === "expanded" ? (
+        ) : playerChrome === "expanded" || playerChrome === "fullscreen" ? (
           <PlayerExpandedBar />
         ) : (
           <PlayerFab />

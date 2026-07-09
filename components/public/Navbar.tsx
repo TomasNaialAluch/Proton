@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Menu, LayoutDashboard, LogIn, CircleHelp } from "lucide-react";
+import { Menu, LayoutDashboard, LogIn, CircleHelp, Heart } from "lucide-react";
 import {
   PUBLIC_NAV_CONDENSE_EVENT,
   type PublicNavCondenseDetail,
 } from "@/lib/publicNavCondense";
+import { usePublicDemoSession } from "@/lib/hooks/usePublicDemoSession";
 import HamburgerMenu from "./HamburgerMenu";
 import NavbarSearch from "./NavbarSearch";
 import PublicThemeToggle from "./PublicThemeToggle";
@@ -36,6 +37,7 @@ function linkActive(pathname: string, href: string): boolean {
 export default function PublicNavbar() {
   const openAssistant = useHelpAssistantStore((s) => s.openAssistant);
   const pathname = usePathname();
+  const signedIn = usePublicDemoSession();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [hoverNav, setHoverNav] = useState(false);
@@ -45,6 +47,7 @@ export default function PublicNavbar() {
     pathname === "/login"
       ? "/login"
       : `/login?next=${encodeURIComponent(pathname || "/")}`;
+  const libraryActive = pathname === "/library";
 
   /** Sentinel + IntersectionObserver en `PublicMain` → modo inicial compacto en desktop. */
   useEffect(() => {
@@ -175,20 +178,37 @@ export default function PublicNavbar() {
           >
             <CircleHelp size={20} strokeWidth={1.75} />
           </button>
-          <Link
-            href={loginHref}
-            aria-current={loginActive ? "page" : undefined}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold shrink-0 border transition-colors
-              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]
-              ${
-                loginActive
-                  ? "border-accent/40 text-accent bg-accent/10"
-                  : "border-[var(--color-border)] text-text-primary hover:bg-[var(--color-border)] hover:text-text-primary"
-              }`}
-          >
-            <LogIn size={15} strokeWidth={2} aria-hidden />
-            Sign in
-          </Link>
+          {signedIn ? (
+            <Link
+              href="/library"
+              aria-current={libraryActive ? "page" : undefined}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold shrink-0 border transition-colors
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]
+                ${
+                  libraryActive
+                    ? "border-accent/40 text-accent bg-accent/10"
+                    : "border-[var(--color-border)] text-text-primary hover:bg-[var(--color-border)] hover:text-text-primary"
+                }`}
+            >
+              <Heart size={15} strokeWidth={2} aria-hidden />
+              Library
+            </Link>
+          ) : (
+            <Link
+              href={loginHref}
+              aria-current={loginActive ? "page" : undefined}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold shrink-0 border transition-colors
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]
+                ${
+                  loginActive
+                    ? "border-accent/40 text-accent bg-accent/10"
+                    : "border-[var(--color-border)] text-text-primary hover:bg-[var(--color-border)] hover:text-text-primary"
+                }`}
+            >
+              <LogIn size={15} strokeWidth={2} aria-hidden />
+              Sign in
+            </Link>
+          )}
           <Link
             href="/dashboard"
             className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-semibold text-white bg-accent transition-opacity hover:opacity-90"

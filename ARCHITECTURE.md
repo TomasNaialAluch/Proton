@@ -339,3 +339,26 @@ npm run dev      # servidor de desarrollo en localhost:3000
 npm run build    # build de producción
 npm run lint     # ESLint
 ```
+
+---
+
+## Mapa de documentación — qué README leer según qué necesitás
+
+El repo tiene varios `.md` con propósitos distintos. Guía rápida de cuál mirar:
+
+| Archivo | Para qué sirve |
+|---|---|
+| [`README.md`](README.md) | Punto de entrada general del proyecto — qué es, para qué (portfolio), stack técnico completo. Empezar por acá si es la primera vez que lo ves. |
+| **`ARCHITECTURE.md`** (este archivo) | Convenciones de código, estructura de carpetas, design system, deuda técnica conocida. Leer antes de tocar código. |
+| [`GUIA-ENTREVISTA.md`](GUIA-ENTREVISTA.md) | Guía de preparación para la entrevista técnica — no es documentación de arquitectura. |
+| [`READMEMAIN.md`](READMEMAIN.md) / `.en.md` | Changelog histórico del dashboard B2B (artista/productor) — registro de qué se construyó y cuándo. Tiene secciones desactualizadas (ej. la de Contracts vieja, ver `docs/label-contracts/migration-notes.md`). |
+| [`READMEPUBLIC.md`](READMEPUBLIC.md) / `.en.md` | Lo mismo que `READMEMAIN.md` pero del lado público (radio, shows, charts). |
+| [`docs/README-dashboard-vision-roadmap.md`](docs/README-dashboard-vision-roadmap.md) | Visión de producto del dashboard — persona del productor, roadmap. |
+| [`docs/README-dashboard-label-manager.md`](docs/README-dashboard-label-manager.md) | Documentación específica del shell de label-manager (roster, catálogo, etc). |
+| `docs/feature-*.md`, `docs/README-*.md` (resto) | Un doc por feature puntual (discover, feedback, skeletons, navbar, buscador, etc.) — mirar el nombre del archivo. |
+| **`docs/label-contracts/`** | Toda la documentación de la sección **Contracts** (esta es la más activa ahora mismo): |
+| &nbsp;&nbsp;└ [`README.md`](docs/label-contracts/README.md) | Diseño original del lector de PDF + firma in-app (por qué existe, cómo funciona). |
+| &nbsp;&nbsp;└ [`migration-notes.md`](docs/label-contracts/migration-notes.md) | Qué había de "Contracts" antes del rediseño y qué se reemplazó. |
+| &nbsp;&nbsp;└ [`unification-idea.md`](docs/label-contracts/unification-idea.md) | Exploración inicial (a nivel idea) de unificar Contracts entre Settings y Labels. |
+| &nbsp;&nbsp;└ [`contracts-unification-and-download.md`](docs/label-contracts/contracts-unification-and-download.md) | Alcance acotado de esa unificación + la regresión de la descarga de documentos. |
+| &nbsp;&nbsp;└ [`contracts-rebuild-plan.md`](docs/label-contracts/contracts-rebuild-plan.md) | **El plan vigente** — paridad con la página real, estrategia de migración, roadmap ejecutable. Es el que hay que mirar para saber qué falta de Contracts. |
