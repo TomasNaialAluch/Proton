@@ -585,3 +585,84 @@ que Contracts se quedaba como pestaña dentro de Labels, cosa que ya no es así:
    mock.
 4. **Confirmar breadcrumb** — ya dice "Labels › Contracts", eso está bien,
    es el `<h1>` el que hay que arreglar, no el breadcrumb.
+
+## Roadmap — bugs del flujo de firma (reportados por el usuario, sin arreglar)
+
+Probado por mí antes y funcionó de punta a punta, pero el usuario lo probó
+después en su propio navegador y encontró 3 problemas reales. Quedan
+anotados para la próxima sesión de código — no se tocó nada todavía.
+
+1. ✅ **El lápiz no agarra en todo el visor del PDF** — arreglado:
+   `PdfContractViewer.tsx` ahora tiene una prop nueva, `frameOverlay`,
+   separada de `children`. `children` sigue sirviendo para el
+   `SignatureOverlay` (tiene que quedar exacto sobre la página, para que la
+   matemática de `embedSignatureInPdf` no se desalinee). `frameOverlay` se
+   renderiza como hermano del `onPageSurfaceRef`, adentro del contenedor
+   scrolleable (`relative flex justify-center overflow-auto ... p-4
+   max-h-[70vh]`, al que le agregué `relative`), así que con `absolute
+   inset-0` cubre **todo el marco visible**, no solo el canvas de la
+   página. `ContractSignClient.tsx` pasa el botón de "click para firmar"
+   por `frameOverlay` en vez de por `children`. Verificado con
+   `getBoundingClientRect`: el overlay ahora mide lo mismo que el
+   contenedor (menos el gutter del scrollbar), en vez de quedar acotado al
+   tamaño de la página sola — y el modal se sigue abriendo bien al hacer
+   click.
+2. ✅ **Después de ubicar la firma, no quedaba claro que había que
+   confirmar** — arreglado: los controles "Confirm & sign" / cancelar se
+   movieron de la card separada a un bloque pegado **justo debajo del
+   visor de PDF**, dentro del mismo acordeón expandido (en
+   `ContractSignClient.tsx`). La card de abajo ("Sign this contract") ahora
+   se oculta mientras `placing` está activo, para no duplicar la acción en
+   dos lugares. Probado de punta a punta: crear firma → ubicar → "Confirm &
+   sign" pegado al PDF → "Signed & verified" con hash nuevo.
+3. ✅ **El PDF no se actualiza con la firma incrustada** — re-probado
+   después de arreglar los puntos 1 y 2, y **ya funciona sin tocar código
+   nuevo**: hecho el flujo de punta a punta (crear firma → ubicar → Confirm
+   & sign, pegado al visor), el acordeón se queda abierto, `PdfContractViewer`
+   recarga solo con el nuevo `blob:` (react-pdf reacciona al cambio de prop
+   `file`), y la firma aparece quemada en la página, en la línea "On behalf
+   of the ARTIST" — confirmado visualmente con zoom en el navegador. Esto
+   era un síntoma de los puntos 1 y 2 (el usuario no lograba llegar a
+   confirmar de verdad, entonces nunca había un PDF nuevo que mostrar) — no
+   un bug propio del visor. No hizo falta escribir código para este punto.
+
+**Nota:** yo probé este flujo completo en mi navegador de preview y
+funcionó (quedó "Signed & verified" con hash nuevo) — así que el mecanismo
+de fondo (`embedSignatureInPdf`, `signContract`) funciona al menos en ese
+caso. Los 3 puntos de arriba son de **UX/discoverability** (no encontrar el
+área clickeable, no ver la confirmación) y posiblemente un bug real de
+refresco del visor — no necesariamente de que el PDF-lib esté roto.
+
+## El proceso de firma, en criollo (spec acordada con el usuario)
+
+Esto es lo que tiene que pasar, en palabras simples, y define cómo cerrar
+los puntos 2 y 3 de arriba:
+
+1. El productor ve el PDF real adentro de la app — el mismo documento que
+   mandó el label, página por página, no un ícono genérico.
+2. Trae su firma (dibujada/tipeada/subida/foto) una sola vez, se guarda.
+3. La arrastra como un objeto sobre el PDF, en el lugar exacto donde dice
+   "Authorized Signature" — la agranda, achica, rota, hasta que quede bien
+   puesta ahí, en tiempo real, sobre el documento real.
+4. Al confirmar, **no se guarda un registro aparte de "firmó"** — se genera
+   un PDF nuevo de verdad: el original + la firma incrustada en esa página,
+   en esas coordenadas exactas, como si la hubiera dibujado a mano ahí. Ese
+   archivo nuevo (no el original) pasa a ser el documento válido de ahí en
+   más. Esto ya existe (`embedSignatureInPdf` + `pdf-lib`), no cambia.
+5. **Lo que falta (esto es lo nuevo que hay que construir):** el PDF que se
+   generó en el paso 4 tiene que **reemplazar al que se está mostrando en
+   el visor**, ahí mismo, sin que el usuario tenga que recargar la página
+   ni volver a abrir nada — así hay una prueba visual clara de que quedó
+   firmado (ve la firma ya puesta, en el documento real, en el lugar donde
+   la dejó).
+6. **Y una confirmación explícita** — un mensaje claro de que salió bien
+   ("firmaste correctamente" / lo que hoy dice "Signed. This contract is
+   now active." pero más visible, pegado a la acción, no perdido en otra
+   card) — y, a futuro, contemplar también la lectura: confirmar que el
+   usuario efectivamente vio/leyó el documento antes de firmar, no solo que
+   tocó el botón (ver la tensión ya anotada en "Layout e interacción de
+   ContractSignClient" sobre el PDF colapsado por default).
+
+Esto amplía (no reemplaza) los puntos 2 y 3 del roadmap de arriba — ahí
+quedan los síntomas reportados, acá queda **el criterio de qué significa
+"arreglado"**: visor actualizado con el PDF nuevo + confirmación visible.

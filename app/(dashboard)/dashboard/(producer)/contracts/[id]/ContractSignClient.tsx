@@ -176,11 +176,8 @@ export default function ContractSignClient() {
                   page={page}
                   onPageChange={setPage}
                   onPageSurfaceRef={(el) => { pageSurfaceRef.current = el; }}
-                >
-                  {placing ? (
-                    <SignatureOverlay imageUrl={savedSignature!.imageDataUrl} frame={frame} onChange={setFrame} />
-                  ) : (
-                    contract.status === "pending_signature" && (
+                  frameOverlay={
+                    !placing && contract.status === "pending_signature" ? (
                       <button
                         type="button"
                         onClick={() => setSignatureModalOpen(true)}
@@ -192,9 +189,42 @@ export default function ContractSignClient() {
                             'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 2 4 4"/><path d="m2 22 1-5 12.5-12.5a2.121 2.121 0 0 1 3 3L6 20l-5 1"/></svg>\') 2 22, pointer',
                         }}
                       />
-                    )
+                    ) : undefined
+                  }
+                >
+                  {placing && (
+                    <SignatureOverlay imageUrl={savedSignature!.imageDataUrl} frame={frame} onChange={setFrame} />
                   )}
                 </PdfContractViewer>
+
+                {placing && (
+                  <div className="mt-3 rounded-xl border border-accent/30 bg-accent/5 p-3">
+                    <p className="mb-2 text-xs text-text-secondary">
+                      Drag, resize, or rotate your signature onto the document above, then confirm.
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={handleConfirmSignature}
+                        disabled={signing}
+                        className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                      >
+                        {signing ? <Loader2 size={14} className="animate-spin" /> : <PenLine size={14} />}
+                        {signing ? "Signing…" : "Confirm & sign"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPlacing(false)}
+                        disabled={signing}
+                        className="rounded-lg border border-[var(--color-border)] bg-surface px-4 py-2.5 text-sm font-medium text-text-secondary transition-colors hover:text-text-primary"
+                        aria-label="Cancel"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                    {signError && <p className="mt-2 text-xs text-red-500">{signError}</p>}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -214,56 +244,26 @@ export default function ContractSignClient() {
           </div>
         )}
 
-        {contract.status === "pending_signature" && (
+        {contract.status === "pending_signature" && !placing && (
           <div className="rounded-2xl border border-[var(--color-border)] bg-surface p-5">
             <h2 className="mb-1 text-sm font-semibold text-text-primary">Sign this contract</h2>
 
             {hasDocument ? (
               <div className="space-y-2">
-                {placing ? (
-                  <>
-                    <p className="mb-2 text-xs text-text-secondary">
-                      Drag, resize, or rotate your signature onto the document above, then confirm.
-                    </p>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={handleConfirmSignature}
-                        disabled={signing}
-                        className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-                      >
-                        {signing ? <Loader2 size={14} className="animate-spin" /> : <PenLine size={14} />}
-                        {signing ? "Signing…" : "Confirm & sign"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setPlacing(false)}
-                        disabled={signing}
-                        className="rounded-lg border border-[var(--color-border)] px-4 py-2.5 text-sm font-medium text-text-secondary transition-colors hover:text-text-primary"
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
-                    {signError && <p className="text-xs text-red-500">{signError}</p>}
-                  </>
-                ) : (
-                  <>
-                    <p className="mb-3 text-xs text-text-secondary">
-                      Open the document above and click it to place your signature — it gets embedded in
-                      the PDF itself, with a verifiable record of who signed and when.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (!pdfExpanded) setPdfExpanded(true);
-                        setSignatureModalOpen(true);
-                      }}
-                      className="w-full rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-                    >
-                      Sign this contract
-                    </button>
-                  </>
-                )}
+                <p className="mb-3 text-xs text-text-secondary">
+                  Open the document above and click it to place your signature — it gets embedded in
+                  the PDF itself, with a verifiable record of who signed and when.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!pdfExpanded) setPdfExpanded(true);
+                    setSignatureModalOpen(true);
+                  }}
+                  className="w-full rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                >
+                  Sign this contract
+                </button>
               </div>
             ) : savedSignature ? (
               <div className="space-y-4">
