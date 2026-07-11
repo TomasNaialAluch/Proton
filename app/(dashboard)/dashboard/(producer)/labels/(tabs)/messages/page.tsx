@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { MessageCircle, ChevronRight, Clock } from "lucide-react";
 import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
-import LabelsTabs from "@/components/dashboard/producer/labels/LabelsTabs";
 import { mockConversations, mockMessages } from "@/lib/mock/messages";
 
 function lastMessagePreview(conversationId: string) {
@@ -23,7 +22,7 @@ export default function LabelsMessagesPage() {
   const conversations = mockConversations.filter((c) => c.peer.type === "label");
 
   return (
-    <main className="max-w-lg mx-auto px-5 pt-6 pb-24 lg:pb-10 lg:max-w-3xl lg:px-10">
+    <>
       <DashboardBreadcrumb items={[
         { label: "Dashboard", href: "/dashboard" },
         { label: "Labels", href: "/dashboard/labels" },
@@ -34,8 +33,6 @@ export default function LabelsMessagesPage() {
       <p className="text-sm text-text-secondary mb-6">
         Conversations with labels — after an accepted demo, or when a label reaches out directly.
       </p>
-
-      <LabelsTabs />
 
       {conversations.length === 0 ? (
         <p className="text-sm text-text-secondary">
@@ -68,6 +65,6 @@ export default function LabelsMessagesPage() {
           ))}
         </ul>
       )}
-    </main>
+    </>
   );
 }

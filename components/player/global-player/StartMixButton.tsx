@@ -25,6 +25,8 @@ export default function StartMixButton({
   className = "",
 }: StartMixButtonProps) {
   const setQueue = usePlayerStore((s) => s.setQueue);
+  const queueLength = usePlayerStore((s) => s.queue.length);
+  const isActive = queueLength > 0;
   /** `null` = hidden, `"loading"` = shown immediately on tap (fetch still in flight),
    *  `number` = shown once the queue is actually built, with the real count. */
   const [toast, setToast] = useState<"loading" | number | null>(null);
@@ -51,7 +53,10 @@ export default function StartMixButton({
         title="Start mix"
         className={`flex items-center justify-center transition-colors ${className}`}
       >
-        <Radio size={18} className="text-[var(--color-accent)]" />
+        <Radio
+          size={18}
+          className={`text-[var(--color-accent)] ${isActive ? "animate-pulse" : ""}`}
+        />
       </button>
 
       {toast !== null && (

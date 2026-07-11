@@ -87,7 +87,7 @@ const dashboardLinks = [
   { label: "Performance", icon: TrendingUp, href: "/dashboard/performance"            },
   { label: "Royalties",   icon: DollarSign, href: "/dashboard/royalties"              },
   { label: "Contracts",   icon: Building2,  href: "/dashboard/contracts"              },
-  { label: "Label Deals", icon: Tag,        href: "/dashboard/labels"                 },
+  { label: "Labels", icon: Tag,        href: "/dashboard/labels"                 },
   { label: "Discover",    icon: Compass,    href: "/dashboard/discover"               },
   { label: "Feedback",    icon: MessageSquareText, href: "/dashboard/feedback"         },
   { label: "Connections", icon: Users,      href: "/dashboard/connections"            },

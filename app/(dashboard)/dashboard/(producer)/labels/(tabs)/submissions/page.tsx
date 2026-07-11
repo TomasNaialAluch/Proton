@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { Inbox, FileAudio, MessageCircle, ChevronRight } from "lucide-react";
 import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
-import LabelsTabs from "@/components/dashboard/producer/labels/LabelsTabs";
 import SubmissionStatusBadge from "@/components/dashboard/producer/labels/SubmissionStatusBadge";
 import { useLabelSubmissionsStore } from "@/lib/store/labelSubmissionsStore";
 import { mockTracks } from "@/lib/mock/tracks";
@@ -11,7 +10,6 @@ import { mockLabels } from "@/lib/mock/labels";
 import { mockConversations } from "@/lib/mock/messages";
 import type { LabelSubmission } from "@/types/submission";
 
-/** Submissions can be talked about once the label is actively engaged — not just once "accepted". */
 const CHATTABLE_STATUSES = ["accepted", "listening"] as const;
 
 function chatIdFor(s: LabelSubmission): string | null {
@@ -19,8 +17,6 @@ function chatIdFor(s: LabelSubmission): string | null {
   const conversation = mockConversations.find(
     (c) => c.origin.type === "submission" && c.origin.submissionId === s.id
   );
-  // Falls back to the submission id itself when no thread exists yet — same
-  // pattern as connections/[id] falling back to the suggestion id.
   return conversation?.id ?? s.id;
 }
 
@@ -45,7 +41,7 @@ export default function LabelsSubmissionsPage() {
   const submissions = useLabelSubmissionsStore((s) => s.submissions);
 
   return (
-    <main className="max-w-lg mx-auto px-5 pt-6 pb-24 lg:pb-10 lg:max-w-3xl lg:px-10">
+    <>
       <DashboardBreadcrumb items={[
         { label: "Dashboard", href: "/dashboard" },
         { label: "Labels", href: "/dashboard/labels" },
@@ -53,8 +49,6 @@ export default function LabelsSubmissionsPage() {
       ]} />
 
       <h1 className="text-2xl font-bold text-text-primary mb-6">Labels</h1>
-
-      <LabelsTabs />
 
       {submissions.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-[var(--color-border)] py-12 text-center">
@@ -108,6 +102,6 @@ export default function LabelsSubmissionsPage() {
           })}
         </ul>
       )}
-    </main>
+    </>
   );
 }

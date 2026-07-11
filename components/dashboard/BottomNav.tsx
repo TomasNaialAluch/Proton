@@ -12,7 +12,7 @@ const producerNavItems = [
   { label: "Performance", icon: TrendingUp, href: "/dashboard/performance" },
   { label: "Royalties",   icon: DollarSign, href: "/dashboard/royalties"   },
   { label: "Contracts",   icon: Building2,  href: "/dashboard/contracts"   },
-  { label: "Label Deals", icon: Tag,        href: "/dashboard/labels"      },
+  { label: "Labels", icon: Tag,        href: "/dashboard/labels"      },
 ];
 
 function isActive(pathname: string, href: string) {
