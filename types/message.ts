@@ -15,7 +15,11 @@ export type ConversationPeer =
 export type ConversationOrigin =
   | { type: "connection"; connectionId: string }
   | { type: "submission"; submissionId: string }
-  | { type: "label_outreach" };
+  | { type: "label_outreach" }
+  /** Producer-initiated, not tied to a track submission: an intro on a closed
+   *  label, a request to collaborate with a roster artist, a remix request,
+   *  or a contest entry. `kind` drives the icon/label shown in the inbox. */
+  | { type: "producer_request"; kind: "intro" | "collab" | "remix" | "contest" };
 
 /** 1:1 thread — with a producer (post-match) or a label (post-submission or direct outreach). */
 export interface Conversation {

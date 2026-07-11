@@ -3,12 +3,7 @@
 import Link from "next/link";
 import { MessageCircle, ChevronRight, Clock } from "lucide-react";
 import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
-import { mockConversations, mockMessages } from "@/lib/mock/messages";
-
-function lastMessagePreview(conversationId: string) {
-  const msgs = mockMessages.filter((m) => m.conversationId === conversationId);
-  return msgs[msgs.length - 1]?.text ?? "No messages yet.";
-}
+import { useLabelInboxStore } from "@/lib/store/labelInboxStore";
 
 function timeAgo(iso: string) {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -19,7 +14,15 @@ function timeAgo(iso: string) {
 }
 
 export default function LabelsMessagesPage() {
-  const conversations = mockConversations.filter((c) => c.peer.type === "label");
+  const allConversations = useLabelInboxStore((s) => s.conversations);
+  const allMessages = useLabelInboxStore((s) => s.messages);
+
+  const conversations = allConversations.filter((c) => c.peer.type === "label");
+
+  const lastMessagePreview = (conversationId: string) => {
+    const msgs = allMessages.filter((m) => m.conversationId === conversationId);
+    return msgs[msgs.length - 1]?.text ?? "No messages yet.";
+  };
 
   return (
     <>
@@ -31,12 +34,12 @@ export default function LabelsMessagesPage() {
 
       <h1 className="text-2xl font-bold text-text-primary mb-1">Labels</h1>
       <p className="text-sm text-text-secondary mb-6">
-        Conversations with labels — after an accepted demo, or when a label reaches out directly.
+        Conversations with labels — after an accepted demo, a direct request, or when a label reaches out.
       </p>
 
       {conversations.length === 0 ? (
         <p className="text-sm text-text-secondary">
-          No conversations yet — they open up once a label accepts a demo, or reaches out to you directly.
+          No conversations yet — they open up once a label accepts a demo, you send a request, or a label reaches out directly.
         </p>
       ) : (
         <ul className="space-y-2">

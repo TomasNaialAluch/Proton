@@ -12,6 +12,15 @@ export const mockLabels: ProtonLabel[] = [
       estimatedResponseTime: "2–3 weeks",
       notes: "We listen to everything. No ghost-produced tracks — original work only.",
     },
+    activeContests: [
+      {
+        id: "contest-proton-summer",
+        title: "Summer Remix Contest",
+        description: "Remix \"Living\" by Naial. Best remix gets an official release on Proton Music.",
+        deadline: "2026-08-15",
+        prize: "Official release + label signing",
+      },
+    ],
   },
   {
     id: "2", name: "Sudbeat", slug: "sudbeat", image: null,
@@ -24,6 +33,10 @@ export const mockLabels: ProtonLabel[] = [
       estimatedResponseTime: "Responds to all within 4 weeks",
       notes: "Looking for album-length storytelling, not one-off club tracks.",
     },
+    remixOpportunities: [
+      { id: "remix-sudbeat-1", trackTitle: "Weightless", originalArtist: "Andy Green", deadline: "2026-08-01" },
+      { id: "remix-sudbeat-2", trackTitle: "Fading Signal", originalArtist: "Henry Saiz" },
+    ],
   },
   {
     id: "3", name: "Bedrock", slug: "bedrock", image: null,
@@ -35,6 +48,9 @@ export const mockLabels: ProtonLabel[] = [
       preferredFormat: "wav",
       notes: "Not accepting unsolicited demos right now — roster is set through 2026. Referrals only.",
     },
+    remixOpportunities: [
+      { id: "remix-bedrock-1", trackTitle: "Open Horizons", originalArtist: "Hernán Cattáneo", deadline: "2026-09-01" },
+    ],
   },
   {
     id: "4", name: "Addictive Music", slug: "addictive-music", image: null,

@@ -22,4 +22,20 @@ export interface ProtonLabel {
     estimatedResponseTime?: string;
     notes?: string;
   };
+
+  // detail page — action surfaces
+  activeContests?: {
+    id: string;
+    title: string;
+    description: string;
+    deadline?: string;
+    prize?: string;
+  }[];
+
+  remixOpportunities?: {
+    id: string;
+    trackTitle: string;
+    originalArtist: string;
+    deadline?: string;
+  }[];
 }

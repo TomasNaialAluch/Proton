@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { Users, Calendar } from "lucide-react";
+import ContestBadge from "@/components/dashboard/producer/labels/detail/ContestBadge";
 import type { ProtonLabel } from "@/types/label";
 
 function formatDate(iso: string) {
@@ -69,8 +70,11 @@ export default function LabelDetailHeader({ label }: { label: ProtonLabel }) {
             </div>
           )}
 
-          <div className="mt-2.5">
+          <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
             <DemoStatusBadge status={label.demoStatus} />
+            {label.activeContests && label.activeContests.length > 0 && (
+              <ContestBadge count={label.activeContests.length} />
+            )}
           </div>
         </div>
       </div>

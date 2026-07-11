@@ -8,6 +8,8 @@ import LabelDetailHeader from "@/components/dashboard/producer/labels/detail/Lab
 import RecentReleasesStrip from "@/components/dashboard/producer/labels/detail/RecentReleasesStrip";
 import ArtistRoster from "@/components/dashboard/producer/labels/detail/ArtistRoster";
 import DemoPolicyCard from "@/components/dashboard/producer/labels/detail/DemoPolicyCard";
+import ActiveContests from "@/components/dashboard/producer/labels/detail/ActiveContests";
+import RemixOpportunities from "@/components/dashboard/producer/labels/detail/RemixOpportunities";
 import RequestToConnectForm from "@/components/dashboard/producer/labels/detail/RequestToConnectForm";
 import SimilarLabels from "@/components/dashboard/producer/labels/detail/SimilarLabels";
 import { mockLabels } from "@/lib/mock/labels";
@@ -41,9 +43,13 @@ export default function LabelProfileClient() {
 
       <RecentReleasesStrip />
 
-      <ArtistRoster />
+      <ArtistRoster label={label} />
 
       <DemoPolicyCard label={label} />
+
+      <ActiveContests label={label} />
+
+      <RemixOpportunities label={label} />
 
       {canSubmitDemo ? (
         <SubmitTrackForm
@@ -52,7 +58,7 @@ export default function LabelProfileClient() {
           acceptedGenres={label.genres ?? []}
         />
       ) : (
-        <RequestToConnectForm labelName={label.name} />
+        <RequestToConnectForm label={label} />
       )}
 
       <SimilarLabels label={label} />
