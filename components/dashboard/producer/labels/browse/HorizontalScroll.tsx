@@ -33,6 +33,64 @@ export default function HorizontalScroll({ children, gap = "gap-3" }: Horizontal
     };
   }, [sync]);
 
+  // Mouse drag-to-scroll
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    let startX = 0;
+    let startScrollLeft = 0;
+    let dragging = false;
+    let moved = false;
+
+    const onMouseDown = (e: MouseEvent) => {
+      dragging = true;
+      moved = false;
+      startX = e.pageX - el.offsetLeft;
+      startScrollLeft = el.scrollLeft;
+      el.style.cursor = "grabbing";
+      el.style.userSelect = "none";
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (!dragging) return;
+      const x = e.pageX - el.offsetLeft;
+      const delta = (x - startX) * 1.2;
+      if (Math.abs(delta) > 4) moved = true;
+      el.scrollLeft = startScrollLeft - delta;
+    };
+
+    const stop = () => {
+      dragging = false;
+      el.style.cursor = "grab";
+      el.style.userSelect = "";
+    };
+
+    // cancel click on child links if we actually dragged
+    const onClickCapture = (e: MouseEvent) => {
+      if (moved) {
+        e.preventDefault();
+        e.stopPropagation();
+        moved = false;
+      }
+    };
+
+    el.style.cursor = "grab";
+    el.addEventListener("mousedown", onMouseDown);
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", stop);
+    el.addEventListener("mouseleave", stop);
+    el.addEventListener("click", onClickCapture, true);
+
+    return () => {
+      el.removeEventListener("mousedown", onMouseDown);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", stop);
+      el.removeEventListener("mouseleave", stop);
+      el.removeEventListener("click", onClickCapture, true);
+    };
+  }, []);
+
   const scroll = (dir: "left" | "right") => {
     ref.current?.scrollBy({ left: dir === "left" ? -240 : 240, behavior: "smooth" });
   };
