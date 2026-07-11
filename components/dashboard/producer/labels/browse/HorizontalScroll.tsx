@@ -76,14 +76,24 @@ export default function HorizontalScroll({ children, gap = "gap-3" }: Horizontal
       lastX = e.clientX;
       lastT = e.timeStamp;
       velocity = 0;
-      el.style.cursor = "grabbing";
     };
+
+    const DRAG_THRESHOLD = 6;
 
     const onPointerMove = (e: PointerEvent) => {
       if (!dragging) return;
       const dx = e.clientX - startX;
-      if (Math.abs(dx) > 4) moved = true;
-      el.scrollLeft = startScrollLeft - dx;
+
+      // don't touch scrollLeft until the gesture proves itself a drag —
+      // this is what kept plain clicks from "snapping" the strip by a few px.
+      if (!moved) {
+        if (Math.abs(dx) <= DRAG_THRESHOLD) return;
+        moved = true;
+        el.style.cursor = "grabbing";
+      }
+
+      const dragDx = dx - Math.sign(dx) * DRAG_THRESHOLD;
+      el.scrollLeft = startScrollLeft - dragDx;
 
       // track instantaneous velocity for the momentum handoff
       const dt = e.timeStamp - lastT;
