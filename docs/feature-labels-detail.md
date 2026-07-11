@@ -12,20 +12,22 @@ This is distinct from "Browse": Browse is for discovery. Detail is for evaluatio
 
 | Section | Status | Notes |
 |---|---|---|
-| Label Header | ✅ Built | `LabelDetailHeader.tsx` |
+| Label Header | ✅ Built | `LabelDetailHeader.tsx`, shows a contest badge when the label has one active |
 | Recent Releases | ✅ Built (sample data) | `RecentReleasesStrip.tsx` — reuses the shared prototype catalog, same tracks on every label |
-| Artist Roster (display) | ✅ Built (sample data) | `ArtistRoster.tsx` — names only, no per-artist action yet |
-| **Request to collaborate with an artist** | ❌ Not built | No CTA exists on roster entries. Nothing to click. |
+| Artist Roster (display) | ✅ Built (sample data) | `ArtistRoster.tsx` — names from the shared catalog |
+| Request to collaborate with an artist | ✅ Built, real flow | `RosterArtistRow.tsx` — per-artist icon expands into a pitch form, sends via `labelInboxStore` |
 | Demo Policy | ✅ Built | `DemoPolicyCard.tsx`, visible whether the label is open or closed |
 | Submit demo (label open) | ✅ Built, real flow | `SubmitTrackForm.tsx` — writes to `labelSubmissionsStore`, shows up under Submissions |
-| **Submit demo (label closed)** | ⚠️ Not possible by design | The submit form is swapped out entirely for `RequestToConnectForm` — there is no path to attach a track when a label isn't open. See note below. |
-| Request to Connect | ⚠️ Built, but not wired up | `RequestToConnectForm.tsx` — the textarea submits into local `useState` only. Nothing is sent, saved, or shows up in Messages. No conversation is created. |
-| **Active Contests** | ❌ Not built | No mock data, no UI section, no badge anywhere signals a label is running a contest. |
-| **Remix Opportunities** | ❌ Not built | Same — no data model, no section, no CTA. |
+| Submit demo (label closed) | ⚠️ Not possible by design | The submit form is swapped out entirely for `RequestToConnectForm` — there is still no path to attach a track when a label isn't open. This is a deliberate open question, not a bug — see note below. |
+| Request to Connect | ✅ Built, real flow | `RequestToConnectForm.tsx` — sends via `labelInboxStore`, creates/reuses a real conversation, shows up in Messages |
+| Active Contests | ✅ Built, real flow | `ActiveContests.tsx` + `ContestBadge.tsx` — "Enter contest" sends via `labelInboxStore` |
+| Remix Opportunities | ✅ Built, real flow | `RemixOpportunities.tsx` — "Request to remix" per track, independent state per track, sends via `labelInboxStore` |
 | Similar Labels | ✅ Built (mock) | `SimilarLabels.tsx` — genre-overlap only |
-| Follow label | ❌ Not built | Listed in the roadmap, not started |
+| Follow label | ❌ Not built | Only thing left on the original roadmap. Not started. |
 
-**Read this before demoing the page:** the only things that actually go anywhere are the demo submission form when a label is open (it lands in Submissions, same as before) and Browse/genre navigation. Everything else on a closed label's page — the intro form, and everything described below for contests/remix/collab — is either a static mock or literally not present in the UI yet.
+**What "real flow" means here:** all four producer-initiated actions (intro, collab request, remix request, contest entry) go through one shared action, `sendLabelRequest()` in `lib/store/labelInboxStore.ts`. It reuses an existing conversation with that label if one's open, otherwise creates one tagged `producer_request` with a `kind`. The resulting message is real — it shows up in the Labels → Messages tab and in the conversation thread, not just a local success toast. Verified end to end for all three new action types (collab, remix, contest) plus the existing intro flow.
+
+**Still mock, still fine for a prototype:** the sample catalog (same tracks/artists on every label — see `LABEL_DEMO_CATALOG_NOTICE`) and Similar Labels (genre overlap only, no roster/activity weighting yet per the original design).
 
 ---
 
@@ -211,24 +213,26 @@ interface ProtonLabel {
 ### Phase 1 — Static enrichment
 - [x] Add `foundedYear`, `releaseCount`, `lastReleaseDate`, `demoStatus`, `demoGenres` to mock data and UI
 - [x] Demo policy section (structured display, label-reported mock data)
-- [x] "Request to connect" as a static form when label is closed — **UI only, submits to nothing.** No store, no conversation created, no message shows up anywhere. Needs its own store (or reuse `labelSubmissionsStore`'s pattern) before it's a real flow.
+- [x] "Request to connect" as a static form when label is closed
 
 ### Phase 2 — Content
 - [x] Recent releases strip (mock track data per label) — same sample catalog on every label, not label-specific yet
-- [x] Artist roster section — display only. **Missing:** link to producer profiles (public profiles don't exist yet either), and the "Request to collaborate" CTA described in Section 3 above
+- [x] Artist roster section
 - [x] Similar labels (3 recommendations based on genre)
 
-### Phase 3 — Action surfaces (not started)
-- [ ] Active contests (mock first, then label-managed) — needs `activeContests` on `ProtonLabel`, a header badge, and a detail-page section
-- [ ] Remix opportunity requests (mock first, then label-managed) — needs `remixOpportunities` on `ProtonLabel` and a detail-page section
-- [ ] Request to collaborate with a specific artist — needs a CTA per roster entry + a way to tag the resulting message with which artist it's about
-- [ ] Follow label (notification when status changes or new release)
+### Phase 3 — Action surfaces
+- [x] Active contests — `activeContests` on `ProtonLabel`, `ContestBadge` in the header, `ActiveContests.tsx` section with a real "Enter contest" action
+- [x] Remix opportunity requests — `remixOpportunities` on `ProtonLabel`, `RemixOpportunities.tsx` section, real "Request to remix" per track
+- [x] Request to collaborate with a specific artist — `RosterArtistRow.tsx`, tags the message with which artist it's about
+- [ ] Follow label (notification when status changes or new release) — only item left unbuilt
 
-### Phase 4 — Make Request to Connect real (new, blocking before any demo)
-- [ ] Give `RequestToConnectForm` an actual submit action — either a new lightweight store, or extending `labelSubmissionsStore`/`mockConversations` so an intro creates a conversation the label can see in their inbox
-- [ ] Decide whether intro messages can carry an optional track attachment (see note in Section 7)
+### Phase 4 — Make Request to Connect (and every new action) real
+- [x] `sendLabelRequest()` in `lib/store/labelInboxStore.ts` — one shared action for intro / collab / remix / contest, reuses or creates a real conversation
+- [x] Messages tab and chat thread read from the store, so anything sent from the detail page actually shows up
+- [ ] Decide whether intro messages can carry an optional track attachment (see note in Section 7) — still open
 
 ### Phase 5 — Real data
 - [ ] Pull release history from Proton distribution data
 - [ ] Label self-manages demo policy, contest, remix slots via label dashboard
 - [ ] "Follow" notifications via push or email
+- [ ] Per-label release/roster data instead of the shared sample catalog
