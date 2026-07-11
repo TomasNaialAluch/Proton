@@ -5,8 +5,6 @@ import { useIsMaxLg } from "@/lib/hooks/useMediaQuery";
 import { usePlayerStore } from "@/lib/store/playerStore";
 import { usePlayerAudio } from "./PlayerAudioContext";
 import PlayerArtwork from "./PlayerArtwork";
-import PlayerQueueButton from "./PlayerQueueButton";
-
 /** Misma huella que `PlayerArtwork` `lg` (`size-12` = 48px). */
 const FAB_ART_PX = 48;
 /** 16:9 inscrito en el cuadrado (ancho = lado del cuadrado). */
@@ -87,8 +85,6 @@ export default function PlayerFab() {
             <Play size={18} className="text-white" fill="white" />
           )}
         </button>
-
-        <PlayerQueueButton />
 
         <button
           type="button"
