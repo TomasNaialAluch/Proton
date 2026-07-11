@@ -15,4 +15,11 @@ export interface ProtonLabel {
   featured?: boolean;
   foundedYear?: number;
   beatportUrl?: string;
+
+  // detail page — demo policy (label-reported)
+  demoPolicy?: {
+    preferredFormat?: "wav" | "mp3" | "either";
+    estimatedResponseTime?: string;
+    notes?: string;
+  };
 }

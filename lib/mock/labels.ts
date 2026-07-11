@@ -7,6 +7,11 @@ export const mockLabels: ProtonLabel[] = [
     description: "The flagship Proton Radio imprint. Broad progressive and deep house catalog, open to both established and up-and-coming producers.",
     releaseCount: 420, lastReleaseDate: "2026-07-08", demoStatus: "open",
     demoGenres: ["Progressive", "Deep House"], featured: true, foundedYear: 2004,
+    demoPolicy: {
+      preferredFormat: "wav",
+      estimatedResponseTime: "2–3 weeks",
+      notes: "We listen to everything. No ghost-produced tracks — original work only.",
+    },
   },
   {
     id: "2", name: "Sudbeat", slug: "sudbeat", image: null,
@@ -14,6 +19,11 @@ export const mockLabels: ProtonLabel[] = [
     description: "Melodic, emotive progressive house with a strong focus on album-length storytelling. Known for long-term artist development.",
     releaseCount: 280, lastReleaseDate: "2026-07-01", demoStatus: "open",
     demoGenres: ["Progressive"], foundedYear: 2009,
+    demoPolicy: {
+      preferredFormat: "wav",
+      estimatedResponseTime: "Responds to all within 4 weeks",
+      notes: "Looking for album-length storytelling, not one-off club tracks.",
+    },
   },
   {
     id: "3", name: "Bedrock", slug: "bedrock", image: null,
@@ -21,6 +31,10 @@ export const mockLabels: ProtonLabel[] = [
     description: "John Digweed's label. Deep, hypnotic progressive and techno for the peak-time floor. High bar for production quality.",
     releaseCount: 350, lastReleaseDate: "2026-05-15", demoStatus: "closed",
     featured: true, foundedYear: 1999,
+    demoPolicy: {
+      preferredFormat: "wav",
+      notes: "Not accepting unsolicited demos right now — roster is set through 2026. Referrals only.",
+    },
   },
   {
     id: "4", name: "Addictive Music", slug: "addictive-music", image: null,
