@@ -2,6 +2,7 @@
 
 import { notFound, usePathname } from "next/navigation";
 import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
+import BackButton from "@/components/dashboard/_shared/BackButton";
 import SubmitTrackForm from "@/components/dashboard/producer/labels/SubmitTrackForm";
 import LabelDetailHeader from "@/components/dashboard/producer/labels/detail/LabelDetailHeader";
 import RecentReleasesStrip from "@/components/dashboard/producer/labels/detail/RecentReleasesStrip";
@@ -28,6 +29,8 @@ export default function LabelProfileClient() {
 
   return (
     <main className="max-w-lg mx-auto px-5 pt-6 pb-24 lg:pb-10 lg:max-w-2xl lg:px-10 flex flex-col gap-6">
+      <BackButton fallbackHref="/dashboard/labels" label="Back to Labels" />
+
       <DashboardBreadcrumb items={[
         { label: "Dashboard", href: "/dashboard" },
         { label: "Labels", href: "/dashboard/labels" },
