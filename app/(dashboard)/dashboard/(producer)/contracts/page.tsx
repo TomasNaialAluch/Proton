@@ -2,10 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { FileText, CheckCircle2, PenLine, Building2, Disc3, ChevronRight, FileDown, Search } from "lucide-react";
+import { FileText, CheckCircle2, PenLine, Building2, Disc3, ChevronRight, FileDown, Search, ArrowUpDown } from "lucide-react";
 import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
+import LoadMoreButton from "@/components/dashboard/_shared/LoadMoreButton";
 import { useContractsStore } from "@/lib/store/contractsStore";
 import { CONTRACT_LABEL_COLORS } from "@/lib/mock/contracts";
+import { usePaginatedList } from "@/lib/hooks/usePaginatedList";
+
+const PAGE_SIZE = 25;
 
 function formatDateShort(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -24,9 +28,12 @@ const STATUS_CONFIG = {
 /** Unsigned contracts need action, so they sort first; signed ones are just history. */
 const STATUS_ORDER = { pending_signature: 0, expired: 1, signed: 2 };
 
+type SortDir = "newest" | "oldest";
+
 export default function ContractsPage() {
   const contracts = useContractsStore((s) => s.contracts);
   const [search, setSearch] = useState("");
+  const [sortDir, setSortDir] = useState<SortDir>("newest");
 
   const signed  = contracts.filter((c) => c.status === "signed");
   const pending = contracts.filter((c) => c.status === "pending_signature");
@@ -41,7 +48,18 @@ export default function ContractsPage() {
       : contracts
   )
     .slice()
-    .sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]);
+    .sort((a, b) => {
+      const statusDiff = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
+      if (statusDiff !== 0) return statusDiff;
+      const dateDiff = new Date(b.signedAt).getTime() - new Date(a.signedAt).getTime();
+      return sortDir === "newest" ? dateDiff : -dateDiff;
+    });
+
+  const { visibleItems: pagedContracts, hasMore, remaining, loadMore } = usePaginatedList(
+    visibleContracts,
+    PAGE_SIZE,
+    `${query}-${sortDir}`
+  );
 
   return (
     <main className="max-w-lg mx-auto px-5 pt-6 pb-24 lg:pb-10 lg:max-w-3xl lg:px-10">
@@ -99,6 +117,16 @@ export default function ContractsPage() {
             <h2 className="text-sm font-semibold text-text-primary truncate">Contract history</h2>
           </div>
           <div className="flex items-center gap-3 shrink-0">
+            <button
+              type="button"
+              onClick={() => setSortDir((d) => (d === "newest" ? "oldest" : "newest"))}
+              title={sortDir === "newest" ? "Newest first" : "Oldest first"}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--color-border)] text-xs
+                text-text-secondary hover:text-text-primary transition-colors"
+            >
+              <ArrowUpDown size={12} />
+              <span className="hidden sm:inline">{sortDir === "newest" ? "Newest" : "Oldest"}</span>
+            </button>
             <div className="relative">
               <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-secondary" />
               <input
@@ -124,7 +152,7 @@ export default function ContractsPage() {
         )}
 
         <ul className="divide-y divide-[var(--color-border)]">
-          {visibleContracts.map((contract) => {
+          {pagedContracts.map((contract) => {
             const { label: statusLabel, icon: StatusIcon, classes } = STATUS_CONFIG[contract.status];
             const accentColor = CONTRACT_LABEL_COLORS[contract.labelSlug] ?? "#A78BFA";
 
@@ -168,6 +196,10 @@ export default function ContractsPage() {
             );
           })}
         </ul>
+
+        {hasMore && (
+          <LoadMoreButton onClick={loadMore} remaining={remaining} pageSize={PAGE_SIZE} />
+        )}
 
         {/* Footer */}
         <div className="px-5 py-3 border-t border-[var(--color-border)] bg-[var(--color-border)]/20">

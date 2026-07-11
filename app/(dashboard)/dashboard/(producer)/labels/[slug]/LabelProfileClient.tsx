@@ -61,7 +61,11 @@ export default function LabelProfileClient() {
         )}
       </div>
 
-      <SubmitTrackForm labelSlug={label.slug} labelName={label.name} />
+      <SubmitTrackForm
+        labelSlug={label.slug}
+        labelName={label.name}
+        acceptedGenres={label.genres ?? []}
+      />
     </main>
   );
 }

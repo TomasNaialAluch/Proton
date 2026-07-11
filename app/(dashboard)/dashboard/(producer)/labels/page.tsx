@@ -5,7 +5,11 @@ import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcr
 import LabelsTabs from "@/components/dashboard/producer/labels/LabelsTabs";
 import FilterDropdown from "@/components/dashboard/discover/FilterDropdown";
 import LabelCard from "@/components/public/LabelCard";
+import LoadMoreButton from "@/components/dashboard/_shared/LoadMoreButton";
 import { mockLabels } from "@/lib/mock/labels";
+import { usePaginatedList } from "@/lib/hooks/usePaginatedList";
+
+const PAGE_SIZE = 24;
 
 export default function LabelsBrowsePage() {
   const [genre, setGenre] = useState<string | null>(null);
@@ -16,6 +20,12 @@ export default function LabelsBrowsePage() {
   );
 
   const labels = genre ? mockLabels.filter((l) => l.genres?.includes(genre)) : mockLabels;
+
+  const { visibleItems: pagedLabels, hasMore, remaining, loadMore } = usePaginatedList(
+    labels,
+    PAGE_SIZE,
+    genre ?? ""
+  );
 
   return (
     <main className="max-w-lg mx-auto px-5 pt-6 pb-24 lg:pb-10 lg:max-w-4xl lg:px-10">
@@ -37,10 +47,16 @@ export default function LabelsBrowsePage() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {labels.map((label) => (
+        {pagedLabels.map((label) => (
           <LabelCard key={label.id} label={label} href={`/dashboard/labels/${label.slug}`} />
         ))}
       </div>
+
+      {hasMore && (
+        <div className="mt-4 rounded-2xl border border-[var(--color-border)] bg-surface overflow-hidden">
+          <LoadMoreButton onClick={loadMore} remaining={remaining} pageSize={PAGE_SIZE} />
+        </div>
+      )}
 
       {labels.length === 0 && (
         <p className="text-sm text-text-secondary text-center py-12">No labels match that genre.</p>

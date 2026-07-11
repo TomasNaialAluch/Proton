@@ -1,15 +1,32 @@
 "use client";
 
-import { Inbox } from "lucide-react";
+import Link from "next/link";
+import { Inbox, FileAudio, MessageCircle, ChevronRight } from "lucide-react";
 import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
 import LabelsTabs from "@/components/dashboard/producer/labels/LabelsTabs";
 import SubmissionStatusBadge from "@/components/dashboard/producer/labels/SubmissionStatusBadge";
 import { useLabelSubmissionsStore } from "@/lib/store/labelSubmissionsStore";
 import { mockTracks } from "@/lib/mock/tracks";
 import { mockLabels } from "@/lib/mock/labels";
+import { mockConversations } from "@/lib/mock/messages";
+import type { LabelSubmission } from "@/types/submission";
 
-function trackTitle(trackId: string) {
-  return mockTracks.find((t) => t.id === trackId)?.title ?? "Unknown track";
+/** Submissions can be talked about once the label is actively engaged — not just once "accepted". */
+const CHATTABLE_STATUSES = ["accepted", "listening"] as const;
+
+function chatIdFor(s: LabelSubmission): string | null {
+  if (!CHATTABLE_STATUSES.includes(s.status as (typeof CHATTABLE_STATUSES)[number])) return null;
+  const conversation = mockConversations.find(
+    (c) => c.origin.type === "submission" && c.origin.submissionId === s.id
+  );
+  // Falls back to the submission id itself when no thread exists yet — same
+  // pattern as connections/[id] falling back to the suggestion id.
+  return conversation?.id ?? s.id;
+}
+
+function submissionTitle(s: LabelSubmission) {
+  if (s.trackId) return mockTracks.find((t) => t.id === s.trackId)?.title ?? "Unknown track";
+  return s.fileName ?? "Untitled demo";
 }
 
 function labelName(labelSlug: string) {
@@ -46,19 +63,49 @@ export default function LabelsSubmissionsPage() {
         </div>
       ) : (
         <ul className="divide-y divide-[var(--color-border)] rounded-2xl border border-[var(--color-border)] bg-surface overflow-hidden">
-          {submissions.map((s) => (
-            <li key={s.id} className="flex items-start gap-3 px-5 py-4">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2 mb-0.5">
-                  <p className="text-sm font-semibold text-text-primary truncate">{trackTitle(s.trackId)}</p>
-                  <SubmissionStatusBadge status={s.status} />
+          {submissions.map((s) => {
+            const chatId = chatIdFor(s);
+            const content = (
+              <>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2 mb-0.5">
+                    <p className="flex items-center gap-1.5 text-sm font-semibold text-text-primary truncate">
+                      {!s.trackId && <FileAudio size={12} className="text-accent shrink-0" />}
+                      {submissionTitle(s)}
+                    </p>
+                    <SubmissionStatusBadge status={s.status} />
+                  </div>
+                  <p className="text-xs text-text-secondary">
+                    {labelName(s.labelSlug)}
+                    {s.genre && ` · ${s.genre}`}
+                  </p>
+                  {s.note && <p className="mt-1 text-xs text-text-secondary italic">&ldquo;{s.note}&rdquo;</p>}
+                  <p className="text-xs text-text-secondary mt-1">Sent {formatDate(s.sentAt)}</p>
+                  {chatId && (
+                    <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-accent">
+                      <MessageCircle size={11} /> Open conversation with {labelName(s.labelSlug)}
+                    </p>
+                  )}
                 </div>
-                <p className="text-xs text-text-secondary">{labelName(s.labelSlug)}</p>
-                {s.note && <p className="mt-1 text-xs text-text-secondary italic">&ldquo;{s.note}&rdquo;</p>}
-                <p className="text-xs text-text-secondary mt-1">Sent {formatDate(s.sentAt)}</p>
-              </div>
-            </li>
-          ))}
+                {chatId && <ChevronRight size={16} className="shrink-0 text-text-secondary mt-1" />}
+              </>
+            );
+
+            return (
+              <li key={s.id}>
+                {chatId ? (
+                  <Link
+                    href={`/dashboard/labels/chat/${chatId}`}
+                    className="flex items-start gap-3 px-5 py-4 hover:bg-[var(--color-border)]/30 transition-colors"
+                  >
+                    {content}
+                  </Link>
+                ) : (
+                  <div className="flex items-start gap-3 px-5 py-4">{content}</div>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
     </main>

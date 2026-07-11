@@ -176,25 +176,22 @@ export default function ContractSignClient() {
                   page={page}
                   onPageChange={setPage}
                   onPageSurfaceRef={(el) => { pageSurfaceRef.current = el; }}
-                  frameOverlay={
-                    !placing && contract.status === "pending_signature" ? (
-                      <button
-                        type="button"
-                        onClick={() => setSignatureModalOpen(true)}
-                        aria-label="Sign this document"
-                        title="Click to sign"
-                        className="absolute inset-0"
-                        style={{
-                          cursor:
-                            'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 2 4 4"/><path d="m2 22 1-5 12.5-12.5a2.121 2.121 0 0 1 3 3L6 20l-5 1"/></svg>\') 2 22, pointer',
-                        }}
-                      />
-                    ) : undefined
-                  }
                 >
-                  {placing && (
+                  {placing ? (
                     <SignatureOverlay imageUrl={savedSignature!.imageDataUrl} frame={frame} onChange={setFrame} />
-                  )}
+                  ) : contract.status === "pending_signature" ? (
+                    <button
+                      type="button"
+                      onClick={() => setSignatureModalOpen(true)}
+                      aria-label="Sign this document"
+                      title="Click to sign"
+                      className="absolute inset-0"
+                      style={{
+                        cursor:
+                          'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 2 4 4"/><path d="m2 22 1-5 12.5-12.5a2.121 2.121 0 0 1 3 3L6 20l-5 1"/></svg>\') 2 22, pointer',
+                      }}
+                    />
+                  ) : null}
                 </PdfContractViewer>
 
                 {placing && (

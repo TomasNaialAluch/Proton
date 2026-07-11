@@ -5,9 +5,11 @@ import Link from "next/link";
 import { Compass, Tag, Play, Pause, ArrowDownUp } from "lucide-react";
 import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
 import FilterDropdown from "@/components/dashboard/discover/FilterDropdown";
+import LoadMoreButton from "@/components/dashboard/_shared/LoadMoreButton";
 import CoverArt, { genreColor, genreColorBg } from "@/components/dashboard/discover/CoverArt";
 import { mockDiscoverTracks, discoverGenres, discoverLabels, type DiscoverTrack } from "@/lib/mock/discover";
 import { usePreviewStore } from "@/lib/store/previewStore";
+import { usePaginatedList } from "@/lib/hooks/usePaginatedList";
 
 const PAGE_SIZE = 12;
 
@@ -24,7 +26,6 @@ export default function DiscoverPage() {
   const [genre, setGenre] = useState<string | null>(null);
   const [label, setLabel] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>("newest");
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   /** Only one card preview plays at a time, via a single shared <audio>. */
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -71,10 +72,11 @@ export default function DiscoverPage() {
     return sorted;
   }, [genre, label, sortBy]);
 
-  const visible = filtered.slice(0, visibleCount);
-  const hasMore = visibleCount < filtered.length;
-
-  const resetPaging = () => setVisibleCount(PAGE_SIZE);
+  const { visibleItems: visible, hasMore, remaining, loadMore } = usePaginatedList(
+    filtered,
+    PAGE_SIZE,
+    `${genre ?? ""}-${label ?? ""}-${sortBy}`
+  );
 
   return (
     <main className="max-w-lg mx-auto px-5 pt-6 pb-24 lg:pb-10 lg:max-w-5xl lg:px-10">
@@ -99,13 +101,13 @@ export default function DiscoverPage() {
           label="Genre"
           options={genres}
           value={genre}
-          onChange={(v) => { setGenre(v); resetPaging(); }}
+          onChange={setGenre}
         />
         <FilterDropdown
           label="Label"
           options={labels}
           value={label}
-          onChange={(v) => { setLabel(v); resetPaging(); }}
+          onChange={setLabel}
         />
         <span className="ml-auto text-xs text-text-secondary">
           {filtered.length} {filtered.length === 1 ? "track" : "tracks"}
@@ -192,15 +194,9 @@ export default function DiscoverPage() {
       </div>
 
       {hasMore && (
-        <button
-          type="button"
-          onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-          className="mt-6 w-full rounded-lg border border-[var(--color-border)] bg-surface py-2.5
-            text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]/40
-            transition-colors"
-        >
-          Load more ({filtered.length - visibleCount} remaining)
-        </button>
+        <div className="mt-4 rounded-2xl border border-[var(--color-border)] bg-surface overflow-hidden">
+          <LoadMoreButton onClick={loadMore} remaining={remaining} pageSize={PAGE_SIZE} />
+        </div>
       )}
     </main>
   );

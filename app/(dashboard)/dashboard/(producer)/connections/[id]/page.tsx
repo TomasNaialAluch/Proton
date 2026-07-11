@@ -25,7 +25,9 @@ export default function ConnectionSuggestionPage() {
 
   const [status, setStatus] = useState<ConnectionStatus>(suggestion.status);
 
-  const conversation = mockConversations.find((c) => c.connectionId === suggestion.id);
+  const conversation = mockConversations.find(
+    (c) => c.origin.type === "connection" && c.origin.connectionId === suggestion.id
+  );
 
   const accept = () => {
     // The other side's answer is never visible until both have said yes — this just

@@ -1,22 +1,39 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import {
   DollarSign, ChevronRight, Clock, Wallet,
-  TrendingUp, FileText, Download,
+  TrendingUp, FileText, Download, ArrowUpDown,
 } from "lucide-react";
 import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
+import LoadMoreButton from "@/components/dashboard/_shared/LoadMoreButton";
 import { mockRoyalties, mockRoyaltySummary, payoutConfig } from "@/lib/mock/royalties";
+import { usePaginatedList } from "@/lib/hooks/usePaginatedList";
 
 const PRO_USER_ID = 67325;
+const PAGE_SIZE = 25;
 
 function fmt(n: number) {
   return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+type SortDir = "newest" | "oldest";
+
 export default function RoyaltiesPage() {
+  const [sortDir, setSortDir] = useState<SortDir>("newest");
   const { totalAccumulated, currency } = mockRoyaltySummary;
   const { threshold, nextStatementDate, nextStatementPeriod, paymentMethod, token, network } = payoutConfig;
+
+  const sortedRoyalties = mockRoyalties
+    .slice()
+    .sort((a, b) => (sortDir === "newest" ? b.qid - a.qid : a.qid - b.qid));
+
+  const { visibleItems: pagedRoyalties, hasMore, remaining: remainingRoyalties, loadMore } = usePaginatedList(
+    sortedRoyalties,
+    PAGE_SIZE,
+    sortDir
+  );
 
   const pct = Math.min((totalAccumulated / threshold) * 100, 100);
   const remaining = threshold - totalAccumulated;
@@ -121,7 +138,19 @@ export default function RoyaltiesPage() {
             <FileText size={15} className="text-text-secondary" />
             <h2 className="text-sm font-semibold text-text-primary">Statement history</h2>
           </div>
-          <span className="text-xs text-text-secondary">{mockRoyalties.length} quarters · ${fmt(totalStreamed)} USD</span>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setSortDir((d) => (d === "newest" ? "oldest" : "newest"))}
+              title={sortDir === "newest" ? "Newest first" : "Oldest first"}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--color-border)] text-xs
+                text-text-secondary hover:text-text-primary transition-colors"
+            >
+              <ArrowUpDown size={12} />
+              <span className="hidden sm:inline">{sortDir === "newest" ? "Newest" : "Oldest"}</span>
+            </button>
+            <span className="text-xs text-text-secondary whitespace-nowrap">{mockRoyalties.length} quarters · ${fmt(totalStreamed)} USD</span>
+          </div>
         </div>
 
         {/* Table header */}
@@ -135,7 +164,7 @@ export default function RoyaltiesPage() {
 
         {/* Rows */}
         <ul className="divide-y divide-[var(--color-border)]">
-          {mockRoyalties.map((r) => (
+          {pagedRoyalties.map((r) => (
             <li key={r.id}>
               <div className="flex items-center gap-3 px-5 py-4 hover:bg-[var(--color-border)]/30 transition-colors">
 
@@ -182,6 +211,10 @@ export default function RoyaltiesPage() {
             </li>
           ))}
         </ul>
+
+        {hasMore && (
+          <LoadMoreButton onClick={loadMore} remaining={remainingRoyalties} pageSize={PAGE_SIZE} />
+        )}
 
         {/* Footer */}
         <div className="px-5 py-3 border-t border-[var(--color-border)] bg-[var(--color-border)]/20">

@@ -666,3 +666,368 @@ los puntos 2 y 3 de arriba:
 Esto amplía (no reemplaza) los puntos 2 y 3 del roadmap de arriba — ahí
 quedan los síntomas reportados, acá queda **el criterio de qué significa
 "arreglado"**: visor actualizado con el PDF nuevo + confirmación visible.
+
+## Causa raíz REAL de los 3 bugs (encontrada debuggeando con mediciones)
+
+**Corrección importante:** los ✅ que puse antes en los puntos 1-3 estaban
+mal — los "arreglé" probando en una ventana grande donde el bug no se
+manifestaba, y el usuario los volvió a reportar. Debuggeando con
+`getBoundingClientRect` encontré que **los 3 síntomas salían de una sola
+causa**, y no era ninguna de mis hipótesis anteriores:
+
+**El contenedor scrolleable del PDF (`PdfContractViewer`) usaba `flex
+justify-center` sin `items-start`.** En un flex row, `align-items` es
+`stretch` por default, así que flexbox **estiraba verticalmente la
+superficie de la página** (`onPageSurfaceRef`) a la altura del contenedor
+visible (~588px) en vez de dejarla medir la altura real del PDF (734px). Eso
+rompía dos cosas a la vez:
+
+1. **El lápiz (bug 1):** el overlay `absolute inset-0` que estaba en el
+   contenedor scrolleable (mi "fix" anterior con `frameOverlay`) cubría solo
+   el alto visible (~620px), no el canvas completo (734px). Al scrollear
+   hacia abajo, el lápiz desaparecía → "solo aparece en una parte".
+2. **La firma mal ubicada / PDF "igual" (bug 2 y 3):** `handleConfirmSignature`
+   calcula `yPct = frame.y / surfaceHeight`. Con `surfaceHeight` estirado a
+   588 en vez de 734, la firma se incrustaba **demasiado abajo o directamente
+   fuera de la página** (si `frame.y` superaba 588, `yPct` daba >100% →
+   coordenada negativa → firma abajo del borde, invisible). Por eso "el PDF
+   queda igual": la firma se incrustaba pero en un lugar que no se veía.
+   Por eso también me funcionó a mí en ventana grande: ahí el PDF entraba sin
+   scroll (70vh > 734), no se estiraba, y la matemática daba bien de casualidad.
+
+**El fix real (commit correspondiente):**
+- `PdfContractViewer.tsx`: agregar `items-start` al contenedor scrolleable →
+  la superficie mide la altura real del PDF (734), no la estirada. Confirmado
+  con mediciones: `pageSurfaceHeight === canvasHeight === 734`.
+- Mover el overlay del lápiz de `frameOverlay` a `children` (adentro de la
+  superficie de la página) → cubre la página completa (734) y scrollea con
+  ella. Confirmado: alcanzable con el lápiz incluso scrolleado hasta abajo.
+  Se eliminó la prop `frameOverlay` (ya no hace falta).
+- `key={fileUrl}` en `<Document>` → garantiza que react-pdf recargue con el
+  blob firmado (defensivo).
+
+**Verificado de punta a punta con el bug reproducido** (ventana 1280×900,
+donde el PDF sí scrollea): firma tipeada → ubicada → confirmada → `placement`
+guardado con `yPct` correcto (51.77% = 380/734, antes habría sido 64.6% =
+380/588) → y la firma "Naial" **se ve quemada en el PDF mostrado**, confirmado
+con zoom pixel sobre el canvas.
+
+## El embudo completo: Browse → Submit → Accepted → Chat → Contract → Signed
+
+**Punto de partida:** en el mock de submissions, `s4` (JIK / Never Leave →
+Dear Deer Music) está en `status: "accepted"`. Por otro lado, en el mock de
+contracts, `c7` (JIK/Never Leave, Dear Deer Music, `kind: "signable"`) ya
+existe como el contrato real que el productor firma en el flujo de
+`ContractSignClient`. Hoy esas dos cosas **no están conectadas** — son dos
+entidades separadas que casualmente hablan del mismo tema. Lo que falta no es
+"agregar un chat": es **cablear el embudo entero** para que sea un solo hilo
+narrativo, no piezas sueltas. El chat es la pieza que falta en el medio, pero
+diseñarlo bien requiere primero mapear todo el recorrido.
+
+### Los pasos del embudo, tal como existen (o deberían existir) hoy
+
+1. **Browse** (`/dashboard/labels`) — el productor descubre una label, ve sus
+   géneros aceptados. *Ya existe.*
+2. **Submit** (`SubmitTrackForm` en el detail de la label) — sube un demo
+   (.wav/.mp3), elige género (restringido a lo que la label acepta), nota
+   opcional. Se crea un `LabelSubmission` con `status: "sent"`. *Ya existe,
+   recién rediseñado.*
+3. **La label responde** — hoy esto es un cambio de `status` mock sin ningún
+   evento visible más que el badge en `/dashboard/labels/submissions`
+   (`sent → listening → accepted | passed`). *Ya existe el estado, no el
+   evento.*
+4. **Accepted abre una conversación** — **esto es lo que falta.** Hoy tocar
+   una submission `accepted` no hace nada (el `<li>` en
+   `labels/submissions/page.tsx` no es clickeable). Tiene que:
+   - Ser clickeable solo cuando `status === "accepted"` (o `"listening"`,
+     a discutir — ¿la label puede abrir el chat antes de decidir, para pedir
+     una versión distinta? Probablemente sí, pero el caso fuerte es
+     `accepted`).
+   - Llevar a un chat 1:1 con esa label, con un mensaje semilla ya generado
+     (server-side / mock) que dé contexto: algo como *"¡Nos encantó JIK /
+     Never Leave! Queremos avanzar con un licensing deal — ¿cuándo podrías
+     tener el contrato listo para firmar?"* seguido de un intercambio breve
+     donde se acuerdan fechas, y termina en *"Te mandamos el contrato, avisanos
+     cuando lo firmes."* — la conversación semilla que el usuario pidió.
+5. **El contrato llega** — hoy esto es instantáneo/mágico: `c7` ya existe en
+   el mock con `status: "pending_signature"`, no hay ningún evento que lo
+   "envíe". Con el chat de por medio, tiene sentido que el **último mensaje
+   de la label en la conversación incluya un link al contrato**
+   (`/dashboard/contracts/c7`) — así el contrato no aparece de la nada en
+   `/dashboard/contracts`, sino que el productor lo recibe *desde alguien*,
+   en el hilo donde se habló de fechas y condiciones. Refuerza que Contracts
+   y Label Deals son secciones separadas pero **la narrativa las conecta**.
+6. **Sign** (`ContractSignClient`) — el productor firma. *Ya existe,
+   recién arreglado.*
+7. **(Loop opcional) Vuelta al chat** — después de firmar, ¿el productor
+   debería poder volver al mismo hilo para avisar "listo, firmé"? Es
+   coherente con el punto 5 (la label pidió que avisen) y evita que el
+   chat quede "cortado" justo cuando el contrato entra en juego. Probablemente
+   sí, pero no es bloqueante para la v1 — se puede anotar como follow-up.
+
+### El otro caso: la label contacta primero (no hay submission de por medio)
+
+El usuario pidió explícitamente contemplar esto: **una label quiere hablar de
+un proyecto sin que haya un track aceptado**. Ejemplos reales: una label vio
+al productor en Discover y quiere proponerle un remix; quiere charlar sobre
+un EP antes de que exista ningún demo; quiere reconectar con un productor con
+el que ya trabajó antes. Esto **no puede depender de `LabelSubmission`** como
+disparador — necesita ser un flujo de outreach independiente.
+
+Esto tiene una consecuencia de diseño importante para el modelo de datos: la
+conversación con una label **no puede requerir un `submissionId`** como
+campo obligatorio. Tiene que poder nacer de:
+- una submission aceptada (caso 1, más común hoy),
+- o un contacto directo iniciado por la label (caso 2, sin submission).
+
+### Reusar la infraestructura de chat que ya existe (Connections), no inventar otra
+
+Antes de diseñar un chat nuevo específico para labels, vale la pena notar que
+**ya existe un sistema de chat completo** para conexiones artista↔artista:
+- `types/message.ts`: `Conversation { id, peer: FeedbackProducer, connectionId,
+  createdAt }` y `ChatMessage { id, conversationId, fromMe, text, createdAt }`.
+- Página `/dashboard/connections/chat/[id]/page.tsx` — UI de burbujas, input,
+  envío, ya construida y funcionando.
+
+El problema es que `Conversation.peer` es un `FeedbackProducer` (`{id, name}`)
+y `connectionId` asume que siempre nace de una `ConnectionSuggestion` entre
+dos productores. Para reusar esto con labels hay dos caminos:
+
+- **(A) Generalizar `Conversation`** — el `peer` pasa a ser una unión
+  discriminada (`{ type: "producer", ...FeedbackProducer } | { type: "label",
+  ...ProtonLabel }`), y `connectionId` pasa a ser opcional, reemplazado por un
+  campo más genérico `origin: { type: "connection", connectionId } |
+  { type: "submission", submissionId } | { type: "label_outreach" }`. Un solo
+  sistema de chat para todo (artista↔artista y label↔artista). Más trabajo
+  de refactor ahora, pero evita tener dos sistemas de mensajería paralelos
+  que hay que mantener sincronizados (badges de no leídos, notificaciones,
+  etc. — todo en un solo lugar).
+- **(B) Sistema de chat separado para labels** — un `LabelConversation` propio,
+  con su propia ruta (`/dashboard/labels/chat/[id]`), copiando el patrón de
+  UI pero con su propio tipo. Menos riesgo de romper Connections (que ya
+  funciona y está probado), pero duplica lógica de mensajería que después
+  hay que mantener dos veces si se agregan features (adjuntos, indicadores
+  de "escribiendo", etc.).
+
+**Recomendación:** (A) — el pedido explícito del usuario es "potenciar la
+comunicación tanto entre artistas como entre labels y productores", lo cual
+sugiere que a futuro van a querer ver *todos* los chats en un solo lugar
+(una bandeja de entrada unificada), no dos secciones de mensajería que no se
+hablan entre sí. Generalizar ahora es más trabajo pero evita una migración
+dolorosa después.
+
+### Dónde vive esto en la navegación
+
+Ahora mismo "Connections" es su propio ítem de sidebar con su propio chat.
+Si generalizamos el chat (opción A), hay una pregunta abierta: ¿los chats con
+labels aparecen mezclados en `/dashboard/connections` (una sola bandeja), o
+"Label Deals" tiene su propia pestaña de chats separada de Browse/Submissions
+pero reusando el mismo componente de UI? Inclinación: agregar una pestaña
+**"Messages"** dentro de "Label Deals" (al lado de Browse/Submissions) que
+lista las conversaciones con labels, pero que internamente renderiza la
+misma página de chat que ya existe en Connections — así no se mezclan
+conceptualmente "mi red de productores" con "mis labels", pero tampoco se
+duplica la UI de chat en sí.
+
+### Qué falta definir antes de construir (no bloqueante, pero hay que decidirlo)
+
+1. ¿El botón "abrir chat" aparece en la lista de Submissions (`accepted` ⇒
+   clickeable) o en el detail de la submission (si llega a existir un
+   detail)? Hoy no hay página de detail de submission, solo el `<li>` en la
+   lista.
+2. ¿Quién puede iniciar el outreach directo (caso 2)? En este prototipo el
+   productor es el único usuario real — el lado "label" es simulado. Así que
+   en la práctica esto se ve como: mock data ya trae una conversación
+   "iniciada por la label" con mensajes `fromMe: false` esperando respuesta,
+   apareciendo en una bandeja de "Messages" sin que el productor haya hecho
+   nada. Coherente con cómo ya funciona el resto del prototipo (todo lo que
+   "hace la otra parte" está pre-scripteado en mock data).
+3. ¿El link al contrato dentro del chat (paso 5) es un mensaje de texto con
+   un link normal, o un tipo de mensaje especial ("attachment card") con el
+   nombre del contrato y un botón "Ver contrato"? Segundo es más prolijo y
+   sienta precedente para adjuntar cosas al chat a futuro (audio, PDFs).
+4. Si (A) se generaliza `Conversation`, ¿hace falta migrar el `persist`
+   de Zustand de Connections (los usuarios que ya tengan conversaciones
+   guardadas en localStorage) o al ser un prototipo sin usuarios reales
+   se puede romper sin mirar atrás? Probablemente lo segundo, pero
+   anotado por las dudas.
+
+**Nada de esto está implementado todavía** — este bloque es el mapa antes de
+tocar código, tal como se pidió. Próximo paso, una vez resuelto lo de arriba:
+implementar (A), la conversación semilla de JIK/Dear Deer Music, y el link
+"Accepted" → chat en `labels/submissions/page.tsx`.
+
+## Resolviendo las 4 preguntas: diseñado para conexión humana, no para presión
+
+El pedido explícito fue: no una solución típica de chat de producto (la que
+copia WhatsApp/Slack sin pensar), sino algo que **se sienta real, confiable,
+amistoso, y que no genere presión**. Antes de resolver las 4 preguntas,
+investigué qué dice el diseño de UX y cómo se maneja esto en la industria
+real (A&R de sellos discográficos) — no para copiar un patrón, sino para
+tener criterio de **qué evitar**.
+
+### Lo que encontré (y por qué cambia las decisiones de abajo)
+
+- **Los indicadores de presencia y lectura generan presión, no confianza.**
+  Discord decidió explícitamente no tener "visto" / doble check — su
+  cofundador Jason Citron lo resume así: *"we want chats to feel relaxed"*.
+  Un "visto a las 14:32" convierte cada mensaje en un examen: si no
+  contestás rápido, parece que estás ignorando a alguien. ([Does Discord
+  Have Read Receipts? — socialagechecker.net](https://socialagechecker.net/blog/does-discord-have-read-receipts/))
+- **Lo asíncrono bien diseñado respeta el tiempo del otro, no lo interrumpe.**
+  La filosofía de Basecamp/37signals es "tiempo real a veces, asíncrono la
+  mayoría de las veces" — evitan la falsa urgencia a propósito, porque un
+  puntito verde de "disponible" es, en la práctica, una invitación a que te
+  interrumpan todo el tiempo. ([Basecamp — The 37signals Guide to Internal
+  Communication](https://basecamp.com/guides/how-we-communicate))
+  Twist (Doist) construyó su chat de equipo entero alrededor de sacar esa
+  ansiedad: hilos en vez de un stream continuo, para que cada conversación
+  se pueda retomar cuando la persona tiene cabeza para eso, no cuando salta
+  la notificación. ([Twist by Doist: Transforming Team Chat From Chatty to
+  Calm](https://crm.org/news/twist-it-up-with-doists-team-chat-app))
+- **En la industria real, lo que genera confianza entre label y artista es
+  trato personal, no eficiencia.** Un ejecutivo senior de Columbia Records
+  lo dice así: *"si alguien te confía su carrera, nunca lo trates como un
+  commodity o un flash in the pan — sos parte del equipo que ayuda a poner
+  en marcha sus sueños"*. La relación A&R↔artista es, literalmente, la
+  parte del negocio de sellos que más depende de sentirse humana y no
+  transaccional. ([Building Trust Between Artists and Music Labels — Fira
+  Music](https://www.fira-music.com/blog/youtubeformusicians-cbdar-kpm4e))
+- **El tono cálido y personal genera confianza medible, el tono corporativo
+  no.** Dirigirse a alguien por su nombre, usar contracciones, sonar como
+  una persona y no como un sistema — esto es lo que hace que un mensaje se
+  sienta confiable en vez de robótico. ([UX Microcopy: Tiny Words That
+  Build Massive Trust — Medium](https://medium.com/design-bootcamp/ux-microcopy-tiny-words-that-build-massive-trust-c5ebb53388e1))
+- **La mensajería de marketplaces (Airbnb) construye confianza mostrando a
+  la otra parte como una persona real antes de que haya dinero de por
+  medio** — perfiles, contexto, mensajes que confirman y dan indicaciones
+  claras, no solo un botón de "contactar". ([Airbnb UX Design Case Study —
+  rockpaperscissors.studio](https://rockpaperscissors.studio/airbnb-ux-design-case-study-building-trust-in-peer-to-peer-travel/))
+
+**Traducido a principios de diseño concretos para este chat:**
+
+1. **Sin "visto".** El mensaje muestra que se envió (✓ enviado), nunca que
+   se leyó ni a qué hora. Nadie sabe si la otra parte ya lo vio — así nadie
+   siente que "lo está ignorando" ni que "tiene que contestar ya".
+2. **Sin indicador de "en línea" ni última conexión.** Ni el productor ni la
+   label transmiten disponibilidad en tiempo real. Esto es asíncrono por
+   diseño, como Basecamp — se contesta cuando se puede, no cuando el punto
+   verde dice que hay que hacerlo.
+3. **Sin badges de urgencia ni SLA.** Nada de "respondé en 24hs" ni contador
+   regresivo. El badge de no-leídos (si existe) es un número neutro, no un
+   ícono rojo con exclamación.
+4. **Tono en primera persona, específico, nunca genérico.** El mensaje
+   semilla no dice "Tu submission fue revisada" (lenguaje de sistema) — dice
+   algo como lo que ya redacté en el punto 4 del embudo: *"¡Nos encantó JIK
+   / Never Leave!"*, con el nombre real del tema, como lo escribiría una
+   persona que de verdad lo escuchó.
+5. **El contrato se entrega en mano, no se "adjunta".** Ver pregunta 3 más
+   abajo — la diferencia entre un sistema que sube un archivo y una persona
+   que te dice "acá te mando el contrato" importa para el tono.
+
+### Pregunta 1 — ¿Dónde vive el botón de abrir chat?
+
+**Resuelto: directo en la fila de `Submissions`, sin página de detail
+intermedia.** Agregar una página de detail solo para poner un botón sería
+fricción extra sin necesidad — el objetivo es acercar a la persona, no
+sumar un paso. Cuando `status === "accepted"` (y también `"listening"`,
+porque la label puede querer hablar antes de decidir — pedir otra versión,
+preguntar algo del track — y forzarla a esperar hasta "accepted" para poder
+escribir sería justamente el tipo de fricción artificial que se quiere
+evitar), la fila se vuelve clickeable y lleva directo al chat.
+
+### Pregunta 2 — ¿Quién dispara el contacto directo de una label (sin submission)?
+
+**Resuelto: mock data pre-carga conversaciones ya iniciadas por la label**,
+con mensajes `fromMe: false` esperando respuesta, apareciendo en una bandeja
+de "Messages" — mismo patrón que ya usa el resto del prototipo (todo lo que
+"hace la otra parte" está pre-escrito, porque no hay labels reales del otro
+lado). Lo importante, dado el principio anti-presión de arriba: que
+**aparezca sin alarma** — sin notificación push agresiva, sin badge rojo
+parpadeante. Aparece en la bandeja como algo para leer cuando haya un
+momento, no como una emergencia. Coherente con el punto 2 y 3 de los
+principios de diseño.
+
+### Pregunta 3 — ¿El contrato llega como link de texto o como "card" adjunta?
+
+**Resuelto: card adjunta, pero renderizada como parte del mensaje de la
+label, no como una notificación de sistema separada.** La diferencia
+importa para el tono: un mensaje de sistema tipo *"📎 Documento subido:
+dear-deer-licensing-agreement.pdf"* se siente como un log de auditoría. En
+cambio, la label escribe algo como *"Acá te mando el contrato — cualquier
+duda mientras lo leés, avisame"*, y **debajo de ese texto**, dentro de la
+misma burbuja, aparece la card del contrato (nombre, ícono, botón "Ver
+contrato" → `/dashboard/contracts/c7`). Es la persona la que te lo entrega,
+el archivo es parte de lo que dijo, no un evento aparte. Esto también sienta
+el patrón correcto para adjuntar cosas a futuro (una demo, un PDF de notas)
+sin que el chat empiece a llenarse de mensajes de sistema fríos.
+
+### Pregunta 4 — ¿Hace falta migrar el `persist` de Connections al generalizar `Conversation`?
+
+**Resuelto: no.** No hay usuarios reales todavía — todo el estado persistido
+hoy es el mock inicial más lo que cada quien generó probando localmente.
+Generalizar el tipo (opción A) sin path de migración es aceptable acá;  si
+en algún momento esto pasa a producción con usuarios reales, ahí sí hace
+falta versionar el store de Zustand (`persist` soporta `version` +
+`migrate` para eso, anotado para cuando corresponda, no ahora).
+
+### Qué queda pendiente de implementar (con este mapa ya resuelto)
+
+1. Generalizar `types/message.ts`: `Conversation.peer` → unión discriminada
+   productor/label; `connectionId` → `origin` opcional
+   (`connection` | `submission` | `label_outreach`).
+2. Nueva pestaña **"Messages"** en `LabelsTabs.tsx`, listando conversaciones
+   con labels (mismo componente de chat que ya existe en Connections,
+   reusado, no duplicado).
+3. Fila de Submissions clickeable en `accepted`/`listening` → abre/crea la
+   conversación.
+4. Conversación semilla JIK/Never Leave ↔ Dear Deer Music en mock data:
+   negociación breve de fechas, termina con la card del contrato `c7`
+   adjunta al último mensaje de la label.
+5. Al menos una conversación mock de "outreach directo" (label sin
+   submission de por medio) para probar que el modelo de datos realmente
+   no depende de `submissionId`.
+6. Sin indicadores de "visto"/"en línea"/urgencia en la UI del chat —
+   validar que el componente reusado de Connections no los tenga ya (si los
+   tiene, sacarlos también ahí, porque el principio aplica a toda la
+   mensajería de la plataforma, no solo a labels).
+
+## Límite importante: qué controla la app vs. qué controla el label manager
+
+Corrección necesaria a todo lo de arriba: los 5 principios de diseño
+anti-presión (sin "visto", sin "en línea", sin badges de urgencia, tono
+cálido en los mensajes semilla, contrato "entregado en mano") son decisiones
+que **la app puede tomar** — son mecánica de producto, UI, defaults. Pero
+**el contenido real de lo que un label manager le escribe a un productor no
+lo maneja la app**. Si contesta rápido o tarda una semana, si su tono es
+cálido o cortante, si realmente lee el track antes de aceptarlo — eso lo
+decide la persona del otro lado del chat. Nosotros no podemos diseñar eso,
+solo el marco donde pasa.
+
+Esto separa dos cosas que en el bloque anterior quedaron mezcladas:
+
+- **Lo que sí es responsabilidad de la app** (y donde aplican los 5
+  principios): que la UI nunca *fuerce* una sensación de urgencia o
+  vigilancia que no está en manos del label manager evitar — nadie debería
+  sentir presión por un "visto" que la app decidió mostrar, aunque el label
+  manager de al lado sea la persona más cálida del mundo. Estas son
+  decisiones de mecánica, no de contenido, y son 100% controlables.
+- **Lo que no es responsabilidad de la app**: la conversación semilla de
+  JIK/Dear Deer Music que redacté como ejemplo (*"¡Nos encantó JIK / Never
+  Leave!..."*) es contenido **mock**, útil para probar el prototipo y
+  mostrar cómo se *vería* una buena interacción — pero en el producto real
+  ese texto lo escribe el label manager, no un template que la app le
+  impone. No hay forma de garantizar, vía diseño, que un label manager real
+  sea cercano y humano; solo se puede evitar que la propia app le sume
+  fricción o frialdad encima.
+
+**Consecuencia concreta para lo que sí conviene construir:** en vez de
+intentar controlar el tono del label manager (imposible), lo que la app
+puede ofrecer son **ayudas opcionales, nunca obligatorias**, para que
+escribir un mensaje cálido sea más fácil que escribir uno frío — por
+ejemplo, al abrir el chat por primera vez desde una submission aceptada, un
+placeholder tipo *"Contale a {productor} por qué te gustó {track}…"* en vez
+de un campo vacío sin guía. Es una sugerencia de UX pendiente de evaluar
+para el lado label-manager de la app (que hoy no existe todavía — todo lo
+que se construyó hasta ahora es la vista del productor), no algo para
+implementar ahora.

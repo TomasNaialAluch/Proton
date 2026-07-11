@@ -10,12 +10,10 @@ const PAGE_WIDTH = 520;
 
 /**
  * In-app PDF reader for a contract document — paginated, no external tab.
- * `children` renders absolutely-positioned inside the page surface (used for the
- * signature overlay), so it lines up with the rendered page regardless of its size.
- * `frameOverlay` renders over the *whole* scrollable frame instead — the page is
- * often narrower than the frame (centered with gray padding around it), so a
- * click-to-sign affordance needs this one to be reachable everywhere in the visor,
- * not just on the exact page pixels.
+ * `children` renders absolutely-positioned inside the page surface, exactly over
+ * the rendered page (full height, scrolls with it) — used for the signature
+ * placement overlay and the click-to-sign affordance, so both cover the whole
+ * document and the coordinate math stays aligned with the page.
  */
 export default function PdfContractViewer({
   fileUrl,
@@ -23,7 +21,6 @@ export default function PdfContractViewer({
   onPageChange,
   onLoadSuccess,
   onPageSurfaceRef,
-  frameOverlay,
   children,
 }: {
   fileUrl: string;
@@ -31,7 +28,6 @@ export default function PdfContractViewer({
   onPageChange: (page: number) => void;
   onLoadSuccess?: (numPages: number) => void;
   onPageSurfaceRef?: (el: HTMLDivElement | null) => void;
-  frameOverlay?: ReactNode;
   children?: ReactNode;
 }) {
   const [numPages, setNumPages] = useState(0);
@@ -62,9 +58,13 @@ export default function PdfContractViewer({
         </button>
       </div>
 
-      <div className="relative flex justify-center overflow-auto bg-[var(--color-border)]/20 p-4 max-h-[70vh]">
+      {/* items-start: without it, flexbox stretches the page surface to the
+          container height instead of the real PDF height — which both clips the
+          click overlay and throws off the signature-placement math. */}
+      <div className="flex items-start justify-center overflow-auto bg-[var(--color-border)]/20 p-4 max-h-[70vh]">
         <div ref={onPageSurfaceRef} className="relative inline-block">
           <Document
+            key={fileUrl}
             file={fileUrl}
             onLoadSuccess={({ numPages: n }) => {
               setNumPages(n);
@@ -80,7 +80,6 @@ export default function PdfContractViewer({
           </Document>
           {children}
         </div>
-        {frameOverlay}
       </div>
     </div>
   );

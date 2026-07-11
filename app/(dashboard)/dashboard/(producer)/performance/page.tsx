@@ -4,12 +4,16 @@ import { useState, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { TrendingUp, Music2, Disc3, Star, Search } from "lucide-react";
 import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
+import LoadMoreButton from "@/components/dashboard/_shared/LoadMoreButton";
 import Skeleton from "@/components/ui/Skeleton";
 import StreamsChart from "@/components/dashboard/StreamsChart";
 import GenreDonut from "@/components/dashboard/GenreDonut";
 import { fetchArtistWithTracks } from "@/lib/api/artist";
 import { TRACK_STREAMS, TRACK_SALES, TRACK_GENRES } from "@/lib/mock/performance";
+import { usePaginatedList } from "@/lib/hooks/usePaginatedList";
 import type { ProtonTrack } from "@/lib/api/artist";
+
+const PAGE_SIZE = 25;
 
 // ── Types ──────────────────────────────────────────────────────
 type Range  = "30D" | "3M" | "6M" | "1Y" | "All";
@@ -48,6 +52,12 @@ export default function PerformancePage() {
 
   // Build table rows depending on active filter
   const tableRows = buildRows(tracks, filter, search, sortKey, sortAsc);
+
+  const { visibleItems: pagedRows, hasMore, remaining, loadMore } = usePaginatedList(
+    tableRows,
+    PAGE_SIZE,
+    `${filter}-${search}-${sortKey}-${sortAsc}`
+  );
 
   const handleSort = (key: typeof sortKey) => {
     if (sortKey === key) setSortAsc((v) => !v);
@@ -212,7 +222,7 @@ export default function PerformancePage() {
                       </td>
                     </tr>
                   ) : (
-                    tableRows.map((row, i) => (
+                    pagedRows.map((row, i) => (
                       <tr
                         key={row.id}
                         className="border-t border-[var(--color-border)] hover:bg-[var(--color-border)] transition-colors"
@@ -245,9 +255,13 @@ export default function PerformancePage() {
             </div>
           )}
 
+          {hasMore && (
+            <LoadMoreButton onClick={loadMore} remaining={remaining} pageSize={PAGE_SIZE} />
+          )}
+
           <div className="px-4 py-3 border-t border-[var(--color-border)]">
             <p className="text-xs text-text-secondary">
-              Showing {tableRows.length} {filter.toLowerCase()}
+              Showing {pagedRows.length} of {tableRows.length} {filter.toLowerCase()}
             </p>
           </div>
         </section>

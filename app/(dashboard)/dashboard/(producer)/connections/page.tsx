@@ -32,6 +32,8 @@ export default function ConnectionsPage() {
 
   // Only suggestions still awaiting your answer belong in the inbox.
   const pendingSuggestions = mockConnectionSuggestions.filter((s) => s.status === "pending");
+  // mockConversations is shared with Label Deals messaging — only show producer threads here.
+  const producerConversations = mockConversations.filter((c) => c.peer.type === "producer");
 
   return (
     <main className="max-w-lg mx-auto px-5 pt-6 pb-24 lg:pb-10 lg:max-w-3xl lg:px-10">
@@ -115,13 +117,13 @@ export default function ConnectionsPage() {
 
       {/* ── Messages tab ── */}
       {tab === "messages" && (
-        mockConversations.length === 0 ? (
+        producerConversations.length === 0 ? (
           <p className="text-sm text-text-secondary">
             No conversations yet — they open up once you and another producer both accept.
           </p>
         ) : (
           <ul className="space-y-2">
-            {mockConversations.map((c) => (
+            {producerConversations.map((c) => (
               <li key={c.id}>
                 <Link
                   href={`/dashboard/connections/chat/${c.id}`}

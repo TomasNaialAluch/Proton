@@ -6,22 +6,19 @@ import { usePathname } from "next/navigation";
 const TABS = [
   { label: "Browse",      href: "/dashboard/labels" },
   { label: "Submissions", href: "/dashboard/labels/submissions" },
-  { label: "Contracts",   href: "/dashboard/contracts" },
+  { label: "Messages",    href: "/dashboard/labels/messages" },
 ] as const;
 
-/**
- * Sub-nav for the Labels section (Browse / Submissions). Contracts lives in
- * its own top-level section now — kept as a shortcut tab here since people
- * land on Labels looking for it, but it links out instead of being a sibling
- * route under /dashboard/labels/*.
- */
+/** Sub-nav for the Labels section (Browse / Submissions). Contracts lives in its own top-level nav item. */
 export default function LabelsTabs() {
   const pathname = usePathname();
 
   const isBrowseActive =
     pathname === "/dashboard/labels" ||
     (pathname.startsWith("/dashboard/labels/") &&
-      !pathname.startsWith("/dashboard/labels/submissions"));
+      !pathname.startsWith("/dashboard/labels/submissions") &&
+      !pathname.startsWith("/dashboard/labels/messages") &&
+      !pathname.startsWith("/dashboard/labels/chat"));
 
   return (
     <div className="mb-6 flex gap-1.5 rounded-lg bg-[var(--color-border)]/40 p-1">

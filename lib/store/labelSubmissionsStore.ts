@@ -5,21 +5,31 @@ import type { LabelSubmission } from "@/types/submission";
 
 interface LabelSubmissionsState {
   submissions: LabelSubmission[];
-  submitTrack: (input: { trackId: string; labelSlug: string; note: string }) => void;
+  submitTrack: (input: {
+    labelSlug: string;
+    note: string;
+    genre: string;
+    fileName: string;
+    fileType: string;
+    fileSize: number;
+  }) => void;
 }
 
 export const useLabelSubmissionsStore = create<LabelSubmissionsState>()(
   persist(
     (set) => ({
       submissions: mockLabelSubmissions,
-      submitTrack: ({ trackId, labelSlug, note }) =>
+      submitTrack: ({ labelSlug, note, genre, fileName, fileType, fileSize }) =>
         set((state) => ({
           submissions: [
             {
               id: `s${Date.now()}`,
-              trackId,
               labelSlug,
               note,
+              genre,
+              fileName,
+              fileType,
+              fileSize,
               status: "sent",
               sentAt: new Date().toISOString().slice(0, 10),
               respondedAt: null,
