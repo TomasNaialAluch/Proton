@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useEffect, type ReactNode } from "react";
+import { useRef, useEffect, useState, useCallback, type ReactNode } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface HorizontalScrollProps {
   children: ReactNode;
@@ -9,28 +10,68 @@ interface HorizontalScrollProps {
 
 export default function HorizontalScroll({ children, gap = "gap-3" }: HorizontalScrollProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const sync = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 1);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  }, []);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-
-    const onWheel = (e: WheelEvent) => {
-      if (el.scrollWidth <= el.clientWidth) return;
-      e.preventDefault();
-      el.scrollLeft += e.deltaY !== 0 ? e.deltaY : e.deltaX;
+    sync();
+    el.addEventListener("scroll", sync, { passive: true });
+    const ro = new ResizeObserver(sync);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener("scroll", sync);
+      ro.disconnect();
     };
+  }, [sync]);
 
-    el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
-  }, []);
+  const scroll = (dir: "left" | "right") => {
+    ref.current?.scrollBy({ left: dir === "left" ? -240 : 240, behavior: "smooth" });
+  };
 
   return (
-    <div
-      ref={ref}
-      className={`flex ${gap} overflow-x-auto pb-1`}
-      style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-    >
-      {children}
+    <div className="relative group/hscroll">
+      {canScrollLeft && (
+        <button
+          onClick={() => scroll("left")}
+          aria-label="Scroll left"
+          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10
+            size-7 rounded-full border border-[var(--color-border)] bg-surface shadow-md
+            flex items-center justify-center text-text-secondary hover:text-text-primary
+            opacity-0 group-hover/hscroll:opacity-100 transition-opacity"
+        >
+          <ChevronLeft size={13} />
+        </button>
+      )}
+
+      <div
+        ref={ref}
+        className={`flex ${gap} overflow-x-auto pb-1`}
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
+        {children}
+      </div>
+
+      {canScrollRight && (
+        <button
+          onClick={() => scroll("right")}
+          aria-label="Scroll right"
+          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10
+            size-7 rounded-full border border-[var(--color-border)] bg-surface shadow-md
+            flex items-center justify-center text-text-secondary hover:text-text-primary
+            opacity-0 group-hover/hscroll:opacity-100 transition-opacity"
+        >
+          <ChevronRight size={13} />
+        </button>
+      )}
     </div>
   );
 }
