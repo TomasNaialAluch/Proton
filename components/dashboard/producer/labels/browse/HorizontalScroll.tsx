@@ -33,40 +33,75 @@ export default function HorizontalScroll({ children, gap = "gap-3" }: Horizontal
     };
   }, [sync]);
 
-  // Mouse drag-to-scroll
+  // Drag-to-scroll with momentum (inertia on release)
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
-    let startX = 0;
-    let startScrollLeft = 0;
     let dragging = false;
     let moved = false;
+    let startX = 0;
+    let startScrollLeft = 0;
+    let lastX = 0;
+    let lastT = 0;
+    let velocity = 0;
+    let momentumId = 0;
 
-    const onMouseDown = (e: MouseEvent) => {
+    const stopMomentum = () => {
+      if (momentumId) {
+        cancelAnimationFrame(momentumId);
+        momentumId = 0;
+      }
+    };
+
+    const runMomentum = () => {
+      // decelerate: friction each frame
+      velocity *= 0.94;
+      el.scrollLeft -= velocity;
+      if (Math.abs(velocity) > 0.4) {
+        momentumId = requestAnimationFrame(runMomentum);
+      } else {
+        momentumId = 0;
+      }
+    };
+
+    const onPointerDown = (e: PointerEvent) => {
+      // only primary button, and ignore clicks that start on the arrow buttons
+      if (e.button !== 0) return;
+      stopMomentum();
       dragging = true;
       moved = false;
-      startX = e.pageX - el.offsetLeft;
+      startX = e.clientX;
       startScrollLeft = el.scrollLeft;
+      lastX = e.clientX;
+      lastT = e.timeStamp;
+      velocity = 0;
       el.style.cursor = "grabbing";
-      el.style.userSelect = "none";
     };
 
-    const onMouseMove = (e: MouseEvent) => {
+    const onPointerMove = (e: PointerEvent) => {
       if (!dragging) return;
-      const x = e.pageX - el.offsetLeft;
-      const delta = (x - startX) * 1.2;
-      if (Math.abs(delta) > 4) moved = true;
-      el.scrollLeft = startScrollLeft - delta;
+      const dx = e.clientX - startX;
+      if (Math.abs(dx) > 4) moved = true;
+      el.scrollLeft = startScrollLeft - dx;
+
+      // track instantaneous velocity for the momentum handoff
+      const dt = e.timeStamp - lastT;
+      if (dt > 0) velocity = (e.clientX - lastX) / dt * 16; // px per frame (~16ms)
+      lastX = e.clientX;
+      lastT = e.timeStamp;
     };
 
-    const stop = () => {
+    const onPointerUp = () => {
+      if (!dragging) return;
       dragging = false;
       el.style.cursor = "grab";
-      el.style.userSelect = "";
+      if (Math.abs(velocity) > 1) {
+        momentumId = requestAnimationFrame(runMomentum);
+      }
     };
 
-    // cancel click on child links if we actually dragged
+    // suppress the click that follows a real drag, so cards don't navigate
     const onClickCapture = (e: MouseEvent) => {
       if (moved) {
         e.preventDefault();
@@ -76,59 +111,70 @@ export default function HorizontalScroll({ children, gap = "gap-3" }: Horizontal
     };
 
     el.style.cursor = "grab";
-    el.addEventListener("mousedown", onMouseDown);
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", stop);
-    el.addEventListener("mouseleave", stop);
+    el.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
     el.addEventListener("click", onClickCapture, true);
 
     return () => {
-      el.removeEventListener("mousedown", onMouseDown);
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", stop);
-      el.removeEventListener("mouseleave", stop);
+      stopMomentum();
+      el.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
       el.removeEventListener("click", onClickCapture, true);
     };
   }, []);
 
   const scroll = (dir: "left" | "right") => {
-    ref.current?.scrollBy({ left: dir === "left" ? -240 : 240, behavior: "smooth" });
+    ref.current?.scrollBy({ left: dir === "left" ? -280 : 280, behavior: "smooth" });
   };
 
   return (
     <div className="relative group/hscroll">
+      {/* Left arrow + fade */}
       {canScrollLeft && (
-        <button
-          onClick={() => scroll("left")}
-          aria-label="Scroll left"
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10
-            size-7 rounded-full border border-[var(--color-border)] bg-surface shadow-md
-            flex items-center justify-center text-text-secondary hover:text-text-primary
-            opacity-0 group-hover/hscroll:opacity-100 transition-opacity"
-        >
-          <ChevronLeft size={13} />
-        </button>
+        <>
+          <div className="pointer-events-none absolute left-0 top-0 bottom-1 w-12 z-[5]
+            bg-gradient-to-r from-[var(--color-background)] to-transparent
+            opacity-0 group-hover/hscroll:opacity-100 transition-opacity" />
+          <button
+            onClick={() => scroll("left")}
+            aria-label="Scroll left"
+            className="absolute left-1 top-1/2 -translate-y-1/2 z-10
+              size-8 rounded-full border border-[var(--color-border)] bg-surface shadow-lg
+              flex items-center justify-center text-text-secondary hover:text-text-primary hover:scale-105
+              opacity-0 group-hover/hscroll:opacity-100 transition-all"
+          >
+            <ChevronLeft size={15} />
+          </button>
+        </>
       )}
 
       <div
         ref={ref}
         className={`flex ${gap} overflow-x-auto pb-1`}
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none", touchAction: "pan-y" }}
       >
         {children}
       </div>
 
+      {/* Right arrow + fade */}
       {canScrollRight && (
-        <button
-          onClick={() => scroll("right")}
-          aria-label="Scroll right"
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10
-            size-7 rounded-full border border-[var(--color-border)] bg-surface shadow-md
-            flex items-center justify-center text-text-secondary hover:text-text-primary
-            opacity-0 group-hover/hscroll:opacity-100 transition-opacity"
-        >
-          <ChevronRight size={13} />
-        </button>
+        <>
+          <div className="pointer-events-none absolute right-0 top-0 bottom-1 w-12 z-[5]
+            bg-gradient-to-l from-[var(--color-background)] to-transparent
+            opacity-0 group-hover/hscroll:opacity-100 transition-opacity" />
+          <button
+            onClick={() => scroll("right")}
+            aria-label="Scroll right"
+            className="absolute right-1 top-1/2 -translate-y-1/2 z-10
+              size-8 rounded-full border border-[var(--color-border)] bg-surface shadow-lg
+              flex items-center justify-center text-text-secondary hover:text-text-primary hover:scale-105
+              opacity-0 group-hover/hscroll:opacity-100 transition-all"
+          >
+            <ChevronRight size={15} />
+          </button>
+        </>
       )}
     </div>
   );
