@@ -6,9 +6,11 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 interface HorizontalScrollProps {
   children: ReactNode;
   gap?: string;
+  /** Section heading rendered to the left of the arrow controls, Beatport-style. */
+  title?: ReactNode;
 }
 
-export default function HorizontalScroll({ children, gap = "gap-3" }: HorizontalScrollProps) {
+export default function HorizontalScroll({ children, gap = "gap-3", title }: HorizontalScrollProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -37,19 +39,38 @@ export default function HorizontalScroll({ children, gap = "gap-3" }: Horizontal
     ref.current?.scrollBy({ left: dir === "left" ? -280 : 280, behavior: "smooth" });
   };
 
+  const hasControls = canScrollLeft || canScrollRight;
+
   return (
-    <div className="relative group/hscroll">
-      {canScrollLeft && (
-        <button
-          onClick={() => scroll("left")}
-          aria-label="Scroll left"
-          className="absolute left-1 top-1/2 -translate-y-1/2 z-10
-            size-8 rounded-full border border-[var(--color-border)] bg-surface shadow-lg
-            flex items-center justify-center text-text-secondary hover:text-text-primary
-            opacity-0 group-hover/hscroll:opacity-100 transition-opacity"
-        >
-          <ChevronLeft size={15} />
-        </button>
+    <div>
+      {(title || hasControls) && (
+        <div className="flex items-center justify-between mb-3">
+          <div>{title}</div>
+          {hasControls && (
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={() => scroll("left")}
+                disabled={!canScrollLeft}
+                aria-label="Scroll left"
+                className="size-6 rounded-full flex items-center justify-center transition-colors
+                  text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]/60
+                  disabled:opacity-30 disabled:pointer-events-none"
+              >
+                <ChevronLeft size={14} />
+              </button>
+              <button
+                onClick={() => scroll("right")}
+                disabled={!canScrollRight}
+                aria-label="Scroll right"
+                className="size-6 rounded-full flex items-center justify-center transition-colors
+                  text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]/60
+                  disabled:opacity-30 disabled:pointer-events-none"
+              >
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          )}
+        </div>
       )}
 
       <div
@@ -59,19 +80,6 @@ export default function HorizontalScroll({ children, gap = "gap-3" }: Horizontal
       >
         {children}
       </div>
-
-      {canScrollRight && (
-        <button
-          onClick={() => scroll("right")}
-          aria-label="Scroll right"
-          className="absolute right-1 top-1/2 -translate-y-1/2 z-10
-            size-8 rounded-full border border-[var(--color-border)] bg-surface shadow-lg
-            flex items-center justify-center text-text-secondary hover:text-text-primary
-            opacity-0 group-hover/hscroll:opacity-100 transition-opacity"
-        >
-          <ChevronRight size={15} />
-        </button>
-      )}
     </div>
   );
 }

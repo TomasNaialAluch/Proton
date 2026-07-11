@@ -95,12 +95,15 @@ export default function LabelsBrowsePage() {
         <>
           {radarLabels.length > 0 && (
             <section className="mb-8">
-              <div className="flex items-center gap-2 mb-3">
-                <Radio size={13} className="text-accent" />
-                <h2 className="text-sm font-semibold text-text-primary">Producer&apos;s Radar</h2>
-                <span className="text-xs text-text-secondary">— open in your genres</span>
-              </div>
-              <HorizontalScroll>
+              <HorizontalScroll
+                title={
+                  <div className="flex items-center gap-2">
+                    <Radio size={13} className="text-accent" />
+                    <h2 className="text-sm font-semibold text-text-primary">Producer&apos;s Radar</h2>
+                    <span className="text-xs text-text-secondary">— open in your genres</span>
+                  </div>
+                }
+              >
                 {radarLabels.map((l) => <LabelPill key={l.id} label={l} />)}
               </HorizontalScroll>
             </section>
@@ -108,8 +111,10 @@ export default function LabelsBrowsePage() {
 
           {featured.length > 0 && (
             <section className="mb-8">
-              <h2 className="text-sm font-semibold text-text-primary mb-3">Featured this week</h2>
-              <HorizontalScroll gap="gap-4">
+              <HorizontalScroll
+                gap="gap-4"
+                title={<h2 className="text-sm font-semibold text-text-primary">Featured this week</h2>}
+              >
                 {featured.map((l) => <FeaturedCard key={l.id} label={l} />)}
               </HorizontalScroll>
             </section>
@@ -117,11 +122,14 @@ export default function LabelsBrowsePage() {
 
           {openForDemos.length > 0 && (
             <section className="mb-8">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold text-text-primary">Open for demos</h2>
-                <span className="text-xs text-text-secondary">{openForDemos.length} labels</span>
-              </div>
-              <HorizontalScroll>
+              <HorizontalScroll
+                title={
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-sm font-semibold text-text-primary">Open for demos</h2>
+                    <span className="text-xs text-text-secondary">{openForDemos.length} labels</span>
+                  </div>
+                }
+              >
                 {openForDemos.map((l) => <LabelPill key={l.id} label={l} />)}
               </HorizontalScroll>
             </section>
