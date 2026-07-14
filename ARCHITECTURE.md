@@ -355,6 +355,10 @@ El repo tiene varios `.md` con propósitos distintos. Guía rápida de cuál mir
 | [`READMEPUBLIC.md`](READMEPUBLIC.md) / `.en.md` | Lo mismo que `READMEMAIN.md` pero del lado público (radio, shows, charts). |
 | [`docs/README-dashboard-vision-roadmap.md`](docs/README-dashboard-vision-roadmap.md) | Visión de producto del dashboard — persona del productor, roadmap. |
 | [`docs/README-dashboard-label-manager.md`](docs/README-dashboard-label-manager.md) | Documentación específica del shell de label-manager (roster, catálogo, etc). |
+| [`docs/README-tech-debt.md`](docs/README-tech-debt.md) | Re-auditoría verificada de la deuda técnica listada abajo en este archivo — qué sigue igual, qué empeoró, qué es nuevo. Mirar antes de tocar `AppSidebar`/`HamburgerMenu`/`BottomNav` o cualquier `StatCard`/`KpiCard`. |
+| [`docs/README-security.md`](docs/README-security.md) | Checklist de qué hay que resolver antes de que esto maneje datos reales (auth, control de acceso, `localStorage`). |
+| [`docs/README-efficiency.md`](docs/README-efficiency.md) | Patrones que rinden bien con datos mock chicos pero no van a escalar tal cual (paginación, filtrado client-side). |
+| [`docs/README-routing-architecture.md`](docs/README-routing-architecture.md) | Por qué Track/Artist/Label Detail viven en el nivel top de `dashboard/` y no adentro de `(producer)/` — entidades generales vs. páginas de rol. |
 | `docs/feature-*.md`, `docs/README-*.md` (resto) | Un doc por feature puntual (discover, feedback, skeletons, navbar, buscador, etc.) — mirar el nombre del archivo. |
 | **`docs/label-contracts/`** | Toda la documentación de la sección **Contracts** (esta es la más activa ahora mismo): |
 | &nbsp;&nbsp;└ [`README.md`](docs/label-contracts/README.md) | Diseño original del lector de PDF + firma in-app (por qué existe, cómo funciona). |
