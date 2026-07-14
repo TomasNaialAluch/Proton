@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { Send, CheckCircle2, Upload, X, FileAudio } from "lucide-react";
+import { Send, CheckCircle2, Upload, X, FileAudio, ChevronDown } from "lucide-react";
 import { useLabelSubmissionsStore } from "@/lib/store/labelSubmissionsStore";
 
 const ACCEPTED_EXTENSIONS = [".wav", ".mp3"];
@@ -30,6 +30,7 @@ export default function SubmitTrackForm({
   const submitTrack = useLabelSubmissionsStore((s) => s.submitTrack);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [expanded, setExpanded] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [genre, setGenre] = useState(acceptedGenres[0] ?? "");
@@ -83,9 +84,24 @@ export default function SubmitTrackForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-2xl border border-[var(--color-border)] bg-surface p-5 space-y-4">
-      <h2 className="text-sm font-semibold text-text-primary">Send a demo to {labelName}</h2>
+    <div className="rounded-2xl border border-accent/25 bg-accent/5 overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        aria-expanded={expanded}
+        className="flex w-full items-center justify-between gap-2 px-5 py-4 text-left hover:bg-accent/10 transition-colors"
+      >
+        <span className="flex items-center gap-2 text-sm font-semibold text-text-primary">
+          <Send size={14} className="text-accent" /> Send a demo to {labelName}
+        </span>
+        <ChevronDown
+          size={16}
+          className={`shrink-0 text-text-secondary transition-transform ${expanded ? "rotate-180" : ""}`}
+        />
+      </button>
 
+      {expanded && (
+      <form onSubmit={handleSubmit} className="space-y-4 px-5 pb-5 pt-1 border-t border-accent/20">
       {/* File upload */}
       <div>
         <label className="mb-1.5 block text-xs font-medium text-text-secondary">
@@ -186,6 +202,8 @@ export default function SubmitTrackForm({
           </Link>.
         </div>
       )}
-    </form>
+      </form>
+      )}
+    </div>
   );
 }

@@ -1,6 +1,11 @@
+"use client";
+
 import Image from "next/image";
-import { Users, Calendar } from "lucide-react";
+import { Users, Calendar, Bell, BellRing } from "lucide-react";
 import ContestBadge from "@/components/dashboard/producer/labels/detail/ContestBadge";
+import AvatarGradient from "@/components/dashboard/_shared/AvatarGradient";
+import { useLabelFollowsStore } from "@/lib/store/labelFollowsStore";
+import { usePrototypeViewStore } from "@/lib/store/prototypeViewStore";
 import type { ProtonLabel } from "@/types/label";
 
 function formatDate(iso: string) {
@@ -31,19 +36,52 @@ function DemoStatusBadge({ status }: { status: ProtonLabel["demoStatus"] }) {
 }
 
 export default function LabelDetailHeader({ label }: { label: ProtonLabel }) {
+  const isFollowing = useLabelFollowsStore((s) => s.isFollowing(label.slug));
+  const toggleFollow = useLabelFollowsStore((s) => s.toggleFollow);
+  // Follow doesn't apply to the label-manager role — this product connects
+  // labels with artists, not labels with other labels. See
+  // docs/README-routing-architecture.md.
+  const view = usePrototypeViewStore((s) => s.view);
+
   return (
     <div className="rounded-2xl border border-[var(--color-border)] bg-surface p-5">
       <div className="flex items-start gap-4">
-        <div className="size-14 rounded-xl flex items-center justify-center overflow-hidden shrink-0 bg-accent/10 border border-accent/20">
-          {label.image?.url ? (
+        {label.image?.url ? (
+          <div className="size-14 rounded-xl flex items-center justify-center overflow-hidden shrink-0 bg-accent/10 border border-accent/20">
             <Image src={label.image.url} alt={label.name} width={56} height={56} className="object-contain" />
-          ) : (
-            <span className="text-lg font-bold text-accent">{label.name.slice(0, 2).toUpperCase()}</span>
-          )}
-        </div>
+          </div>
+        ) : (
+          // No real logo in the mock data — a deterministic gradient per
+          // label id, same idea as Track/Artist Detail. See
+          // docs/feature-labels-detail.md.
+          <AvatarGradient
+            seed={label.slug}
+            initials={label.name.slice(0, 2).toUpperCase()}
+            shapeClassName="rounded-xl"
+            className="size-14 text-lg"
+          />
+        )}
 
         <div className="min-w-0 flex-1">
-          <h1 className="text-xl font-bold text-text-primary">{label.name}</h1>
+          <div className="flex items-start justify-between gap-3">
+            <h1 className="text-xl font-bold text-text-primary">{label.name}</h1>
+            {view === "producer" && (
+              <button
+                type="button"
+                onClick={() => toggleFollow(label.slug)}
+                aria-pressed={isFollowing}
+                title={isFollowing ? "Stop following — no more updates from this label" : "Follow — get notified on new releases or a demo status change"}
+                className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors
+                  ${isFollowing
+                    ? "bg-accent/15 text-accent"
+                    : "bg-[var(--color-border)] text-text-secondary hover:text-text-primary"
+                  }`}
+              >
+                {isFollowing ? <BellRing size={12} /> : <Bell size={12} />}
+                {isFollowing ? "Following" : "Follow"}
+              </button>
+            )}
+          </div>
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-text-secondary">
             {label.artistCount !== undefined && (

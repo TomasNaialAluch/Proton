@@ -20,8 +20,9 @@ export async function fetchTracksSummary() {
   const tracks = mockTracks;
   return {
     totalTracks: tracks.length,
-    totalStreams: tracks.reduce((sum, t) => sum + t.streams, 0),
-    totalSales: 1,
-    topTrack: [...tracks].sort((a, b) => b.streams - a.streams)[0],
+    // Streams/sales aren't on `Track` (see types/track.ts) — they're sensitive,
+    // access-scoped data. A real implementation would look them up per-track
+    // for the authenticated owner, same as the Performance page already does.
+    topTrack: tracks[0],
   };
 }

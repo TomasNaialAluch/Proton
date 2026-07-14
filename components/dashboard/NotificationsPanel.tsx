@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { X, Bell, Music, DollarSign, FileText, TrendingUp, CheckCheck, MessageSquareText, Users, MessageCircle } from "lucide-react";
+import { X, Bell, Music, DollarSign, FileText, TrendingUp, CheckCheck, MessageSquareText, Users, MessageCircle, BellRing } from "lucide-react";
 import { useContractsStore } from "@/lib/store/contractsStore";
+import { useLabelFollowsStore } from "@/lib/store/labelFollowsStore";
+import { mockLabelNews } from "@/lib/mock/labelNews";
+import { mockLabels } from "@/lib/mock/labels";
 
 interface Notification {
   id: number | string;
@@ -113,6 +116,7 @@ export default function NotificationsPanel({
   // useSyncExternalStore (infinite "getServerSnapshot" loop).
   const contracts = useContractsStore((s) => s.contracts);
   const pendingContracts = contracts.filter((c) => c.status === "pending_signature");
+  const following = useLabelFollowsStore((s) => s.following);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -138,7 +142,27 @@ export default function NotificationsPanel({
     href: `/dashboard/contracts/${contract.id}`,
   }));
 
-  const allNotifications = [...contractNotifications, ...notifications];
+  /**
+   * News from a followed label — only surfaced if it happened after the
+   * producer started following (see `since` in labelFollowsStore). Derived,
+   * like the pending-contract notifications above: it reflects real followed
+   * state, so "Clear all" doesn't dismiss it, and it goes away on its own
+   * once there's no more unseen news for that label.
+   */
+  const labelNewsNotifications: Notification[] = mockLabelNews
+    .filter((n) => following.some((f) => f.slug === n.labelSlug && n.date >= f.since))
+    .map((n) => ({
+      id: `label-news-${n.id}`,
+      icon: n.type === "new_release" ? Music : BellRing,
+      iconColor: "#34D399",
+      title: n.title,
+      description: n.description,
+      time: n.time,
+      read: false,
+      href: `/dashboard/labels/${n.labelSlug}`,
+    }));
+
+  const allNotifications = [...contractNotifications, ...labelNewsNotifications, ...notifications];
   const unreadCount = allNotifications.filter((n) => !n.read).length;
 
   const clearAll = () => setNotifications([]);

@@ -103,7 +103,6 @@ function buildTrack(index: number): DiscoverTrack {
     status: "published",
     audioUrl: "",
     coverUrl: "",
-    streams: 0,
     bpm,
     key,
     openForFeedback: true,

@@ -6,11 +6,30 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { fetchLabels } from "@/lib/api/labels";
 import {
-  DEMO_LABEL_TRACKS,
+  LABEL_SAMPLE_TRACKS,
   LABEL_DEMO_CATALOG_NOTICE,
-} from "@/lib/mock/labelDemoTracks";
+} from "@/lib/mock/labelSampleCatalog";
+import { mockRosterArtists } from "@/lib/mock/label-manager/rosterArtists";
 import type { ProtonLabel } from "@/types/label";
+import type { Track } from "@/types/track";
 import Skeleton from "@/components/ui/Skeleton";
+
+function artistNames(t: Track) {
+  const ids = t.artistIds ?? [t.artistId];
+  return ids
+    .map((id) => mockRosterArtists.find((a) => a.id === id)?.name ?? "Unknown artist")
+    .join(" & ");
+}
+
+function formatReleaseDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function formatDuration(seconds: number) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
 
 export default function LabelDetailView() {
   const params = useParams();
@@ -165,7 +184,7 @@ export default function LabelDetailView() {
           </span>
         </div>
         <ul className="flex flex-col">
-          {DEMO_LABEL_TRACKS.map((t) => (
+          {LABEL_SAMPLE_TRACKS.map((t) => (
             <li
               key={t.id}
               className="flex items-center gap-3 px-3 py-3 text-sm border-b last:border-b-0"
@@ -176,7 +195,7 @@ export default function LabelDetailView() {
                   {t.title}
                 </p>
                 <p className="text-xs truncate" style={{ color: "var(--color-text-secondary)" }}>
-                  {t.artistName}
+                  {artistNames(t)}
                 </p>
               </div>
               <span
@@ -186,10 +205,10 @@ export default function LabelDetailView() {
                 {t.releaseName}
               </span>
               <span className="hidden md:block w-28 text-xs" style={{ color: "var(--color-text-secondary)" }}>
-                {t.releaseDate}
+                {formatReleaseDate(t.releaseDate)}
               </span>
               <span className="w-10 text-xs text-right tabular-nums" style={{ color: "var(--color-text-secondary)" }}>
-                {t.duration}
+                {formatDuration(t.duration)}
               </span>
             </li>
           ))}

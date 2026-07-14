@@ -1,39 +1,59 @@
 # Label Detail Page — Design Document
 
+> **Scope note:** this doc used to also cover Track Detail and Artist
+> Detail in depth. Once those existed as real pages, they were split out
+> into their own docs so each could be iterated on independently:
+> `docs/feature-track-detail.md` and `docs/feature-artist-detail.md`. This
+> doc now covers Label Detail only — its own sections, its own data model,
+> its own known weaknesses. The three pages still link into each other; see
+> "How the three pages relate" below for the navigation graph and where
+> each entity's data model lives.
+
 ## Overview
 
-The Label Detail page is the profile of a label — accessible to any producer, regardless of whether that label is currently accepting demos. It serves as the primary decision surface where a producer evaluates fit and takes action.
+The Label Detail page is the profile of a label — accessible to any
+producer, regardless of whether that label is currently accepting demos.
+It serves as the primary decision surface where a producer evaluates fit
+and takes action.
 
-This is distinct from "Browse": Browse is for discovery. Detail is for evaluation and action.
+This is distinct from "Browse": Browse is for discovery. Detail is for
+evaluation and action.
+
+**Route:** `app/(dashboard)/dashboard/labels/[slug]/` — moved out of
+`(producer)/` once its actions became role-aware (see
+`docs/README-routing-architecture.md`); Browse/Submissions/Messages stay
+under `(producer)/labels/`, since those are producer-scoped workflows, not
+a general entity page.
+**Files:** `page.tsx` (entry), `LabelProfileClient.tsx` (composes everything below)
 
 ---
 
-## Implementation Status (as of this doc)
+## Implementation status
 
 | Section | Status | Notes |
 |---|---|---|
-| Label Header | ✅ Built | `LabelDetailHeader.tsx`, shows a contest badge when the label has one active |
-| Recent Releases | ✅ Built (sample data) | `RecentReleasesStrip.tsx` — reuses the shared prototype catalog, same tracks on every label |
-| Artist Roster (display) | ✅ Built (sample data) | `ArtistRoster.tsx` — names from the shared catalog |
-| Request to collaborate with an artist | ✅ Built, real flow | `RosterArtistRow.tsx` — per-artist icon expands into a pitch form, sends via `labelInboxStore` |
+| Label Header | ✅ Built | `LabelDetailHeader.tsx` — contest badge + Follow button, both real |
+| Recent Releases | ✅ Built (sample data) | `RecentReleasesStrip.tsx` — real `Track[]`, but the same 5-track sample on every label. Each card links to Track Detail; "View all" links to a paginated/searchable list |
+| Artist Roster | ✅ Built (sample data) | `ArtistRoster.tsx` — real `Artist[]`. Each row links to Artist Detail; "View all" links to a paginated/searchable list |
 | Demo Policy | ✅ Built | `DemoPolicyCard.tsx`, visible whether the label is open or closed |
-| Submit demo (label open) | ✅ Built, real flow | `SubmitTrackForm.tsx` — writes to `labelSubmissionsStore`, shows up under Submissions |
-| Submit demo (label closed) | ⚠️ Not possible by design | The submit form is swapped out entirely for `RequestToConnectForm` — there is still no path to attach a track when a label isn't open. This is a deliberate open question, not a bug — see note below. |
-| Request to Connect | ✅ Built, real flow | `RequestToConnectForm.tsx` — sends via `labelInboxStore`, creates/reuses a real conversation, shows up in Messages |
-| Active Contests | ✅ Built, real flow | `ActiveContests.tsx` + `ContestBadge.tsx` — "Enter contest" sends via `labelInboxStore` |
-| Remix Opportunities | ✅ Built, real flow | `RemixOpportunities.tsx` — "Request to remix" per track, independent state per track, sends via `labelInboxStore` |
+| Submit demo (label open) | ✅ Built, real flow | `SubmitTrackForm.tsx` — collapsed by default, expands on tap. Writes to `labelSubmissionsStore`, shows up under Submissions |
+| Request to Connect (label closed) | ✅ Built, real flow | `RequestToConnectForm.tsx` — sends via `labelInboxStore`, creates/reuses a real conversation |
+| Active Contests | ✅ Built, real flow | `ActiveContests.tsx` + `ContestBadge.tsx` |
+| Remix Opportunities (label-curated) | ✅ Built, real flow, 2-step approval | `RemixOpportunities.tsx` — see `docs/feature-track-detail.md` for the label+artist approval rule this now enforces |
 | Similar Labels | ✅ Built (mock) | `SimilarLabels.tsx` — genre-overlap only |
-| Follow label | ❌ Not built | Only thing left on the original roadmap. Not started. |
+| Follow label | ✅ Built, real flow | `LabelDetailHeader.tsx` + `labelFollowsStore.ts` + `lib/mock/labelNews.ts`, surfaces as a real `NotificationsPanel` entry |
 
-**What "real flow" means here:** all four producer-initiated actions (intro, collab request, remix request, contest entry) go through one shared action, `sendLabelRequest()` in `lib/store/labelInboxStore.ts`. It reuses an existing conversation with that label if one's open, otherwise creates one tagged `producer_request` with a `kind`. The resulting message is real — it shows up in the Labels → Messages tab and in the conversation thread, not just a local success toast. Verified end to end for all three new action types (collab, remix, contest) plus the existing intro flow.
-
-**Still mock, still fine for a prototype:** the sample catalog (same tracks/artists on every label — see `LABEL_DEMO_CATALOG_NOTICE`) and Similar Labels (genre overlap only, no roster/activity weighting yet per the original design).
+**What "real flow" means:** every producer-initiated action on this page
+(intro, collab request, remix request, contest entry, demo submission)
+writes to a real Zustand store and shows up in Labels → Messages / →
+Submissions — not a local success toast that forgets it happened.
 
 ---
 
 ## The Problem
 
-The current label profile shows: logo, name, genres, and a submit form. A producer has no way to:
+The original label profile showed: logo, name, genres, and a submit form.
+A producer had no way to:
 
 - Understand the label's sound and identity before submitting
 - Know what kind of artists are on the roster
@@ -45,9 +65,7 @@ The result: producers either submit blindly, or skip entirely.
 
 ---
 
-## What the Detail Page Does
-
-A producer lands on a label's profile from Browse (genre view or search). The page must answer:
+## What the page answers
 
 1. **Is this label right for my sound?** — Recent releases, roster, genre description
 2. **How can I connect?** — Multiple action paths, not just "submit demo"
@@ -58,137 +76,100 @@ A producer lands on a label's profile from Browse (genre view or search). The pa
 ## Sections
 
 ### 1. Label Header
-- Logo, name, founded year
-- Genre tags + short bio (what the label sounds like, who it's for)
-- Activity indicator (last release date, total releases on Proton)
-- Demo status badge: Open / Closed / By referral
+Logo (falls back to initials — no label in the mock data has a real
+image), name, founded year, genre tags, bio, activity indicator
+(`releaseCount`/`lastReleaseDate`), demo status badge, contest badge if
+active, Follow button.
 
 ### 2. Recent Releases
-3–5 most recent releases on Proton, shown as a horizontal strip:
-- Track title
-- Artist name
-- Release date
-- Play preview (uses global player, single track context)
-
-Gives an immediate sonic identity without the producer having to leave the page.
+A horizontal strip of the label's most recent tracks — see
+`docs/feature-track-detail.md` for what a track links to from here.
 
 ### 3. Artist Roster
-List of artists who have released on the label.
-- Avatar (initials), name, link to their public producer profile (future)
-- Shows breadth and tier of the roster
-- Helps a producer self-evaluate fit: "Do I sound like these artists?"
-- **Request to collaborate** — each roster entry gets a small CTA (icon button is enough, not a full button) that opens a short form: what kind of collaboration (co-production, remix trade, guest vocal, etc.) + a one-line pitch. This goes to the label as a message tagged with which artist it's about, same inbox as "Request to connect" — the label decides whether to loop the artist in. Producers never message artists directly through this surface; the label mediates, same as every other action on this page.
+The label's artists as tappable chips — see `docs/feature-artist-detail.md`
+for what an artist links to from here, and for the collab-request flow
+that used to live inline in this section (it doesn't anymore; tapping an
+artist now navigates to their real profile).
 
 ### 4. Demo Policy
-Structured block, label-reported:
-- **Accepting demos:** Yes / No / By referral only
-- **Preferred genres:** chip list
-- **Preferred format:** WAV / MP3 / Either
-- **Estimated response time:** if known (e.g. "4–6 weeks", "Responds to all")
-- **Notes:** free text from the label (e.g. "No ghost-produced tracks", "Only original work")
-
-Even if the label is currently closed, the policy block stays visible — a producer can read it now and submit later.
+Structured, label-reported block: accepting demos yes/no/referral,
+preferred genres, preferred format, estimated response time, free-text
+notes. Stays visible even when the label is closed, sitting directly above
+whichever action form renders below it (moved there so the two read
+together — used to be scattered higher up the page).
 
 ### 5. Active Contests
-If the label has an active beat/track contest:
-- Contest name + description
-- Deadline
-- Prize or outcome (e.g. "winner gets signed to the label")
-- Entry action button
+Contest name, description, deadline, prize, entry action. Surfaced as a
+badge in the header too, since Browse has no contest surface of its own.
 
-Contests are a lower-barrier entry point than demo submission — great for producers who don't yet have a relationship with the label.
-
-**Where this becomes visible, once built:**
-- A small "Contest" badge/pill next to the demo-status badge in `LabelDetailHeader` — this is the only place a producer would currently learn a contest exists, since Browse has no contest surface.
-- Optionally, a `FeaturedCard` in Browse could show the same badge so contests are discoverable without opening every label profile — not in the current design, would need a pass on Browse before building.
-- A dedicated section on the detail page (below Demo Policy, above the submit/connect form) listing each active contest with its own entry CTA.
-
-### 6. Remix Opportunities
-If the label has tracks available for official remix:
-- Track title + original artist
-- Deadline (if any)
-- "Request to remix" CTA → sends a structured request to the label
-
-This creates a second connection path for producers who don't have original material ready but want to build a relationship.
-
-**Where this becomes visible, once built:** a section on the detail page, likely folded into or placed right after Recent Releases (same visual language — track title + artist), each row getting a "Request to remix" button instead of a play button.
+### 6. Remix Opportunities (label-curated)
+Tracks the *label* has flagged as open for remix — distinct from the
+artist-driven per-track remix request that lives on Track Detail. Both
+now enforce the same 2-step approval (label, then artist) — see
+`docs/feature-track-detail.md`.
 
 ### 7. Request to Connect
-Available when the label is closed for unsolicited demos but the producer still wants to introduce themselves.
-- Producer writes a short intro (why they're relevant, what genre they work in)
-- The label receives it as a message, not a demo submission
-- Sets expectations: this is not a demo review request, just an introduction
-
-**By design, there is no way to attach a track here.** If a producer on a closed label wants the label to actually hear something, that's a deliberate gap right now — Request to Connect is intro-only. Whether to allow an optional track attachment on the intro (blurring the line with a demo submission) is an open product question, not an oversight; flagging it so it doesn't get "fixed" without a decision first.
+Shown instead of the submit form when the label is closed. Intro-only, no
+track attachment — **deliberately still an open product question**, not an
+oversight (see Roadmap below, do not "fix" without deciding).
 
 ### 8. Similar Labels
-3 recommendations based on genre overlap, roster size, and activity pattern.
-Uses the same discovery loop from Browse: "if you like X, check Y."
+3 recommendations by genre overlap only — no roster/activity weighting yet.
 
 ---
 
-## Action Hierarchy
+## Action hierarchy
 
 From most to least common, in order of UI prominence:
 
 | Action | When available | Entry point |
 |---|---|---|
-| Submit demo | demoStatus = "open" | Primary CTA, top of page |
-| Enter contest | Label has active contest | Highlighted section |
-| Request remix slot | Label has open remix tracks | Section with track list |
-| Request to connect | demoStatus = "closed" or "unknown" | Secondary CTA below policy |
-| Follow label | Always (future feature) | Icon button in header |
+| Submit demo | `demoStatus === "open"` | Primary CTA (collapsed by default) |
+| Enter contest | Label has an active contest | Highlighted section |
+| Request remix slot | Label approved a track for remix AND artist opted in | Section with track list |
+| Request to connect | `demoStatus` is "closed" or "unknown" | Secondary CTA below policy |
+| Follow label | Always | Icon button in header |
 
 ---
 
-## Demo Submission Flow (existing, enhanced)
+## Interface notes
 
-The current submit form stays, but gains:
-- **Track selection** from the producer's Proton library (existing)
-- **Genre selector** (so the label knows which genre the demo is aimed at)
-- **Personalized note** field (free text, optional)
-- **File upload** for demos not yet on Proton (existing)
+**Not a streaming page.** No full playback here — identity, not a listening session.
 
-After submission: producer is redirected to Submissions tab with the new entry visible. If the label accepts, a conversation thread opens automatically.
+**Accessible when closed.** A closed label profile stays fully readable —
+policy, roster, releases — only the submit action swaps to "Request to connect."
 
----
-
-## Interface Notes
-
-**Not a streaming page.** The previews are short (30s) — enough to convey identity, not a music player session. The global player handles the rest.
-
-**Accessible when closed.** A closed label profile is fully visible. Producers can read the demo policy, see the roster, and prepare for when it reopens. Only the "Submit demo" button is replaced by "Request to connect."
-
-**Mobile first.** Producers browse labels during free time, often on mobile. The sections should stack cleanly and the action buttons must be thumb-accessible.
+**Mobile first.** Producers browse during free time, often on mobile —
+sections stack cleanly, actions stay thumb-accessible.
 
 ---
 
-## Data Model (additions to existing ProtonLabel)
+## Data model
 
 ```ts
 interface ProtonLabel {
-  // existing fields...
+  id: string;
+  name: string;
+  slug: string;
+  image: { url: string } | null;
+  artistCount?: number;
+  genres?: string[];
+  description?: string;
 
-  // profile enrichment
-  foundedYear?: number;
   releaseCount?: number;
-  lastReleaseDate?: string;           // ISO date
+  lastReleaseDate?: string;
   demoStatus?: "open" | "closed" | "unknown";
-  demoGenres?: string[];              // genres the label prioritizes for demos
+  demoGenres?: string[];
+  featured?: boolean;
+  foundedYear?: number;
+  beatportUrl?: string;
+
   demoPolicy?: {
     preferredFormat?: "wav" | "mp3" | "either";
     estimatedResponseTime?: string;
     notes?: string;
   };
 
-  // artists
-  rosterArtistIds?: string[];         // links to producer profiles
-
-  // discovery
-  featured?: boolean;
-  beatportUrl?: string;
-
-  // action surfaces
   activeContests?: {
     id: string;
     title: string;
@@ -197,10 +178,10 @@ interface ProtonLabel {
     prize?: string;
   }[];
 
+  /** Step 1 of the 2-step remix approval — see docs/feature-track-detail.md. */
   remixOpportunities?: {
     id: string;
-    trackTitle: string;
-    originalArtist: string;
+    trackId: string;
     deadline?: string;
   }[];
 }
@@ -208,31 +189,105 @@ interface ProtonLabel {
 
 ---
 
-## Implementation Roadmap
+## How the three pages relate (Label ↔ Track ↔ Artist)
 
-### Phase 1 — Static enrichment
-- [x] Add `foundedYear`, `releaseCount`, `lastReleaseDate`, `demoStatus`, `demoGenres` to mock data and UI
-- [x] Demo policy section (structured display, label-reported mock data)
-- [x] "Request to connect" as a static form when label is closed
+Not three isolated pages — a cross-linked graph:
 
-### Phase 2 — Content
-- [x] Recent releases strip (mock track data per label) — same sample catalog on every label, not label-specific yet
-- [x] Artist roster section
-- [x] Similar labels (3 recommendations based on genre)
+```
+Label Detail
+ ├─→ Track Detail       (Recent Releases / "view all releases")
+ └─→ Artist Detail      (Artist Roster / "view all roster")
 
-### Phase 3 — Action surfaces
-- [x] Active contests — `activeContests` on `ProtonLabel`, `ContestBadge` in the header, `ActiveContests.tsx` section with a real "Enter contest" action
-- [x] Remix opportunity requests — `remixOpportunities` on `ProtonLabel`, `RemixOpportunities.tsx` section, real "Request to remix" per track
-- [x] Request to collaborate with a specific artist — `RosterArtistRow.tsx`, tags the message with which artist it's about
-- [ ] Follow label (notification when status changes or new release) — only item left unbuilt
+Artist Detail
+ └─→ Track Detail       (their track list)
 
-### Phase 4 — Make Request to Connect (and every new action) real
-- [x] `sendLabelRequest()` in `lib/store/labelInboxStore.ts` — one shared action for intro / collab / remix / contest, reuses or creates a real conversation
-- [x] Messages tab and chat thread read from the store, so anything sent from the detail page actually shows up
-- [ ] Decide whether intro messages can carry an optional track attachment (see note in Section 7) — still open
+Track Detail
+ └─→ Artist Detail      (every credited artist — a 2-artist track links to both)
+```
 
-### Phase 5 — Real data
-- [ ] Pull release history from Proton distribution data
-- [ ] Label self-manages demo policy, contest, remix slots via label dashboard
-- [ ] "Follow" notifications via push or email
-- [ ] Per-label release/roster data instead of the shared sample catalog
+A producer can bounce Label → Track → (a different) Artist → their Tracks
+→ a different Track → back to a different Label, indefinitely.
+
+**Where each entity's data model lives:**
+- `ProtonLabel` — this doc, above
+- `Track` — `docs/feature-track-detail.md` (shared with Discover and the
+  producer's own catalog — this was a real unification, not a given; see
+  that doc for why `LabelDemoTrack`, a disconnected ad-hoc type, got
+  retired in favor of the real `Track`)
+- `Artist` — `docs/feature-artist-detail.md` (reused the existing type
+  instead of inventing a parallel `ProtonArtist`)
+
+**Sensitive data carve-out:** unifying on one `Track` does NOT mean every
+field is visible to everyone who reaches it — streams/sales stay
+access-scoped, never rendered on a track another producer is browsing. See
+`docs/README-security.md` #1 and `docs/feature-track-detail.md`.
+
+---
+
+## Known UI weaknesses (why this doc says "keep going")
+
+Label Detail is the most built-out of the three pages, but it's still
+visually thin in specific ways:
+
+1. ~~**Every section is the same card shell.**~~ **Addressed:** each
+   section now has its own color, matching the same language used on
+   Track Detail — Demo Policy stays neutral on purpose (it's a rule, not
+   an action), Active Contests is amber, Remix Opportunities is violet
+   (same violet as Track Detail's per-track remix card, so "remix" reads
+   as one consistent concept everywhere it appears), and the submit
+   demo/request to connect form — the page's primary action — gets the
+   app's own accent color. Four visually distinct categories instead of
+   one repeated shell.
+2. ~~**No real label imagery anywhere.**~~ **Partially addressed:** the
+   two-letter fallback badge now renders as a deterministic gradient per
+   label (`AvatarGradient`, same component Track/Artist Detail use), so
+   labels are at least visually distinct from each other by color. Still
+   not a real logo/brand color — that needs actual assets.
+3. ~~**Similar Labels is genre-overlap only**~~ **Improved:** now ranked
+   by *how many* genres actually overlap (not just "any" match), with
+   activity level (`releaseCount` proximity) as a tiebreaker — two labels
+   putting out a similar volume of music read as more comparable than a
+   giant and a tiny one sharing one genre tag. **Roster overlap was
+   deliberately left out**: every label currently shows the same shared
+   sample roster (see #4 below), so computing overlap against it would
+   make every label 100% "similar" to every other one — worse than not
+   having the signal at all. Revisit once labels have real, distinct
+   rosters.
+4. **Recent Releases and Artist Roster are the same 5-track/4-artist
+   sample on every label** — real per-label data is Phase 5 (needs a
+   backend). ~~The "View all" pages just paginate the same fixed list~~ —
+   **addressed for releases:** `/dashboard/labels/[slug]/releases` now has
+   a real sort dropdown (newest/oldest, title A-Z/Z-A, genre A-Z/Z-A — same
+   options Beatport's label track list offers) and a Genre filter
+   (`FilterDropdown`, reused from Discover), plus richer rows (`CoverArt`
+   thumbnail + genre/BPM line instead of a bare title/artist). Roster's
+   "view all" page (`/roster`) hasn't had the same pass yet.
+5. **No sense of label "voice."** The `description` field is a single
+   paragraph with no distinct tone per label — Bedrock and a bedroom-house
+   label read in the same register.
+
+---
+
+## Roadmap
+
+### Done
+- [x] Header, Recent Releases, Artist Roster, Demo Policy, Active
+  Contests, Remix Opportunities, Request to Connect, Similar Labels,
+  Follow — all built, all real flows where an action is involved
+- [x] "View all releases" / "view all roster" — paginated + searchable
+- [x] Demo Policy grouped visually with the action it describes
+- [x] Submit form collapsed by default
+
+### Still open
+- [ ] **Product decision, not implementation debt:** can "Request to
+  Connect" intro messages carry an optional track attachment? Blurs the
+  line with a real demo submission — flagging so it doesn't get "fixed"
+  without deciding first
+- [ ] Real per-label release/roster data (needs backend — Phase 5)
+- [ ] Label self-manages demo policy/contests/remix slots via a label
+  dashboard (Phase 5)
+- [ ] "Follow" notifications via push/email, not just in-app (Phase 5)
+- [ ] Visual pass addressing the "known UI weaknesses" above — started
+  (label imagery, see weakness #2), rest still open: differentiating the
+  repeated card shell (#1), Similar Labels quality (#3), per-label sample
+  data (#4), label "voice" (#5)

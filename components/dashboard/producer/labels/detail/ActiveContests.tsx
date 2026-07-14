@@ -4,13 +4,20 @@ import { useState } from "react";
 import Link from "next/link";
 import { Trophy, Calendar, Gift, CheckCircle2 } from "lucide-react";
 import { useLabelInboxStore } from "@/lib/store/labelInboxStore";
+import { usePrototypeViewStore } from "@/lib/store/prototypeViewStore";
 import type { ProtonLabel } from "@/types/label";
 
 function formatDeadline(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+/**
+ * The contest itself stays visible to every viewer (same content for
+ * everyone — see docs/README-routing-architecture.md); only "Enter
+ * contest" is a producer action, hidden for label-manager view.
+ */
 function ContestEntry({ label, contest }: { label: ProtonLabel; contest: NonNullable<ProtonLabel["activeContests"]>[number] }) {
+  const view = usePrototypeViewStore((s) => s.view);
   const sendLabelRequest = useLabelInboxStore((s) => s.sendLabelRequest);
   const [entered, setEntered] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -46,23 +53,25 @@ function ContestEntry({ label, contest }: { label: ProtonLabel; contest: NonNull
             )}
           </div>
 
-          {entered ? (
-            <div className="flex items-center gap-2 mt-3 text-xs text-emerald-600 dark:text-emerald-400">
-              <CheckCircle2 size={13} className="shrink-0" />
-              Entry sent.{" "}
-              {conversationId && (
-                <Link href={`/dashboard/labels/chat/${conversationId}`} className="font-semibold underline underline-offset-2">
-                  View conversation
-                </Link>
-              )}
-            </div>
-          ) : (
-            <button
-              onClick={enter}
-              className="mt-3 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 transition-opacity"
-            >
-              Enter contest
-            </button>
+          {view === "producer" && (
+            entered ? (
+              <div className="flex items-center gap-2 mt-3 text-xs text-emerald-600 dark:text-emerald-400">
+                <CheckCircle2 size={13} className="shrink-0" />
+                Entry sent.{" "}
+                {conversationId && (
+                  <Link href={`/dashboard/labels/chat/${conversationId}`} className="font-semibold underline underline-offset-2">
+                    View conversation
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={enter}
+                className="mt-3 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 transition-opacity"
+              >
+                Enter contest
+              </button>
+            )
           )}
         </div>
       </div>

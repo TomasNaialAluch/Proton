@@ -34,8 +34,8 @@ export const mockLabels: ProtonLabel[] = [
       notes: "Looking for album-length storytelling, not one-off club tracks.",
     },
     remixOpportunities: [
-      { id: "remix-sudbeat-1", trackTitle: "Weightless", originalArtist: "Andy Green", deadline: "2026-08-01" },
-      { id: "remix-sudbeat-2", trackTitle: "Fading Signal", originalArtist: "Henry Saiz" },
+      { id: "remix-sudbeat-1", trackId: "demo-2", deadline: "2026-08-01" },
+      { id: "remix-sudbeat-2", trackId: "demo-3" },
     ],
   },
   {
@@ -49,7 +49,7 @@ export const mockLabels: ProtonLabel[] = [
       notes: "Not accepting unsolicited demos right now — roster is set through 2026. Referrals only.",
     },
     remixOpportunities: [
-      { id: "remix-bedrock-1", trackTitle: "Open Horizons", originalArtist: "Hernán Cattáneo", deadline: "2026-09-01" },
+      { id: "remix-bedrock-1", trackId: "demo-4", deadline: "2026-09-01" },
     ],
   },
   {

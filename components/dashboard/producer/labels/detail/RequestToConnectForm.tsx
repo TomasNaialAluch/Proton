@@ -22,7 +22,7 @@ export default function RequestToConnectForm({ label }: { label: ProtonLabel }) 
   };
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-2xl border border-[var(--color-border)] bg-surface p-5 space-y-4">
+    <form onSubmit={handleSubmit} className="rounded-2xl border border-accent/25 bg-accent/5 p-5 space-y-4">
       <div>
         <h2 className="text-sm font-semibold text-text-primary">Request to connect with {label.name}</h2>
         <p className="mt-1 text-xs text-text-secondary leading-relaxed">
