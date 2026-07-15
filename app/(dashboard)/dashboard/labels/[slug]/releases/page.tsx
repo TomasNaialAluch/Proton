@@ -2,17 +2,19 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { notFound, usePathname } from "next/navigation";
-import { Search } from "lucide-react";
+import { notFound, usePathname, useSearchParams } from "next/navigation";
+import { Search, RotateCcw } from "lucide-react";
 import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
 import BackButton from "@/components/dashboard/_shared/BackButton";
 import LoadMoreButton from "@/components/dashboard/_shared/LoadMoreButton";
 import FilterDropdown from "@/components/dashboard/discover/FilterDropdown";
+import BpmRangeFilter, { type BpmRange } from "@/components/dashboard/discover/BpmRangeFilter";
 import CoverArt from "@/components/dashboard/discover/CoverArt";
 import { LABEL_SAMPLE_TRACKS, LABEL_DEMO_CATALOG_NOTICE } from "@/lib/mock/labelSampleCatalog";
 import { mockRosterArtists } from "@/lib/mock/label-manager/rosterArtists";
 import { mockLabels } from "@/lib/mock/labels";
 import { usePaginatedList } from "@/lib/hooks/usePaginatedList";
+import { backChainForward } from "@/lib/utils/navigation";
 import type { Track } from "@/types/track";
 
 const PAGE_SIZE = 25;
@@ -58,35 +60,64 @@ function sortTracks(tracks: Track[], sort: SortOption): Track[] {
 
 export default function LabelReleasesPage() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const slug = labelSlugFromPath(pathname);
   const label = mockLabels.find((l) => l.slug === slug);
   if (!label) notFound();
 
+  // Where "back" should go (the label's own chain, forwarded via the
+  // "View all" link), and what to hand off to Track links so Back keeps
+  // unwinding correctly. See docs/README-navigation-back-flow.md.
+  const from = searchParams.get("from");
+  const backChain = backChainForward(pathname, searchParams);
+
   const [search, setSearch] = useState("");
   const [genre, setGenre] = useState<string | null>(null);
+  const [trackKey, setTrackKey] = useState<string | null>(null);
+  const [artist, setArtist] = useState<string | null>(null);
+  const [bpmRange, setBpmRange] = useState<BpmRange | null>(null);
   const [sort, setSort] = useState<SortOption>("newest");
   const query = search.trim().toLowerCase();
 
   const genres = [...new Set(LABEL_SAMPLE_TRACKS.map((t) => t.genre))].sort();
+  const keys = [...new Set(LABEL_SAMPLE_TRACKS.map((t) => t.key).filter((k): k is string => Boolean(k)))].sort();
+  const artists = [...new Set(LABEL_SAMPLE_TRACKS.flatMap((t) => (t.artistIds ?? [t.artistId])
+    .map((id) => mockRosterArtists.find((a) => a.id === id)?.name)
+    .filter((n): n is string => Boolean(n))))].sort();
+  const bpmBounds: BpmRange = (() => {
+    const bpms = LABEL_SAMPLE_TRACKS.map((t) => t.bpm).filter((b): b is number => b !== undefined);
+    return bpms.length ? { min: Math.min(...bpms), max: Math.max(...bpms) } : { min: 100, max: 160 };
+  })();
+
+  const resetAll = () => {
+    setGenre(null);
+    setTrackKey(null);
+    setArtist(null);
+    setBpmRange(null);
+  };
+  const hasActiveFilters = Boolean(genre || trackKey || artist || bpmRange);
 
   const filtered = LABEL_SAMPLE_TRACKS.filter((t) => {
     const matchesQuery = query
       ? t.title.toLowerCase().includes(query) || artistNames(t).toLowerCase().includes(query)
       : true;
     const matchesGenre = genre ? t.genre === genre : true;
-    return matchesQuery && matchesGenre;
+    const matchesKey = trackKey ? t.key === trackKey : true;
+    const matchesArtist = artist ? artistNames(t).includes(artist) : true;
+    const matchesBpm = bpmRange && t.bpm !== undefined ? t.bpm >= bpmRange.min && t.bpm <= bpmRange.max : true;
+    return matchesQuery && matchesGenre && matchesKey && matchesArtist && matchesBpm;
   });
   const sorted = sortTracks(filtered, sort);
 
   const { visibleItems: pagedTracks, hasMore, remaining, loadMore } = usePaginatedList(
     sorted,
     PAGE_SIZE,
-    `${query}-${genre ?? ""}-${sort}`
+    `${query}-${genre ?? ""}-${trackKey ?? ""}-${artist ?? ""}-${bpmRange?.min ?? ""}-${bpmRange?.max ?? ""}-${sort}`
   );
 
   return (
     <main className="max-w-lg mx-auto px-5 pt-6 pb-24 lg:pb-10 lg:max-w-2xl lg:px-10 flex flex-col gap-6">
-      <BackButton fallbackHref={`/dashboard/labels/${label.slug}`} label="Back" />
+      <BackButton href={from ?? undefined} fallbackHref={`/dashboard/labels/${label.slug}`} label="Back" />
 
       <DashboardBreadcrumb items={[
         { label: "Dashboard", href: "/dashboard" },
@@ -129,6 +160,18 @@ export default function LabelReleasesPage() {
         </select>
 
         <FilterDropdown label="Genre" options={genres} value={genre} onChange={setGenre} />
+        <BpmRangeFilter bounds={bpmBounds} value={bpmRange} onChange={setBpmRange} />
+        <FilterDropdown label="Key" options={keys} value={trackKey} onChange={setTrackKey} />
+        <FilterDropdown label="Artist" options={artists} value={artist} onChange={setArtist} />
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={resetAll}
+            className="flex items-center gap-1 text-xs text-text-secondary hover:text-text-primary transition-colors"
+          >
+            <RotateCcw size={11} /> Reset all
+          </button>
+        )}
       </div>
 
       <div className="rounded-2xl border border-[var(--color-border)] bg-surface overflow-hidden">
@@ -139,7 +182,7 @@ export default function LabelReleasesPage() {
             {pagedTracks.map((t) => (
               <li key={t.id}>
                 <Link
-                  href={`/dashboard/tracks/${t.id}?from=${encodeURIComponent(pathname)}`}
+                  href={`/dashboard/tracks/${t.id}?from=${encodeURIComponent(backChain)}`}
                   className="flex items-center gap-3 px-5 py-4 hover:bg-[var(--color-border)]/30 transition-colors"
                 >
                   <CoverArt seed={t.id} className="size-11" />

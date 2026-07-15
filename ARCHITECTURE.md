@@ -356,6 +356,8 @@ El repo tiene varios `.md` con propósitos distintos. Guía rápida de cuál mir
 | [`docs/README-dashboard-vision-roadmap.md`](docs/README-dashboard-vision-roadmap.md) | Visión de producto del dashboard — persona del productor, roadmap. |
 | [`docs/README-dashboard-label-manager.md`](docs/README-dashboard-label-manager.md) | Documentación específica del shell de label-manager (roster, catálogo, etc). |
 | `docs/feature-*.md`, `docs/README-*.md` (resto) | Un doc por feature puntual (discover, feedback, skeletons, navbar, buscador, etc.) — mirar el nombre del archivo. |
+| [`docs/README-navigation-back-flow.md`](docs/README-navigation-back-flow.md) | Por qué el botón Back y el breadcrumb se rompían al navegar Label → Track → Artist en cadena, y el fix (`?from=` acumulativo + fallback recursivo para el breadcrumb). |
+| [`docs/README-codebase-architecture-review.md`](docs/README-codebase-architecture-review.md) | Revisión estructural del repo (mantenibilidad/escalabilidad) — qué está bien, deuda real rankeada por impacto, y qué de la sección "known issues" de este mismo archivo ya está resuelto pero no actualizado acá. |
 | **`docs/label-contracts/`** | Toda la documentación de la sección **Contracts** (esta es la más activa ahora mismo): |
 | &nbsp;&nbsp;└ [`README.md`](docs/label-contracts/README.md) | Diseño original del lector de PDF + firma in-app (por qué existe, cómo funciona). |
 | &nbsp;&nbsp;└ [`migration-notes.md`](docs/label-contracts/migration-notes.md) | Qué había de "Contracts" antes del rediseño y qué se reemplazó. |

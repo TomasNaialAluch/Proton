@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { User, TrendingUp, DollarSign, Building2, Tag } from "lucide-react";
+import { User, TrendingUp, Building2, Tag, Compass } from "lucide-react";
 import { usePrototypeViewStore } from "@/lib/store/prototypeViewStore";
 import { useContractsStore } from "@/lib/store/contractsStore";
 import { LABEL_MANAGER_NAV_LINKS } from "@/lib/dashboard/dashboardShellRouting";
@@ -10,7 +10,7 @@ import { LABEL_MANAGER_NAV_LINKS } from "@/lib/dashboard/dashboardShellRouting";
 const producerNavItems = [
   { label: "Artists",     icon: User,       href: "/dashboard"             },
   { label: "Performance", icon: TrendingUp, href: "/dashboard/performance" },
-  { label: "Royalties",   icon: DollarSign, href: "/dashboard/royalties"   },
+  { label: "Discover",    icon: Compass,    href: "/dashboard/discover"    },
   { label: "Contracts",   icon: Building2,  href: "/dashboard/contracts"   },
   { label: "Labels", icon: Tag,        href: "/dashboard/labels"      },
 ];

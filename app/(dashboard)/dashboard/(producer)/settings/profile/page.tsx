@@ -1,15 +1,21 @@
-import { Camera, ChevronLeft, ChevronRight, Mic2, Radio, Link as LinkIcon } from "lucide-react";
+"use client";
+
+import { Camera, ChevronLeft, ChevronRight, Mic2, Radio, Link as LinkIcon, Instagram, Music2 } from "lucide-react";
 import Link from "next/link";
 import { mockArtist } from "@/lib/mock/artist";
 import DemoSignOutButton from "@/components/dashboard/DemoSignOutButton";
+import { useArtistProfileStore } from "@/lib/store/artistProfileStore";
 
-const connections = [
-  { platform: "Spotify",     username: "Naial",  verified: true,  color: "#1DB954" },
-  { platform: "Apple Music", username: "Naial",  verified: false, color: "#FC3C44" },
-  { platform: "SoundCloud",  username: "Naial",  verified: true,  color: "#FF5500" },
-];
+const SOCIAL_FIELDS = [
+  { key: "instagram", label: "Instagram", icon: Instagram, placeholder: "yourhandle" },
+  { key: "soundcloud", label: "SoundCloud", icon: Music2, placeholder: "yourhandle" },
+  { key: "spotify", label: "Spotify", icon: Music2, placeholder: "artist profile URL" },
+] as const;
 
 export default function ProfileSettingsPage() {
+  const socialLinks = useArtistProfileStore((s) => s.socialLinks);
+  const setSocialLink = useArtistProfileStore((s) => s.setSocialLink);
+
   return (
     <div className="min-h-screen bg-background">
 
@@ -72,28 +78,29 @@ export default function ProfileSettingsPage() {
 
         {/* ── Connections ── */}
         <Section title="Links & Connections" icon={<LinkIcon size={14} />}>
-          {connections.map(({ platform, username, verified, color }) => (
-            <button
-              key={platform}
-              className="w-full flex items-center gap-3 px-4 py-3
-                border-t border-[var(--color-border)] hover:bg-[var(--color-border)] transition-colors"
+          <p className="px-4 pb-3 text-xs text-text-secondary">
+            Shown on your public Artist Detail profile — leave blank to hide a platform.
+          </p>
+          {SOCIAL_FIELDS.map(({ key, label, icon: Icon, placeholder }) => (
+            <div
+              key={key}
+              className="flex items-center gap-3 px-4 py-3 border-t border-[var(--color-border)]"
             >
-              {/* Platform dot */}
-              <span
-                className="size-2 rounded-full shrink-0"
-                style={{ backgroundColor: color }}
-              />
-              <div className="flex-1 min-w-0 text-left">
-                <p className="text-sm text-text-primary">{platform}</p>
-                <p className="text-xs text-text-secondary mt-0.5">
-                  {username}
-                  {verified && (
-                    <span className="ml-1.5 text-accent">· Verified</span>
-                  )}
-                </p>
+              <Icon size={15} className="text-text-secondary shrink-0" />
+              <div className="flex-1 min-w-0">
+                <label htmlFor={`social-${key}`} className="block text-xs text-text-secondary mb-0.5">
+                  {label}
+                </label>
+                <input
+                  id={`social-${key}`}
+                  type="text"
+                  value={socialLinks[key] ?? ""}
+                  onChange={(e) => setSocialLink(key, e.target.value)}
+                  placeholder={placeholder}
+                  className="w-full bg-transparent text-sm text-text-primary placeholder:text-text-secondary/60 focus:outline-none"
+                />
               </div>
-              <ChevronRight size={14} className="text-text-secondary shrink-0" />
-            </button>
+            </div>
           ))}
         </Section>
 

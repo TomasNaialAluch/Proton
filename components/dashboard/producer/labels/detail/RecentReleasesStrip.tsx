@@ -16,7 +16,7 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-export default function RecentReleasesStrip({ label }: { label: ProtonLabel }) {
+export default function RecentReleasesStrip({ label, backChain }: { label: ProtonLabel; backChain: string }) {
   return (
     <section>
       <HorizontalScroll
@@ -24,7 +24,7 @@ export default function RecentReleasesStrip({ label }: { label: ProtonLabel }) {
         title={
           <div className="flex items-center gap-3">
             <h2 className="text-sm font-semibold text-text-primary">Recent releases</h2>
-            <Link href={`/dashboard/labels/${label.slug}/releases`} className="text-xs font-medium text-accent hover:underline underline-offset-2">
+            <Link href={`/dashboard/labels/${label.slug}/releases?from=${encodeURIComponent(backChain)}`} className="text-xs font-medium text-accent hover:underline underline-offset-2">
               View all
             </Link>
           </div>
@@ -33,7 +33,7 @@ export default function RecentReleasesStrip({ label }: { label: ProtonLabel }) {
         {LABEL_SAMPLE_TRACKS.map((t) => (
           <Link
             key={t.id}
-            href={`/dashboard/tracks/${t.id}?from=${encodeURIComponent(`/dashboard/labels/${label.slug}`)}`}
+            href={`/dashboard/tracks/${t.id}?from=${encodeURIComponent(backChain)}`}
             className="flex flex-col gap-2.5 rounded-xl border border-[var(--color-border)] bg-surface p-3.5 shrink-0
               hover:border-accent/50 transition-colors"
             style={{ width: 168 }}

@@ -53,15 +53,22 @@ export const BEATPORT_GENRES = [
   "UK Garage",
 ] as const;
 
+/**
+ * Labels here are real entries from lib/mock/labels.ts (not fictional
+ * names) so a Discover track's label links to that label's actual
+ * catalog/roster page instead of a dead end — see
+ * docs/feature-track-detail.md's Track/Discover unification for why a
+ * disconnected duplicate label name is exactly the kind of thing to avoid.
+ */
 const PRODUCERS: { producer: FeedbackProducer; label: string; genres: string[] }[] = [
-  { producer: { id: "lume", name: "Lume" }, label: "Outer Space", genres: ["Progressive House", "Melodic House & Techno"] },
-  { producer: { id: "darko", name: "Darko" }, label: "Subterra Records", genres: ["Techno (Peak Time / Driving)", "Tech House", "Hard Techno"] },
+  { producer: { id: "lume", name: "Lume" }, label: "Outer Space Oasis", genres: ["Progressive House", "Melodic House & Techno"] },
+  { producer: { id: "darko", name: "Darko" }, label: "Fabric", genres: ["Techno (Peak Time / Driving)", "Tech House", "Hard Techno"] },
   { producer: { id: "vesna", name: "Vesna" }, label: "Toxic Astronaut", genres: ["Melodic House & Techno", "Organic House"] },
-  { producer: { id: "kaiser", name: "Kaiser" }, label: "Subterra Records", genres: ["Techno (Raw / Deep / Hypnotic)", "Minimal / Deep Tech"] },
-  { producer: { id: "nadia-r", name: "Nadia R." }, label: "Deep Current", genres: ["Deep House", "Organic House"] },
-  { producer: { id: "fenix", name: "Fenix" }, label: "Outer Space", genres: ["Progressive House", "Trance (Main Floor)"] },
-  { producer: { id: "iris-moon", name: "Iris Moon" }, label: "Deep Current", genres: ["Afro House", "Amapiano"] },
-  { producer: { id: "rook", name: "Rook" }, label: "Night Frequency", genres: ["Drum & Bass", "Breaks / Breakbeat / UK Bass"] },
+  { producer: { id: "kaiser", name: "Kaiser" }, label: "Fabric", genres: ["Techno (Raw / Deep / Hypnotic)", "Minimal / Deep Tech"] },
+  { producer: { id: "nadia-r", name: "Nadia R." }, label: "Hope Recordings", genres: ["Deep House", "Organic House"] },
+  { producer: { id: "fenix", name: "Fenix" }, label: "Outer Space Oasis", genres: ["Progressive House", "Trance (Main Floor)"] },
+  { producer: { id: "iris-moon", name: "Iris Moon" }, label: "Hope Recordings", genres: ["Afro House", "Amapiano"] },
+  { producer: { id: "rook", name: "Rook" }, label: "Hyperdub", genres: ["Drum & Bass", "Breaks / Breakbeat / UK Bass"] },
 ];
 
 const TITLE_ADJECTIVES = [

@@ -26,7 +26,17 @@ export default function BackButton({
 
   const handleClick = () => {
     if (href) {
-      router.push(href);
+      // `replace`, not `push`: pushing would stack a brand-new history
+      // entry every time Back is clicked, so the *real* browser history
+      // keeps growing with duplicates of pages the user already left. The
+      // next page down the chain might have no `from` of its own and fall
+      // through to the `router.back()` branch below — which then pops one
+      // of those duplicates instead of the page truly before it, bouncing
+      // the user back to where they just came from. `replace` swaps the
+      // current entry instead of stacking one, so real history stays a
+      // true record of forward navigation only. See
+      // docs/README-navigation-back-flow.md.
+      router.replace(href);
       return;
     }
     if (window.history.length > 1) {

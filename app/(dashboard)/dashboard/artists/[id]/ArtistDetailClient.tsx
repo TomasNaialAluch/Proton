@@ -7,9 +7,12 @@ import ArtistDetailHeader from "@/components/dashboard/artists/detail/ArtistDeta
 import ArtistTrackList from "@/components/dashboard/artists/detail/ArtistTrackList";
 import ArtistCollabCard from "@/components/dashboard/artists/detail/ArtistCollabCard";
 import { mockRosterArtists } from "@/lib/mock/label-manager/rosterArtists";
+import { mockArtist } from "@/lib/mock/artist";
 import { mockTracks } from "@/lib/mock/tracks";
 import { LABEL_SAMPLE_TRACKS } from "@/lib/mock/labelSampleCatalog";
 import { mockLabels } from "@/lib/mock/labels";
+import { useArtistProfileStore } from "@/lib/store/artistProfileStore";
+import { backChainForward, labelSlugFromReferrer } from "@/lib/utils/navigation";
 import type { Track } from "@/types/track";
 
 /** Same convention used across the app: derive id from pathname, not useParams(). */
@@ -35,8 +38,17 @@ export default function ArtistDetailClient() {
   const searchParams = useSearchParams();
   const id = artistIdFromPath(pathname);
 
-  const artist = mockRosterArtists.find((a) => a.id === id);
-  if (!artist) notFound();
+  const baseArtist = mockRosterArtists.find((a) => a.id === id);
+  if (!baseArtist) notFound();
+
+  // Settings > Artist Profile edits your own social links live (see
+  // lib/store/artistProfileStore.ts) — merge them in when you're viewing
+  // your own profile, so an edit actually shows up here. Every other
+  // artist's socialLinks stays whatever's in the static roster mock.
+  const ownSocialLinks = useArtistProfileStore((s) => s.socialLinks);
+  const artist = baseArtist.id === mockArtist.id
+    ? { ...baseArtist, socialLinks: { ...baseArtist.socialLinks, ...ownSocialLinks } }
+    : baseArtist;
 
   const tracks = tracksByArtist(artist.id);
 
@@ -52,17 +64,33 @@ export default function ArtistDetailClient() {
   // instead of the generic Labels list. See BackButton.tsx.
   const from = searchParams.get("from") ?? (viaSlug ? `/dashboard/labels/${viaSlug}` : null);
 
+  // Carries this page's own `from`/`via` chain forward into Track links so
+  // Back keeps unwinding the whole trail instead of resetting to one hop.
+  // See docs/README-navigation-back-flow.md.
+  const backChain = backChainForward(pathname, searchParams);
+
+  // Breadcrumb only: when there's no `via`, fall back to whatever label
+  // page is at the head of the `from` chain — same reasoning as Track
+  // Detail. See docs/README-navigation-back-flow.md.
+  const breadcrumbLabel = viaLabel ?? mockLabels.find((l) => l.slug === labelSlugFromReferrer(from));
+
   return (
     <main className="max-w-lg mx-auto px-5 pt-6 pb-24 lg:pb-10 lg:max-w-2xl lg:px-10 flex flex-col gap-6">
       <BackButton href={from ?? undefined} fallbackHref="/dashboard/labels" label="Back" />
 
       <DashboardBreadcrumb items={[
         { label: "Dashboard", href: "/dashboard" },
+        ...(breadcrumbLabel
+          ? [
+              { label: "Labels", href: "/dashboard/labels" },
+              { label: breadcrumbLabel.name, href: `/dashboard/labels/${breadcrumbLabel.slug}` },
+            ]
+          : []),
         { label: artist.name },
       ]} />
 
       <ArtistDetailHeader artist={artist} />
-      <ArtistTrackList tracks={tracks} linkFrom={pathname + (viaSlug ? `?via=${viaSlug}` : "")} />
+      <ArtistTrackList tracks={tracks} linkFrom={backChain} />
       <ArtistCollabCard artist={artist} viaLabel={viaLabel} />
     </main>
   );

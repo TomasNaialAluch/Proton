@@ -23,7 +23,7 @@ function findTrack(trackId: string) {
  * everyone — see docs/README-routing-architecture.md); only "Request to
  * remix" itself is a producer action, hidden for label-manager view.
  */
-function RemixRow({ label, opportunity }: { label: ProtonLabel; opportunity: NonNullable<ProtonLabel["remixOpportunities"]>[number] }) {
+function RemixRow({ label, opportunity, backChain }: { label: ProtonLabel; opportunity: NonNullable<ProtonLabel["remixOpportunities"]>[number]; backChain: string }) {
   const view = usePrototypeViewStore((s) => s.view);
   const sendLabelRequest = useLabelInboxStore((s) => s.sendLabelRequest);
   const [requested, setRequested] = useState(false);
@@ -57,7 +57,7 @@ function RemixRow({ label, opportunity }: { label: ProtonLabel; opportunity: Non
         <Repeat size={14} />
       </div>
       <Link
-        href={`/dashboard/tracks/${track.id}?from=${encodeURIComponent(`/dashboard/labels/${label.slug}`)}`}
+        href={`/dashboard/tracks/${track.id}?from=${encodeURIComponent(backChain)}`}
         className="flex-1 min-w-0 hover:opacity-80 transition-opacity"
       >
         <p className="text-sm font-medium text-text-primary truncate">{track.title}</p>
@@ -103,7 +103,7 @@ function RemixRow({ label, opportunity }: { label: ProtonLabel; opportunity: Non
   );
 }
 
-export default function RemixOpportunities({ label }: { label: ProtonLabel }) {
+export default function RemixOpportunities({ label, backChain }: { label: ProtonLabel; backChain: string }) {
   const opportunities = label.remixOpportunities;
   if (!opportunities || opportunities.length === 0) return null;
 
@@ -112,7 +112,7 @@ export default function RemixOpportunities({ label }: { label: ProtonLabel }) {
       <h2 className="text-sm font-semibold text-text-primary mb-3">Remix opportunities</h2>
       <div className="flex flex-col gap-2">
         {opportunities.map((o) => (
-          <RemixRow key={o.id} label={label} opportunity={o} />
+          <RemixRow key={o.id} label={label} opportunity={o} backChain={backChain} />
         ))}
       </div>
     </section>

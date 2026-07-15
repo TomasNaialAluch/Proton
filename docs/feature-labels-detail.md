@@ -279,15 +279,30 @@ visually thin in specific ways:
 - [x] Submit form collapsed by default
 
 ### Still open
-- [ ] **Product decision, not implementation debt:** can "Request to
-  Connect" intro messages carry an optional track attachment? Blurs the
-  line with a real demo submission — flagging so it doesn't get "fixed"
-  without deciding first
+- [x] ~~**Product decision:** can "Request to Connect" intro messages
+  carry an optional track attachment?~~ **Decided: no**, not for this
+  form specifically — blurring it with a real demo submission was the
+  right instinct to avoid. Instead, the direction is a **general chat
+  attachment/audio-playback capability** (send a file, play audio inline)
+  on the conversation thread itself (`ConversationThread.tsx`,
+  `labelInboxStore.ts`), available across every conversation — not
+  bolted onto this one form. Not built yet; tracked as its own item below
+- [ ] **Chat attachments + inline audio playback** — extend
+  `ChatMessage`'s attachment type (today only supports the contract card,
+  see `docs/label-contracts/contracts-rebuild-plan.md`) to support an
+  audio/file attachment, and add a play control to `ConversationThread.tsx`
+  so a shared track can actually be listened to from inside the chat, not
+  just linked out. Same "no real audio file exists anywhere yet" blocker
+  as Track Detail's audio preview (see `docs/feature-track-detail.md`) —
+  useful to build the UI/data-model shape now, but won't have real sound
+  until there's an actual audio asset pipeline
 - [ ] Real per-label release/roster data (needs backend — Phase 5)
 - [ ] Label self-manages demo policy/contests/remix slots via a label
   dashboard (Phase 5)
 - [ ] "Follow" notifications via push/email, not just in-app (Phase 5)
-- [ ] Visual pass addressing the "known UI weaknesses" above — started
-  (label imagery, see weakness #2), rest still open: differentiating the
-  repeated card shell (#1), Similar Labels quality (#3), per-label sample
-  data (#4), label "voice" (#5)
+- [ ] Visual pass addressing the "known UI weaknesses" above — mostly
+  done (card differentiation #1, Similar Labels #3); remaining: **real
+  label logos are explicitly on hold** — no workaround/placeholder is
+  wanted here, wait until real artwork can come from the API, same stance
+  as audio (see above) — and per-label sample data (#4, Phase 5), label
+  "voice" (#5)

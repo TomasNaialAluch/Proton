@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { notFound, usePathname } from "next/navigation";
+import { notFound, usePathname, useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
 import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
 import BackButton from "@/components/dashboard/_shared/BackButton";
@@ -10,6 +10,7 @@ import LoadMoreButton from "@/components/dashboard/_shared/LoadMoreButton";
 import { mockRosterArtists } from "@/lib/mock/label-manager/rosterArtists";
 import { mockLabels } from "@/lib/mock/labels";
 import { usePaginatedList } from "@/lib/hooks/usePaginatedList";
+import { backChainForward } from "@/lib/utils/navigation";
 
 const PAGE_SIZE = 25;
 
@@ -20,9 +21,16 @@ function labelSlugFromPath(pathname: string): string {
 
 export default function LabelRosterPage() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const slug = labelSlugFromPath(pathname);
   const label = mockLabels.find((l) => l.slug === slug);
   if (!label) notFound();
+
+  // Where "back" should go (the label's own chain, forwarded via the
+  // "View all" link), and what to hand off to Artist links so Back keeps
+  // unwinding correctly. See docs/README-navigation-back-flow.md.
+  const from = searchParams.get("from");
+  const backChain = backChainForward(pathname, searchParams);
 
   const [search, setSearch] = useState("");
   const query = search.trim().toLowerCase();
@@ -35,7 +43,7 @@ export default function LabelRosterPage() {
 
   return (
     <main className="max-w-lg mx-auto px-5 pt-6 pb-24 lg:pb-10 lg:max-w-2xl lg:px-10 flex flex-col gap-6">
-      <BackButton fallbackHref={`/dashboard/labels/${label.slug}`} label="Back" />
+      <BackButton href={from ?? undefined} fallbackHref={`/dashboard/labels/${label.slug}`} label="Back" />
 
       <DashboardBreadcrumb items={[
         { label: "Dashboard", href: "/dashboard" },
@@ -70,7 +78,7 @@ export default function LabelRosterPage() {
             {pagedArtists.map((a) => (
               <li key={a.id}>
                 <Link
-                  href={`/dashboard/artists/${a.id}?via=${label.slug}&from=${encodeURIComponent(pathname)}`}
+                  href={`/dashboard/artists/${a.id}?via=${label.slug}&from=${encodeURIComponent(backChain)}`}
                   className="flex items-center gap-3 px-5 py-4 hover:bg-[var(--color-border)]/30 transition-colors"
                 >
                   <span className="size-9 rounded-full flex items-center justify-center text-xs font-bold bg-accent/10 text-accent shrink-0">
