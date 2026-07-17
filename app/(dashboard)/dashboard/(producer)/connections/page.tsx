@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Sparkles, MessageCircle, ChevronRight, Clock } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Sparkles, MessageCircle, ChevronRight } from "lucide-react";
 import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
+import ConversationList from "@/components/dashboard/messaging/ConversationList";
 import { mockConnectionSuggestions } from "@/lib/mock/connections";
-import { mockConversations, mockMessages } from "@/lib/mock/messages";
+import { useLabelInboxStore } from "@/lib/store/labelInboxStore";
 
 type Tab = "suggestions" | "messages";
 
@@ -14,26 +16,27 @@ const TYPE_BADGE: Record<string, string> = {
   complementary: "Complementary profile",
 };
 
-function lastMessagePreview(conversationId: string) {
-  const msgs = mockMessages.filter((m) => m.conversationId === conversationId);
-  return msgs[msgs.length - 1]?.text ?? "No messages yet.";
-}
-
-function timeAgo(iso: string) {
-  const diffMs = Date.now() - new Date(iso).getTime();
-  const hours = Math.floor(diffMs / 3_600_000);
-  if (hours < 1) return "just now";
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
-}
-
 export default function ConnectionsPage() {
-  const [tab, setTab] = useState<Tab>("suggestions");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  // Synced to `?tab=` so a chat's Back button (which links here with the
+  // tab baked into its own `from`) restores the Messages tab instead of
+  // resetting to Suggestions. See docs/README-navigation-back-flow.md.
+  const [tab, setTabState] = useState<Tab>(searchParams.get("tab") === "messages" ? "messages" : "suggestions");
+  const setTab = (next: Tab) => {
+    setTabState(next);
+    router.replace(next === "messages" ? "/dashboard/connections?tab=messages" : "/dashboard/connections");
+  };
 
   // Only suggestions still awaiting your answer belong in the inbox.
   const pendingSuggestions = mockConnectionSuggestions.filter((s) => s.status === "pending");
-  // mockConversations is shared with Label Deals messaging — only show producer threads here.
-  const producerConversations = mockConversations.filter((c) => c.peer.type === "producer");
+  // Live store, not a frozen mock import — a conversation created by any
+  // request flow (remix, contest, collab, intro, outreach) shows up here
+  // correctly. Defaults to producer-peer only; "All" reveals everything,
+  // same underlying list Labels > Messages reads. See
+  // docs/feature-unified-chat-inbox.md.
+  const conversations = useLabelInboxStore((s) => s.conversations);
+  const messages = useLabelInboxStore((s) => s.messages);
 
   return (
     <main className="max-w-lg mx-auto px-5 pt-6 pb-24 lg:pb-10 lg:max-w-3xl lg:px-10">
@@ -117,37 +120,12 @@ export default function ConnectionsPage() {
 
       {/* ── Messages tab ── */}
       {tab === "messages" && (
-        producerConversations.length === 0 ? (
-          <p className="text-sm text-text-secondary">
-            No conversations yet — they open up once you and another producer both accept.
-          </p>
-        ) : (
-          <ul className="space-y-2">
-            {producerConversations.map((c) => (
-              <li key={c.id}>
-                <Link
-                  href={`/dashboard/connections/chat/${c.id}`}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-[var(--color-border)]
-                    bg-surface px-4 py-3 hover:bg-[var(--color-border)]/40 transition-colors"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
-                      <MessageCircle size={15} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-text-primary truncate">{c.peer.name}</p>
-                      <p className="text-xs text-text-secondary truncate max-w-[16rem] flex items-center gap-1">
-                        {lastMessagePreview(c.id)}
-                        <Clock size={10} className="ml-1 opacity-60 shrink-0" /> {timeAgo(c.createdAt)}
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronRight size={16} className="shrink-0 text-text-secondary" />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )
+        <ConversationList
+          conversations={conversations}
+          messages={messages}
+          defaultPeerType="producer"
+          emptyMessage="No conversations yet — they open up once you and another producer both accept."
+        />
       )}
     </main>
   );

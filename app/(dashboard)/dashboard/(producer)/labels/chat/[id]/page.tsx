@@ -1,6 +1,6 @@
 "use client";
 
-import { notFound, usePathname } from "next/navigation";
+import { notFound, usePathname, useSearchParams } from "next/navigation";
 import ConversationThread from "@/components/dashboard/messaging/ConversationThread";
 import { useLabelInboxStore } from "@/lib/store/labelInboxStore";
 import { mockLabelSubmissions } from "@/lib/mock/labelSubmissions";
@@ -14,7 +14,9 @@ function conversationIdFromPath(pathname: string): string {
 
 export default function LabelConversationPage() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const id = conversationIdFromPath(pathname);
+  const from = searchParams.get("from");
 
   const conversations = useLabelInboxStore((s) => s.conversations);
   const messages = useLabelInboxStore((s) => s.messages);
@@ -42,6 +44,8 @@ export default function LabelConversationPage() {
         { label: peerName },
       ]}
       initialMessages={existing ? messages.filter((m) => m.conversationId === id) : []}
+      backHref={from ?? undefined}
+      backFallback="/dashboard/labels/messages"
     />
   );
 }

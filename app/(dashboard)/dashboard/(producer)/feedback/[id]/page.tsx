@@ -2,13 +2,16 @@
 
 import { useState } from "react";
 import { notFound, usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2 } from "lucide-react";
 import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
 import FeedbackTrackPlayer from "@/components/dashboard/feedback/FeedbackTrackPlayer";
 import ScoreBar from "@/components/dashboard/feedback/ScoreBar";
-import { mockReceivedFeedback, mockPendingToReview } from "@/lib/mock/feedback";
-import { mockTracks } from "@/lib/mock/tracks";
+import Skeleton from "@/components/ui/Skeleton";
+import { fetchReceivedFeedback, fetchPendingToReview } from "@/lib/api/feedback";
+import { fetchTrackById } from "@/lib/api/tracks";
 import { FEEDBACK_CATEGORIES, type FeedbackCategoryKey, type FeedbackScores } from "@/types/feedback";
+import type { Track } from "@/types/track";
 
 /** Avoid useParams() here — the id is derived from the pathname (see royalties/[id] for the same convention). */
 function feedbackIdFromPath(pathname: string): string {
@@ -20,13 +23,42 @@ export default function FeedbackDetailPage() {
   const pathname = usePathname();
   const id = feedbackIdFromPath(pathname);
 
-  const received = mockReceivedFeedback.find((f) => f.id === id);
-  const pending = mockPendingToReview.find((r) => r.id === id);
+  const { data: receivedList, isLoading: receivedLoading } = useQuery({
+    queryKey: ["feedback", "received"],
+    queryFn: fetchReceivedFeedback,
+  });
+  const { data: pendingList, isLoading: pendingLoading } = useQuery({
+    queryKey: ["feedback", "pending"],
+    queryFn: fetchPendingToReview,
+  });
+
+  const received = receivedList?.find((f) => f.id === id);
+  const pending = pendingList?.find((r) => r.id === id);
+  const trackId = received?.trackId ?? pending?.trackId;
+
+  // fetchTrackById checks both "my tracks" and other producers' tracks —
+  // a pending-to-review request always points at someone else's, see
+  // docs/feature-peer-feedback-tracks.md. Only enabled once we know which
+  // track to look up, so it doesn't fire on a bogus/loading id.
+  const { data: track, isLoading: trackLoading } = useQuery({
+    queryKey: ["track", trackId],
+    queryFn: () => fetchTrackById(trackId!),
+    enabled: Boolean(trackId),
+  });
+
+  const isLoading = receivedLoading || pendingLoading || (Boolean(trackId) && trackLoading);
+
+  if (isLoading) {
+    return (
+      <main className="max-w-lg mx-auto px-5 pt-6 pb-24 lg:pb-10 lg:max-w-3xl lg:px-10">
+        <Skeleton className="h-8 w-2/3 mb-6" />
+        <Skeleton className="h-32 mb-6" />
+        <Skeleton className="h-48" />
+      </main>
+    );
+  }
 
   if (!received && !pending) notFound();
-
-  const trackId = received ? received.trackId : pending!.trackId;
-  const track = mockTracks.find((t) => t.id === trackId);
   if (!track) notFound();
 
   if (received) {
@@ -72,7 +104,7 @@ function GiveFeedbackForm({
   requesterName,
 }: {
   trackTitle: string;
-  track: (typeof mockTracks)[number];
+  track: Track;
   requesterName: string;
 }) {
   const [scores, setScores] = useState<FeedbackScores>({});

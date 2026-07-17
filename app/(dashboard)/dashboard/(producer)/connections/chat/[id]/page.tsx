@@ -1,8 +1,8 @@
 "use client";
 
-import { notFound, usePathname } from "next/navigation";
+import { notFound, usePathname, useSearchParams } from "next/navigation";
 import ConversationThread from "@/components/dashboard/messaging/ConversationThread";
-import { mockConversations, mockMessages } from "@/lib/mock/messages";
+import { useLabelInboxStore } from "@/lib/store/labelInboxStore";
 import { mockConnectionSuggestions } from "@/lib/mock/connections";
 
 /** Same convention as feedback/[id] and connections/[id]: derive id from pathname, not useParams(). */
@@ -13,11 +13,17 @@ function conversationIdFromPath(pathname: string): string {
 
 export default function ConnectionsConversationPage() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const id = conversationIdFromPath(pathname);
+  const from = searchParams.get("from");
+
+  // Live store, not a frozen mock import — see docs/feature-unified-chat-inbox.md.
+  const conversations = useLabelInboxStore((s) => s.conversations);
+  const messages = useLabelInboxStore((s) => s.messages);
 
   // A real conversation (seeded), or one just opened from a match — in which case
   // the id is the suggestion id and the chat starts empty (no prior history).
-  const existing = mockConversations.find((c) => c.id === id);
+  const existing = conversations.find((c) => c.id === id);
   const fromSuggestion = mockConnectionSuggestions.find((s) => s.id === id);
   const peerName = existing?.peer.name ?? fromSuggestion?.peer.name;
   if (!peerName) notFound();
@@ -31,7 +37,9 @@ export default function ConnectionsConversationPage() {
         { label: "Connections", href: "/dashboard/connections" },
         { label: peerName },
       ]}
-      initialMessages={existing ? mockMessages.filter((m) => m.conversationId === id) : []}
+      initialMessages={existing ? messages.filter((m) => m.conversationId === id) : []}
+      backHref={from ?? undefined}
+      backFallback="/dashboard/connections"
     />
   );
 }

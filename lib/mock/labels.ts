@@ -12,15 +12,6 @@ export const mockLabels: ProtonLabel[] = [
       estimatedResponseTime: "2–3 weeks",
       notes: "We listen to everything. No ghost-produced tracks — original work only.",
     },
-    activeContests: [
-      {
-        id: "contest-proton-summer",
-        title: "Summer Remix Contest",
-        description: "Remix \"Living\" by Naial. Best remix gets an official release on Proton Music.",
-        deadline: "2026-08-15",
-        prize: "Official release + label signing",
-      },
-    ],
   },
   {
     id: "2", name: "Sudbeat", slug: "sudbeat", image: null,
@@ -33,9 +24,24 @@ export const mockLabels: ProtonLabel[] = [
       estimatedResponseTime: "Responds to all within 4 weeks",
       notes: "Looking for album-length storytelling, not one-off club tracks.",
     },
-    remixOpportunities: [
-      { id: "remix-sudbeat-1", trackId: "demo-2", deadline: "2026-08-01" },
-      { id: "remix-sudbeat-2", trackId: "demo-3" },
+    // demo-2 (Weightless, GMJ) and demo-3 (Fading Signal, Matter) — neither
+    // artist has opted into remix requests yet (openToRemix: false in
+    // lib/mock/label-manager/rosterArtists.ts), so both show "Awaiting
+    // artist" until that changes. See docs/feature-contest-flow.md.
+    activeContests: [
+      {
+        id: "contest-sudbeat-weightless",
+        title: "Weightless — Remix Call",
+        description: "Looking for a fresh take on \"Weightless\". Send us your version, and if it's good enough to release, we'll reach out.",
+        trackId: "demo-2",
+        deadline: "2026-08-01",
+      },
+      {
+        id: "contest-sudbeat-fading-signal",
+        title: "Fading Signal — Remix Call",
+        description: "Open to remixes of \"Fading Signal\" — no restrictions on genre or approach.",
+        trackId: "demo-3",
+      },
     ],
   },
   {
@@ -48,8 +54,18 @@ export const mockLabels: ProtonLabel[] = [
       preferredFormat: "wav",
       notes: "Not accepting unsolicited demos right now — roster is set through 2026. Referrals only.",
     },
-    remixOpportunities: [
-      { id: "remix-bedrock-1", trackId: "demo-4", deadline: "2026-09-01" },
+    // demo-4 (Open Horizons, Emily Underhill) — Emily has openToRemix: true,
+    // so this is the one sample track where the full gate passes end to
+    // end. See docs/feature-contest-flow.md.
+    activeContests: [
+      {
+        id: "contest-bedrock-open-horizons",
+        title: "Open Horizons — Remix Call",
+        description: "Looking for a peak-time take on \"Open Horizons\". Send us your version, and if it's good enough to release, we'll reach out.",
+        trackId: "demo-4",
+        deadline: "2026-09-01",
+        prize: "Possible official release on Bedrock",
+      },
     ],
   },
   {
@@ -72,6 +88,18 @@ export const mockLabels: ProtonLabel[] = [
     description: "Independent melodic/deep house label built around a tight-knit group of artists. Hands-on A&R, direct communication.",
     releaseCount: 28, lastReleaseDate: "2026-06-10", demoStatus: "open",
     demoGenres: ["Melodic House", "Deep House"], foundedYear: 2016,
+    // Own catalog track ("Living", id "2") — see docs/feature-contest-flow.md
+    // for why a contest references a real trackId instead of free text.
+    activeContests: [
+      {
+        id: "contest-toxic-living",
+        title: "Living — Remix Call",
+        description: "Looking for a fresh take on \"Living\". We're not running this as a ranked competition — send us your version, and if it's good enough to release, we'll reach out.",
+        trackId: "2",
+        deadline: "2026-08-15",
+        prize: "Possible official release + label signing",
+      },
+    ],
   },
   {
     id: "7", name: "Hope Recordings", slug: "hope-recordings", image: null,

@@ -21,6 +21,15 @@ export const LABEL_MANAGER_NAV_LINKS: readonly {
 ];
 
 /**
+ * `/dashboard/labels/{slug}...` (a specific label's own page, and its
+ * releases/roster/contests sub-routes) is a universal entity page, viewable
+ * by both shells — see "Resolved: these pages don't need a label-manager UI
+ * mode at all" in docs/README-routing-architecture.md. Only `/dashboard/labels`
+ * itself (Browse) and these producer-scoped sub-workflows stay producer-only.
+ */
+const LABELS_PRODUCER_ONLY_SUBPATHS = ["submissions", "messages", "chat"];
+
+/**
  * Producer-only routes: not used by the label-manager MVP shell (except `/dashboard/releases`,
  * which is shared and branches in-page).
  *
@@ -31,7 +40,12 @@ export function isProducerShellPath(pathname: string): boolean {
   if (pathname === "/dashboard") return true;
   if (pathname.startsWith("/dashboard/performance")) return true;
   if (pathname.startsWith("/dashboard/royalties")) return true;
-  if (pathname.startsWith("/dashboard/labels")) return true;
+  if (pathname.startsWith("/dashboard/labels")) {
+    const rest = pathname.slice("/dashboard/labels".length);
+    if (rest === "" || rest === "/") return true;
+    const firstSegment = rest.split("/")[1];
+    return LABELS_PRODUCER_ONLY_SUBPATHS.includes(firstSegment);
+  }
   if (pathname.startsWith("/dashboard/contracts")) return true;
   if (pathname.startsWith("/dashboard/platform")) return true;
   return false;

@@ -1,14 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import { MessageSquareText, ChevronRight, Clock } from "lucide-react";
 import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
-import { mockReceivedFeedback, mockPendingToReview } from "@/lib/mock/feedback";
-import { mockTracks } from "@/lib/mock/tracks";
+import Skeleton from "@/components/ui/Skeleton";
+import { fetchReceivedFeedback, fetchPendingToReview } from "@/lib/api/feedback";
+import { fetchTracks } from "@/lib/api/tracks";
+import { PEER_TRACKS } from "@/lib/mock/peerTracks";
 import { FEEDBACK_CATEGORIES } from "@/types/feedback";
+import type { Track } from "@/types/track";
 
-function trackTitle(trackId: string) {
-  return mockTracks.find((t) => t.id === trackId)?.title ?? "Unknown track";
+function trackTitle(tracks: Track[], trackId: string) {
+  return tracks.find((t) => t.id === trackId)?.title ?? "Unknown track";
 }
 
 function averageScore(scores: Record<string, number | undefined>) {
@@ -28,6 +32,27 @@ function timeAgo(iso: string) {
 }
 
 export default function FeedbackPage() {
+  // Real fetchers behind lib/api/, not mock arrays imported straight into
+  // the page — see docs/feature-peer-feedback-tracks.md. `myTracks` covers
+  // "Received" (feedback on tracks I own); `PEER_TRACKS` covers "Pending
+  // to review" (other producers' tracks) — a real API would resolve both
+  // through one `GET /tracks/:id`-style lookup regardless of owner.
+  const { data: pending, isLoading: pendingLoading } = useQuery({
+    queryKey: ["feedback", "pending"],
+    queryFn: fetchPendingToReview,
+  });
+  const { data: received, isLoading: receivedLoading } = useQuery({
+    queryKey: ["feedback", "received"],
+    queryFn: fetchReceivedFeedback,
+  });
+  const { data: myTracks, isLoading: tracksLoading } = useQuery({
+    queryKey: ["tracks"],
+    queryFn: fetchTracks,
+  });
+
+  const isLoading = pendingLoading || receivedLoading || tracksLoading;
+  const allTracks = [...(myTracks ?? []), ...PEER_TRACKS];
+
   return (
     <main className="max-w-lg mx-auto px-5 pt-6 pb-24 lg:pb-10 lg:max-w-3xl lg:px-10">
       <DashboardBreadcrumb items={[
@@ -40,13 +65,18 @@ export default function FeedbackPage() {
       {/* ── Pending to review ── */}
       <section className="mb-8">
         <h2 className="text-sm font-semibold text-text-secondary uppercase tracking-wider mb-3">
-          Pending to review ({mockPendingToReview.length})
+          Pending to review {!isLoading && `(${pending?.length ?? 0})`}
         </h2>
-        {mockPendingToReview.length === 0 ? (
+        {isLoading ? (
+          <div className="space-y-2">
+            <Skeleton className="h-14" />
+            <Skeleton className="h-14" />
+          </div>
+        ) : !pending || pending.length === 0 ? (
           <p className="text-sm text-text-secondary">Nothing assigned to you right now.</p>
         ) : (
           <ul className="space-y-2">
-            {mockPendingToReview.map((req) => (
+            {pending.map((req) => (
               <li key={req.id}>
                 <Link
                   href={`/dashboard/feedback/${req.id}?mode=give`}
@@ -55,7 +85,7 @@ export default function FeedbackPage() {
                 >
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-text-primary truncate">
-                      {trackTitle(req.trackId)}
+                      {trackTitle(allTracks, req.trackId)}
                     </p>
                     <p className="text-xs text-text-secondary">
                       Requested by {req.fromProducer.name} · {timeAgo(req.requestedAt)}
@@ -72,13 +102,18 @@ export default function FeedbackPage() {
       {/* ── Received ── */}
       <section>
         <h2 className="text-sm font-semibold text-text-secondary uppercase tracking-wider mb-3">
-          Received ({mockReceivedFeedback.length})
+          Received {!isLoading && `(${received?.length ?? 0})`}
         </h2>
-        {mockReceivedFeedback.length === 0 ? (
+        {isLoading ? (
+          <div className="space-y-2">
+            <Skeleton className="h-16" />
+            <Skeleton className="h-16" />
+          </div>
+        ) : !received || received.length === 0 ? (
           <p className="text-sm text-text-secondary">No feedback yet on your tracks.</p>
         ) : (
           <ul className="space-y-2">
-            {mockReceivedFeedback.map((fb) => {
+            {received.map((fb) => {
               const avg = averageScore(fb.scores);
               return (
                 <li key={fb.id}>
@@ -93,7 +128,7 @@ export default function FeedbackPage() {
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-text-primary truncate">
-                          {trackTitle(fb.trackId)}
+                          {trackTitle(allTracks, fb.trackId)}
                         </p>
                         <p className="text-xs text-text-secondary flex items-center gap-1">
                           {fb.fromProducer.name}

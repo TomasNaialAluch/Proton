@@ -14,7 +14,14 @@ interface LabelInboxState {
    *  Reuses the existing conversation with that label if one is already
    *  open, otherwise opens a new one. Returns the conversation id so the
    *  caller can link straight to it. */
-  sendLabelRequest: (input: { label: ProtonLabel; kind: RequestKind; text: string }) => string;
+  sendLabelRequest: (input: {
+    label: ProtonLabel;
+    kind: RequestKind;
+    text: string;
+    attachment?: ChatMessage["attachment"];
+    /** Only meaningful for `kind: "collab"` — see `ConversationOrigin`. */
+    artistId?: string;
+  }) => string;
 }
 
 export const useLabelInboxStore = create<LabelInboxState>()(
@@ -23,7 +30,7 @@ export const useLabelInboxStore = create<LabelInboxState>()(
       conversations: mockConversations,
       messages: mockMessages,
 
-      sendLabelRequest: ({ label, kind, text }) => {
+      sendLabelRequest: ({ label, kind, text, attachment, artistId }) => {
         const { conversations, messages } = get();
 
         const existing = conversations.find(
@@ -38,6 +45,7 @@ export const useLabelInboxStore = create<LabelInboxState>()(
           fromMe: true,
           text,
           createdAt: new Date().toISOString(),
+          ...(attachment ? { attachment } : {}),
         };
 
         set({
@@ -47,7 +55,7 @@ export const useLabelInboxStore = create<LabelInboxState>()(
                 {
                   id: conversationId,
                   peer: { type: "label", id: label.id, name: label.name, slug: label.slug },
-                  origin: { type: "producer_request", kind },
+                  origin: { type: "producer_request", kind, ...(artistId ? { artistId } : {}) },
                   createdAt: new Date().toISOString(),
                 },
                 ...conversations,

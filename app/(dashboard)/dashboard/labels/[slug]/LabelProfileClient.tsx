@@ -9,7 +9,6 @@ import RecentReleasesStrip from "@/components/dashboard/producer/labels/detail/R
 import ArtistRoster from "@/components/dashboard/producer/labels/detail/ArtistRoster";
 import DemoPolicyCard from "@/components/dashboard/producer/labels/detail/DemoPolicyCard";
 import ActiveContests from "@/components/dashboard/producer/labels/detail/ActiveContests";
-import RemixOpportunities from "@/components/dashboard/producer/labels/detail/RemixOpportunities";
 import RequestToConnectForm from "@/components/dashboard/producer/labels/detail/RequestToConnectForm";
 import SimilarLabels from "@/components/dashboard/producer/labels/detail/SimilarLabels";
 import { mockLabels } from "@/lib/mock/labels";
@@ -59,9 +58,7 @@ export default function LabelProfileClient() {
 
       <ArtistRoster label={label} backChain={backChain} />
 
-      <ActiveContests label={label} />
-
-      <RemixOpportunities label={label} backChain={backChain} />
+      <ActiveContests label={label} backChain={backChain} />
 
       {/* Demo policy sits directly above the action it describes — reading
           what the label wants right before submitting/reaching out, instead
