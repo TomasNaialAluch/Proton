@@ -28,7 +28,6 @@ function eligibleTracks(labelSlug: string) {
  * touching those already-working components.
  */
 export default function ContestsPage() {
-  const mode = useLabelScopeStore((s) => s.mode);
   const activeLabelId = useLabelScopeStore((s) => s.activeLabelId);
   const extraContests = useContestsStore((s) => s.extraContests);
   const createContest = useContestsStore((s) => s.createContest);
@@ -48,15 +47,13 @@ export default function ContestsPage() {
   const tracks = activeLabel ? eligibleTracks(activeLabel.slug) : [];
 
   const visibleContests = useMemo(() => {
-    const labels = mode === "all_labels" ? mockLabels : mockLabels.filter((l) => l.id === activeLabelId);
-    return labels.flatMap((label) => {
-      const seeded = (label.activeContests ?? []).map((c) => ({ label, contest: c }));
-      const extra = extraContests
-        .filter((e) => e.labelId === label.id)
-        .map((e) => ({ label, contest: e.contest }));
-      return [...seeded, ...extra];
-    });
-  }, [mode, activeLabelId, extraContests]);
+    if (!activeLabel) return [];
+    const seeded = (activeLabel.activeContests ?? []).map((c) => ({ label: activeLabel, contest: c }));
+    const extra = extraContests
+      .filter((e) => e.labelId === activeLabel.id)
+      .map((e) => ({ label: activeLabel, contest: e.contest }));
+    return [...seeded, ...extra];
+  }, [activeLabel, extraContests]);
 
   const submit = () => {
     if (!activeLabel || !title.trim() || !description.trim() || !trackId) return;
@@ -88,16 +85,14 @@ export default function ContestsPage() {
           <Trophy size={18} className="text-accent" /> Contests
         </h1>
         <p className="text-xs text-text-secondary mt-0.5">
-          Remix calls open to producers, for tracks {mode === "all_labels" ? "your labels" : activeLabel?.name ?? "this label"} own.
+          Remix calls open to producers, for tracks {activeLabel?.name ?? "this label"} own.
         </p>
       </header>
 
       <ScopeFilterChips />
 
-      {mode === "all_labels" ? (
-        <p className="text-sm text-text-secondary py-2">
-          Pick a specific label above to create a new contest.
-        </p>
+      {!activeLabel ? (
+        <p className="text-sm text-text-secondary py-2">Label not found.</p>
       ) : showForm ? (
         <div className="rounded-2xl border border-[var(--color-border)] bg-surface p-4 flex flex-col gap-3">
           {tracks.length === 0 ? (
@@ -203,9 +198,6 @@ export default function ContestsPage() {
               <Trophy size={14} className="text-amber-500 mt-0.5 shrink-0" />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-text-primary">{contest.title}</p>
-                {mode === "all_labels" && (
-                  <p className="text-xs text-accent">{label.name}</p>
-                )}
                 <p className="mt-0.5 text-xs text-text-secondary leading-relaxed">{contest.description}</p>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-[11px] text-text-secondary">
                   {contest.deadline && (

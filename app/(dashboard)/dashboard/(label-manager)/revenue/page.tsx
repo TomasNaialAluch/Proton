@@ -14,17 +14,16 @@ import StatusBadge from "@/components/ui/StatusBadge";
 
 export default function LabelRevenuePage() {
   const view = usePrototypeViewStore((s) => s.view);
-  const mode = useLabelScopeStore((s) => s.mode);
   const activeLabelId = useLabelScopeStore((s) => s.activeLabelId);
   const activeArtistId = useLabelScopeStore((s) => s.activeArtistId);
 
   const scopedReleases = useMemo(() => {
     return mockLabelCatalog.filter((r) => {
-      if (mode === "label" && activeLabelId && r.labelId !== activeLabelId) return false;
+      if (r.labelId !== activeLabelId) return false;
       if (activeArtistId && r.artistId !== activeArtistId) return false;
       return true;
     });
-  }, [mode, activeLabelId, activeArtistId]);
+  }, [activeLabelId, activeArtistId]);
 
   const revenue = useMemo(() => buildMockRevenue(scopedReleases), [scopedReleases]);
   const kpis = useMemo(() => {

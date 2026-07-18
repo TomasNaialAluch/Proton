@@ -10,18 +10,17 @@ import IssueBadge from "@/components/ui/IssueBadge";
 import LabelReleaseDetailsDrawer from "@/components/dashboard/label-manager/LabelReleaseDetailsDrawer";
 
 export default function LabelReleasesPipeline() {
-  const mode = useLabelScopeStore((s) => s.mode);
   const activeLabelId = useLabelScopeStore((s) => s.activeLabelId);
   const activeArtistId = useLabelScopeStore((s) => s.activeArtistId);
   const [selectedReleaseId, setSelectedReleaseId] = useState<string | null>(null);
 
   const releases = useMemo(() => {
     return mockLabelCatalog.filter((r) => {
-      if (mode === "label" && activeLabelId && r.labelId !== activeLabelId) return false;
+      if (r.labelId !== activeLabelId) return false;
       if (activeArtistId && r.artistId !== activeArtistId) return false;
       return true;
     });
-  }, [mode, activeLabelId, activeArtistId]);
+  }, [activeLabelId, activeArtistId]);
 
   const selectedRelease = useMemo(
     () => releases.find((r) => r.id === selectedReleaseId) ?? null,

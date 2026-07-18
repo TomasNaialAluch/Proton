@@ -34,7 +34,6 @@ const FORMAT_OPTIONS: { value: NonNullable<NonNullable<ProtonLabel["demoPolicy"]
  * same way — a known gap, not fixed here.
  */
 export default function DemoPolicyPage() {
-  const mode = useLabelScopeStore((s) => s.mode);
   const activeLabelId = useLabelScopeStore((s) => s.activeLabelId);
   const setDemoPolicy = useDemoPolicyStore((s) => s.setDemoPolicy);
 
@@ -95,10 +94,8 @@ export default function DemoPolicyPage() {
 
       <ScopeFilterChips />
 
-      {mode === "all_labels" || !rawLabel ? (
-        <p className="text-sm text-text-secondary py-2">
-          Pick a specific label above to edit its demo policy.
-        </p>
+      {!rawLabel ? (
+        <p className="text-sm text-text-secondary py-2">Label not found.</p>
       ) : (
         <div className="flex flex-col gap-5">
           <div>

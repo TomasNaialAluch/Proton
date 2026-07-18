@@ -1,8 +1,12 @@
 import type { LucideIcon } from "lucide-react";
-import { User, TrendingUp, Disc3, Music2, DollarSign, Radar, Inbox, Trophy, ClipboardList } from "lucide-react";
+import { Home, User, TrendingUp, Disc3, Music2, DollarSign, Radar, Inbox, Trophy, ClipboardList } from "lucide-react";
 
-/** Default landing when switching into the label-manager prototype shell. */
-export const LABEL_MANAGER_ENTRY = "/dashboard/roster";
+/** Default landing when switching into the label-manager prototype shell —
+ *  now a real Home (`LabelDashboardHome`), same URL the producer shell's
+ *  own Home already used. Was `/dashboard/roster` — label-manager had no
+ *  Home page at all before this. See
+ *  docs/README-label-manager-rebuild-plan.md, section 6. */
+export const LABEL_MANAGER_ENTRY = "/dashboard";
 
 /** Default landing for the artist / producer shell. */
 export const PRODUCER_ENTRY = "/dashboard";
@@ -13,7 +17,8 @@ export const LABEL_MANAGER_NAV_LINKS: readonly {
   icon: LucideIcon;
   href: string;
 }[] = [
-  { label: "Roster", icon: User, href: LABEL_MANAGER_ENTRY },
+  { label: "Home", icon: Home, href: LABEL_MANAGER_ENTRY },
+  { label: "Roster", icon: User, href: "/dashboard/roster" },
   { label: "Scouting", icon: Radar, href: "/dashboard/scouting" },
   { label: "Requests", icon: Inbox, href: "/dashboard/requests" },
   { label: "Catalog", icon: Disc3, href: "/dashboard/catalog" },
@@ -34,14 +39,14 @@ export const LABEL_MANAGER_NAV_LINKS: readonly {
 const LABELS_PRODUCER_ONLY_SUBPATHS = ["submissions", "messages", "chat"];
 
 /**
- * Producer-only routes: not used by the label-manager MVP shell (except `/dashboard/releases`,
- * which is shared and branches in-page).
+ * Producer-only routes: not used by the label-manager MVP shell (except
+ * `/dashboard` and `/dashboard/releases`, both shared and branching
+ * in-page — see `app/(dashboard)/dashboard/page.tsx`).
  *
  * `/dashboard/settings` is deliberately excluded here — it's shared by both shells (it's
- * where sign-out lives), so it must not bounce a label-manager user back to Roster.
+ * where sign-out lives), so it must not bounce a label-manager user back to Home.
  */
 export function isProducerShellPath(pathname: string): boolean {
-  if (pathname === "/dashboard") return true;
   if (pathname.startsWith("/dashboard/performance")) return true;
   if (pathname.startsWith("/dashboard/royalties")) return true;
   if (pathname.startsWith("/dashboard/labels")) {

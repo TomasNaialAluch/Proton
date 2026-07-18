@@ -132,7 +132,6 @@ function SuggestionCard({ suggestion }: { suggestion: LabelArtistSuggestion }) {
 }
 
 export default function ScoutingPage() {
-  const mode = useLabelScopeStore((s) => s.mode);
   const activeLabelId = useLabelScopeStore((s) => s.activeLabelId);
   const suggestions = useArtistSuggestionsStore((s) => s.suggestions);
 
@@ -142,9 +141,10 @@ export default function ScoutingPage() {
   );
 
   const visible = useMemo(() => {
-    const scoped = mode === "all_labels" ? suggestions : suggestions.filter((s) => s.labelId === activeLabelId);
-    return scoped.filter((s) => s.status !== "dismissed");
-  }, [suggestions, mode, activeLabelId]);
+    return suggestions
+      .filter((s) => s.labelId === activeLabelId)
+      .filter((s) => s.status !== "dismissed");
+  }, [suggestions, activeLabelId]);
 
   return (
     <main className="max-w-lg mx-auto px-5 pt-6 pb-24 lg:pb-10 lg:max-w-2xl lg:px-10 flex flex-col gap-6">
@@ -158,8 +158,7 @@ export default function ScoutingPage() {
           <Radar size={18} className="text-accent" /> Scouting
         </h1>
         <p className="text-xs text-text-secondary mt-0.5">
-          Artists not on {mode === "all_labels" ? "any of your labels'" : `${activeLabel?.name ?? "this label's"}`} roster,
-          worth reaching out to.
+          Artists not on {activeLabel?.name ?? "this label's"} roster, worth reaching out to.
         </p>
       </header>
 

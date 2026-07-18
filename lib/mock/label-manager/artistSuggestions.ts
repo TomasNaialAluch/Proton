@@ -50,6 +50,27 @@ export const mockArtistSuggestions: LabelArtistSuggestion[] = [
     createdAt: "2026-07-08T09:00:00Z",
   },
   {
+    id: "suggest-toxic-astronaut-1",
+    labelId: "6", // Toxic Astronaut
+    artist: {
+      id: "june-alvarez",
+      name: "June Alvarez",
+      genres: ["Melodic House", "Deep House"],
+      country: "Mexico",
+      bio: "Mexico City producer working in warm, vocal-leaning melodic and deep house — two EPs out independently, building a small but consistent following.",
+    },
+    reason: {
+      type: "genre_fit",
+      sharedGenres: ["Melodic House", "Deep House"],
+      highlights: [
+        "Genre and tempo range match Toxic Astronaut's catalog closely",
+        "Small, hands-on release history — fits the label's tight-knit roster style",
+      ],
+    },
+    status: "pending",
+    createdAt: "2026-07-09T09:00:00Z",
+  },
+  {
     id: "suggest-bedrock-1",
     labelId: "3", // Bedrock
     artist: {

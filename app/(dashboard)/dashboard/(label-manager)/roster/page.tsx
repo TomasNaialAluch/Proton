@@ -7,23 +7,40 @@ import ScopeFilterChips from "@/components/dashboard/label-manager/ScopeFilterCh
 import StatusBadge from "@/components/ui/StatusBadge";
 import IssueBadge from "@/components/ui/IssueBadge";
 import { mockRosterArtists } from "@/lib/mock/label-manager/rosterArtists";
+import { mockLabelCatalog } from "@/lib/mock/label-manager/labelCatalog";
 import { usePrototypeViewStore } from "@/lib/store/prototypeViewStore";
 import { useLabelScopeStore } from "@/lib/store/label-manager/labelScopeStore";
 
 export default function LabelRosterPage() {
   const router = useRouter();
   const view = usePrototypeViewStore((s) => s.view);
+  const activeLabelId = useLabelScopeStore((s) => s.activeLabelId);
   const setActiveArtist = useLabelScopeStore((s) => s.setActiveArtist);
 
+  // An artist is "on this label's roster" if they have at least one release
+  // in the catalog scoped to the active label — derived from mockLabelCatalog
+  // rather than a flat shared list, so a label only ever sees artists it
+  // actually has releases with. See docs/label-manager-qa-plan.md, item 5.
+  const rosterArtists = useMemo(() => {
+    const artistIds = new Set(
+      mockLabelCatalog.filter((r) => r.labelId === activeLabelId).map((r) => r.artistId)
+    );
+    return mockRosterArtists.filter((a) => artistIds.has(a.id));
+  }, [activeLabelId]);
+
   const rows = useMemo(() => {
-    return mockRosterArtists.map((a, idx) => {
-      const active = idx % 5 !== 0;
+    return rosterArtists.map((a, idx) => {
+      // (idx + 1) % 5, not idx % 5 — so idx 0 (the only artist on a
+      // single-artist roster, like Toxic Astronaut's today) doesn't always
+      // land on the "inactive" slot. Was `idx % 5 !== 0`, which made every
+      // 1-artist label's sole artist read as inactive by construction.
+      const active = (idx + 1) % 5 !== 0;
       const nextReleaseDays = 7 + (idx * 9) % 46;
       const streams30d = 18_000 + idx * 7_450;
       const issues = active ? (idx % 3 === 0 ? 1 : 0) : 2;
       return { artist: a, active, nextReleaseDays, streams30d, issues };
     });
-  }, []);
+  }, [rosterArtists]);
 
   const kpis = useMemo(() => {
     const active = rows.filter((r) => r.active).length;
@@ -142,7 +159,7 @@ export default function LabelRosterPage() {
 
         <div className="px-4 py-3 border-t border-[var(--color-border)]">
           <p className="text-xs text-text-secondary">
-            Tip: switch labels (scope) in the header/sidebar, then zoom into an artist from this table.
+            Tip: click an artist row to zoom into their catalog on other tabs.
           </p>
         </div>
       </section>

@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { Radio, Settings, Sun, Moon, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { mockArtist } from "@/lib/mock/artist";
+import { mockLabelManagerProfile } from "@/lib/mock/label-manager/labelManagerProfile";
+import { LABEL_MANAGER_ROLE_LABEL } from "@/types/labelManagerProfile";
+import { mockLabels } from "@/lib/mock/labels";
+
+const activeLabel = mockLabels.find((l) => l.id === mockLabelManagerProfile.labelId) ?? null;
 
 /** Proton Radio shortcut, profile/settings row, dark mode toggle, collapse button. */
 export default function SidebarFooter({
@@ -38,13 +43,16 @@ export default function SidebarFooter({
               className="size-7 rounded-full p-[1.5px] shrink-0"
               style={{ background: "linear-gradient(135deg, var(--color-accent), transparent)" }}
             >
-              <div className="flex size-full items-center justify-center rounded-full bg-surface text-accent">
-                <Settings size={14} strokeWidth={1.75} aria-hidden />
+              <div className="size-full rounded-full bg-surface flex items-center justify-center">
+                <span className="text-[10px] font-bold text-accent">{mockLabelManagerProfile.name.charAt(0)}</span>
               </div>
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-medium text-text-primary truncate">Settings</p>
-              <p className="text-xs text-text-secondary">Account · sign out</p>
+              <p className="text-sm font-medium text-text-primary truncate">{mockLabelManagerProfile.name}</p>
+              <p className="text-xs text-text-secondary truncate">
+                {LABEL_MANAGER_ROLE_LABEL[mockLabelManagerProfile.role]}
+                {activeLabel && ` · ${activeLabel.name}`}
+              </p>
             </div>
           </Link>
         )

@@ -2,9 +2,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { Bell } from "lucide-react";
 import { LABEL_MANAGER_ENTRY } from "@/lib/dashboard/dashboardShellRouting";
-import LabelScopeSwitcher from "@/components/dashboard/label-manager/LabelScopeSwitcher";
 
-/** Logo + notifications bell (+ label scope switcher when in the label-manager shell). */
+/** Logo + notifications bell — brand only, same for both shells. Identity
+ *  (who you are / which label you manage) lives in SidebarFooter instead,
+ *  mirroring where the producer's own name already lives. */
 export default function SidebarHeader({
   collapsed,
   isLabelManager,
@@ -42,12 +43,6 @@ export default function SidebarHeader({
           <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-accent" />
         </button>
       </div>
-
-      {!collapsed && isLabelManager && (
-        <div className="mt-3">
-          <LabelScopeSwitcher />
-        </div>
-      )}
     </div>
   );
 }

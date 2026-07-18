@@ -49,7 +49,11 @@ export const mockLabelCatalog: LabelCatalogRelease[] = [
     id: "rel_002",
     title: "Living (Single)",
     artistId: "naial",
-    labelId: "2",
+    // Toxic Astronaut, not Sudbeat — matches lib/mock/tracks.ts (labelSlug
+    // "toxic-astronaut") and the real signed contract r4 ("Beyond Living")
+    // in lib/mock/contracts.ts. Was mislabeled before this was ever read
+    // by anything scoped to a specific label.
+    labelId: "6",
     upc: "505500000002",
     releaseDate: "2026-05-05",
     status: "delivered",

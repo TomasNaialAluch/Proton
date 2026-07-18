@@ -1,5 +1,96 @@
 # Proposal — “Label Manager” Dashboard (record label)
 
+## Status note — read this before the rest of the doc
+
+Everything below (sections 1–11) is the **original proposal**, written before
+any of this was built. It assumes a **multi-label switcher** — a single
+account freely jumping between "All labels" (Level 0) and any of several
+labels it manages (see section 2's "zoom" model, section 4's "Label
+switcher", and the status tracker in 11 listing "Label switcher
+(multi-label scope) UI + state (All labels ↔ active label)" as done). That
+assumption turned out to be wrong and is being walked back — noted here so
+the rest of the doc is read as history, not as the current target.
+
+### What "current structure" actually means now
+
+Label-manager is being reworked to **mirror the producer view exactly**:
+the producer side has exactly one identity (Naial) — no "which producer am
+I today" switcher anywhere. Label-manager should work the same way — one
+label-manager account is scoped to **one label**, permanently, the same
+way Naial is scoped to being Naial. Not a person who freely administers
+all 19 mock labels from a dropdown.
+
+Concretely, in progress:
+
+- **`lib/store/label-manager/labelScopeStore.ts`** — no longer has a
+  `mode: "all_labels" | "label"` toggle or a `setActiveLabel()` you can
+  call to jump labels. `activeLabelId` is a fixed constant
+  (`LABEL_MANAGER_LABEL_ID`), currently pointed at **Toxic Astronaut**
+  (mock label id `"6"`) — chosen because it's Naial's real, already-signed
+  label in the mock data (`lib/mock/contracts.ts`'s `r4`, "Beyond
+  Living"), so the producer-side story and the label-manager-side story
+  are about the *same world*, not two disconnected mock universes. The
+  store still keeps `activeArtistId` (the "zoom into one artist in your
+  own roster" filter) — that part of the original zoom model is legitimate
+  and unaffected.
+- **The old label-switcher dropdown UI is gone.** Every page that used to
+  branch on `mode === "all_labels"` (Scouting, Requests, Contests, Demo
+  policy, Catalog, Revenue, `LabelReleasesPipeline`) now just reads the one
+  fixed `activeLabelId` directly.
+- **Roster is now actually scoped**, not a flat shared list shown
+  identically regardless of which label you're "in." `roster/page.tsx`
+  filters `mockRosterArtists` down to whoever has a release with the
+  active label in `mockLabelCatalog` — for Toxic Astronaut today, that's
+  just Naial (the only artist with a real, correctly-labeled release
+  there once `mockLabelCatalog`'s "Living" entry was fixed from a
+  mislabeled `labelId` — it pointed at Sudbeat before, which contradicted
+  `lib/mock/tracks.ts` and the signed contract).
+
+### Profiles — who is the label-manager account, not just which label
+
+New concept, doesn't exist in the original proposal at all: a
+**label-manager profile** — mirroring how the producer side has `Artist`
+(`mockArtist`, "Naial") as a real person, not just an abstract "producer
+account."
+
+- **`types/labelManagerProfile.ts`** — `LabelManagerProfile { id, name,
+  role, labelId }`, with `role: "owner" | "manager" | "ar"` and a
+  `LABEL_MANAGER_ROLE_LABEL` display map. Only one role exists in the mock
+  today (`"manager"`), but the type is shaped to grow into real
+  hierarchy/permissions later (an Owner vs. an A&R having different
+  allowed actions) — see section 8 of this doc ("Permissions (MVP)"),
+  which sketched exactly this kind of role split without ever giving it a
+  concrete data shape. This is that shape.
+- **`lib/mock/label-manager/labelManagerProfile.ts`** — the one seeded
+  identity: **"Alex Rivera," role `manager`, `labelId` pointed at Toxic
+  Astronaut.**
+- **Where it shows up**: mirrors exactly where the producer's own identity
+  (Naial) already lives — `components/dashboard/AppSidebar/SidebarFooter.tsx`,
+  the bottom-of-sidebar block with an avatar-initial circle, the person's
+  name, and a secondary line (producer's says "Edit profile"; the
+  label-manager one says "`{role label}` · `{label name}`" — e.g. "Label
+  Manager · Toxic Astronaut"). **Not** in the top header bar — an earlier
+  pass put it there and that was wrong: the producer's top bar only ever
+  shows the Proton brand, nothing role/identity-specific, and label-manager
+  needed to match that exactly rather than introduce a second pattern.
+
+### Not yet done / not yet verified
+
+This was mid-implementation, not finished and not checked in the browser,
+when work paused to write this note instead. Known gaps:
+
+- Whether every page's copy/empty-states still reads correctly now that
+  "All labels" as a concept doesn't exist (some strings referencing it may
+  still be worded for the old multi-label model).
+- No hierarchy/permission enforcement actually reads `LabelManagerProfile.role`
+  yet — the type and mock exist, nothing gates on it.
+- Sections 2, 4, 8, and 11 below still describe the old multi-label
+  design and haven't been rewritten to match — treat them as superseded
+  by this note wherever they conflict, until this doc gets a real pass to
+  reconcile the two.
+
+---
+
 This document proposes a **Label Manager dashboard view** (a person operating a record label) **within the same app** and using the **same dashboard layout** that already exists for the producer dashboard.
 
 - **Goal**: define IA (information architecture), routes, modules, metrics, and permissions to run a label: **catalog, releases, distribution, metadata, campaigns, and royalties**.

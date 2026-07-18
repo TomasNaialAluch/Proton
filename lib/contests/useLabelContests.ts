@@ -1,5 +1,6 @@
 "use client";
 
+import { useShallow } from "zustand/react/shallow";
 import { useContestsStore } from "@/lib/store/label-manager/contestsStore";
 import type { ProtonLabel } from "@/types/label";
 
@@ -13,8 +14,8 @@ import type { ProtonLabel } from "@/types/label";
  * docs/feature-label-manager-toolkit.md, "3. Contest creation".
  */
 export function useLabelContests(label: Pick<ProtonLabel, "id" | "activeContests">) {
-  const extra = useContestsStore((s) =>
-    s.extraContests.filter((e) => e.labelId === label.id).map((e) => e.contest)
+  const extra = useContestsStore(
+    useShallow((s) => s.extraContests.filter((e) => e.labelId === label.id).map((e) => e.contest))
   );
   return [...(label.activeContests ?? []), ...extra];
 }

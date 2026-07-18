@@ -15,18 +15,17 @@ import IssueBadge from "@/components/ui/IssueBadge";
 
 export default function LabelCatalogPage() {
   const view = usePrototypeViewStore((s) => s.view);
-  const mode = useLabelScopeStore((s) => s.mode);
   const activeLabelId = useLabelScopeStore((s) => s.activeLabelId);
   const activeArtistId = useLabelScopeStore((s) => s.activeArtistId);
   const [selectedReleaseId, setSelectedReleaseId] = useState<string | null>(null);
 
   const filteredReleases = useMemo(() => {
     return mockLabelCatalog.filter((r) => {
-      if (mode === "label" && activeLabelId && r.labelId !== activeLabelId) return false;
+      if (r.labelId !== activeLabelId) return false;
       if (activeArtistId && r.artistId !== activeArtistId) return false;
       return true;
     });
-  }, [mode, activeLabelId, activeArtistId]);
+  }, [activeLabelId, activeArtistId]);
 
   const selectedRelease = useMemo(
     () => filteredReleases.find((r) => r.id === selectedReleaseId) ?? null,

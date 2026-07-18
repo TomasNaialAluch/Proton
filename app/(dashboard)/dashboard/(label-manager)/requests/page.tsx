@@ -38,7 +38,6 @@ function trackTitle(trackId: string) {
  * the prototype has exactly one producer identity.
  */
 export default function RequestsPage() {
-  const mode = useLabelScopeStore((s) => s.mode);
   const activeLabelId = useLabelScopeStore((s) => s.activeLabelId);
   const conversations = useLabelInboxStore((s) => s.conversations);
   const messages = useLabelInboxStore((s) => s.messages);
@@ -55,7 +54,7 @@ export default function RequestsPage() {
         if (c.peer.type !== "label") return false;
         if (c.origin.type !== "producer_request") return false;
         if (c.origin.kind !== "remix" && c.origin.kind !== "contest") return false;
-        if (mode !== "all_labels" && c.peer.id !== activeLabelId) return false;
+        if (c.peer.id !== activeLabelId) return false;
         return true;
       })
       .map((c) => {
@@ -70,7 +69,7 @@ export default function RequestsPage() {
         return { conversation: c, lastMessage: convoMessages[convoMessages.length - 1], entry, contest };
       })
       .sort((a, b) => new Date(b.conversation.createdAt).getTime() - new Date(a.conversation.createdAt).getTime());
-  }, [conversations, messages, mode, activeLabelId, extraContests]);
+  }, [conversations, messages, activeLabelId, extraContests]);
 
   return (
     <main className="max-w-lg mx-auto px-5 pt-6 pb-24 lg:pb-10 lg:max-w-2xl lg:px-10 flex flex-col gap-6">
@@ -84,7 +83,7 @@ export default function RequestsPage() {
           <Inbox size={18} className="text-accent" /> Requests
         </h1>
         <p className="text-xs text-text-secondary mt-0.5">
-          Remix and contest entries sent to {mode === "all_labels" ? "any of your labels" : activeLabel?.name ?? "this label"}.
+          Remix and contest entries sent to {activeLabel?.name ?? "this label"}.
         </p>
       </header>
 
