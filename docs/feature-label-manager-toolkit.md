@@ -151,4 +151,23 @@ additions, not a redesign of anything a producer currently sees.
 
 ## Status
 
-Researched, not yet designed in detail or implemented.
+All four implemented:
+
+1. Artist suggestions — `app/(dashboard)/dashboard/(label-manager)/scouting`,
+   `lib/store/label-manager/artistSuggestionsStore.ts`.
+2. Remix requests inbox — `app/(dashboard)/dashboard/(label-manager)/requests`,
+   reading the existing `useLabelInboxStore` conversations.
+3. Contest creation — `app/(dashboard)/dashboard/(label-manager)/contests`,
+   `lib/store/label-manager/contestsStore.ts`, merged into producer-facing
+   reads via `lib/contests/useLabelContests.ts` (so `ActiveContests`,
+   `ContestDetailClient`, and `TrackRemixCard` don't need to change).
+4. Demo policy management — `app/(dashboard)/dashboard/(label-manager)/demo-policy`,
+   `lib/store/label-manager/demoPolicyStore.ts`, merged in via
+   `lib/labels/useEffectiveLabel.ts` at the single point
+   (`LabelProfileClient`) that resolves a label and passes it to
+   `LabelDetailHeader`/`DemoPolicyCard`/the submit-demo gate. **Known gap**:
+   Browse/Discover list badges (`SearchResults`, `LabelRow`, `FeaturedCard`,
+   the Labels tabs/genre pages) still read `label.demoStatus` straight off
+   the static mock array, so an edit shows up on the label's own detail
+   page but not yet on those list views — same merge pattern would need to
+   be applied there too.

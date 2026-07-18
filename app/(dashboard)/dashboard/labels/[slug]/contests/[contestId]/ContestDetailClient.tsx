@@ -10,6 +10,7 @@ import CoverArt from "@/components/dashboard/discover/CoverArt";
 import ContestSubmitCard from "@/components/dashboard/producer/labels/detail/ContestSubmitCard";
 import { usePrototypeViewStore } from "@/lib/store/prototypeViewStore";
 import { trackArtistsOptedInToRemix } from "@/lib/contests/remixConsent";
+import { useLabelContests } from "@/lib/contests/useLabelContests";
 import { mockLabels } from "@/lib/mock/labels";
 import { mockTracks } from "@/lib/mock/tracks";
 import { LABEL_SAMPLE_TRACKS } from "@/lib/mock/labelSampleCatalog";
@@ -67,9 +68,10 @@ export default function ContestDetailClient() {
   const { slug, contestId } = slugAndContestFromPath(pathname);
 
   const label = mockLabels.find((l) => l.slug === slug);
+  const contests = useLabelContests(label ?? { id: "", activeContests: [] });
   if (!label) notFound();
 
-  const contest = label.activeContests?.find((c) => c.id === contestId);
+  const contest = contests.find((c) => c.id === contestId);
   if (!contest) notFound();
 
   const track = findTrack(contest.trackId);

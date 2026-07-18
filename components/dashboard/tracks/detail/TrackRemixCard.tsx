@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Repeat } from "lucide-react";
 import { usePrototypeViewStore } from "@/lib/store/prototypeViewStore";
 import { trackArtistsOptedInToRemix } from "@/lib/contests/remixConsent";
+import { useContestsStore } from "@/lib/store/label-manager/contestsStore";
 import { mockLabels } from "@/lib/mock/labels";
 import { mockArtist } from "@/lib/mock/artist";
 import type { Track } from "@/types/track";
@@ -20,10 +21,14 @@ import type { Track } from "@/types/track";
  */
 export default function TrackRemixCard({ track, backChain }: { track: Track; backChain: string }) {
   const view = usePrototypeViewStore((s) => s.view);
+  const extraContests = useContestsStore((s) => s.extraContests);
   const credited = track.artistIds ?? [track.artistId];
 
-  const label = mockLabels.find((l) => l.activeContests?.some((c) => c.trackId === track.id));
-  const contest = label?.activeContests?.find((c) => c.trackId === track.id);
+  const seededLabel = mockLabels.find((l) => l.activeContests?.some((c) => c.trackId === track.id));
+  const seededContest = seededLabel?.activeContests?.find((c) => c.trackId === track.id);
+  const extraMatch = extraContests.find((e) => e.contest.trackId === track.id);
+  const label = seededLabel ?? mockLabels.find((l) => l.id === extraMatch?.labelId);
+  const contest = seededContest ?? extraMatch?.contest;
   if (!label || !contest) return null;
   if (view === "label_manager") return null;
   if (credited.includes(mockArtist.id)) return null;

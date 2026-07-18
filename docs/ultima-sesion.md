@@ -1,9 +1,91 @@
 # Última sesión — resumen y qué quedó pendiente
 
-Repaso de todo lo que se hizo en esta sesión (partiendo del commit
-`4b711a6`), para retomar sin tener que releer todo el historial.
+Repaso de todo lo que se hizo, para retomar sin tener que releer todo el
+historial. Los cambios más recientes van arriba.
 
-## Resumen de lo que se hizo
+## Sesión de hoy (17/07/2026)
+
+Partiendo del commit `c1b7f76` (ya en GitHub). Nada de lo de hoy está
+subido todavía — el usuario pidió explícitamente no hacer push esta vez.
+
+### Deploy a Firebase + diagnóstico de cold start
+Se hizo deploy (`npm run deploy:firebase`) — live en
+`https://proton-web--proton-e311b.us-central1.hosted.app` — y se midió
+cuánto tarda en abrir el dashboard de productor. Con `curl -w
+"%{time_total}"` se aisló dónde estaba el tiempo: la API GraphQL responde
+en ~1s (no es el cuello de botella), pero la primera carga del dashboard
+tarda **~20s en frío** y baja a 0.4–0.7s en pedidos subsiguientes.
+**Causa real**: `apphosting.yaml` no tiene `runConfig.minInstances`
+seteado (default 0), así que Cloud Run escala a cero tras inactividad y
+cada visita después de un rato de nadie usando la app paga el arranque
+completo de la instancia. **Fix propuesto, no aplicado todavía** (falta
+confirmación del usuario): agregar `runConfig: minInstances: 1` a
+`apphosting.yaml` — mantiene una instancia siempre viva, elimina el cold
+start, tiene costo de Cloud Run corriendo 24/7.
+
+Aclarado también por qué "yo lo uso antes, ¿le carga más rápido a otro
+después?": sí, dentro de la misma instancia/región mientras no pase el
+tiempo de inactividad — pero no es por dispositivo/red, es la instancia
+del servidor la que queda caliente o fría, independientemente de qué
+compu la usa.
+
+### 1. Scouting — sugerencias de artistas (toolkit ítem 1)
+`types/labelArtistSuggestion.ts`, `lib/mock/label-manager/artistSuggestions.ts`
+(3 artistas ficticios nuevos: Solene Frost y Nadir Cole para Sudbeat,
+Marlowe Kade para Bedrock), `lib/store/label-manager/artistSuggestionsStore.ts`,
+página `/dashboard/scouting`. "Reach out" manda un mensaje real vía
+`sendArtistOutreach` (acción nueva en `labelInboxStore.ts`, reversa de
+`sendLabelRequest`) que crea una conversación `origin: label_outreach` con
+`peer.type: "producer"` — aparece correctamente en el inbox unificado de
+Connections.
+
+### 2. Requests — inbox de remix/contest para label-manager (toolkit ítem 2)
+Página `/dashboard/requests`: filtra las conversaciones que ya se crean
+del lado productor (`producer_request` con `kind: "remix"` o `"contest"`)
+por label activo, sin store nuevo — es una vista sobre datos que ya
+existían. Chat propio en `/dashboard/requests/chat/[id]` reutilizando
+`ConversationThread`, mostrando `mockArtist.name` ("Naial") como remitente
+en vez de `peer.name` (que en estas conversaciones es el nombre de la
+propia label, porque el modelo está pensado desde el punto de vista del
+productor).
+
+### 3. Barra de navegación mobile de label-manager — demasiadas opciones
+El usuario marcó que la bottom nav de label-manager (7 ítems ya con
+Scouting/Requests sumados) quedaba muy apretada en mobile. Se creó
+`lib/store/mobileMenuStore.ts` (estado compartido open/close) y se limitó
+`BottomNav.tsx` a mostrar los primeros 4 ítems de `LABEL_MANAGER_NAV_LINKS`
+más un tab "More" que abre el mismo `HamburgerMenu` con la lista completa.
+El sidebar de escritorio no cambió (tiene lugar de sobra).
+
+### 4. Contests — creación de contest para label-manager (toolkit ítem 3)
+Página `/dashboard/contests`: lista los contests del label activo (mock +
+creados) y formulario "+ New contest" (track propio del label, título,
+descripción, deadline y prize opcionales). Los contests creados viven en
+`lib/store/label-manager/contestsStore.ts` (persistido). Para que
+aparezcan en los lugares donde el productor ya lee contests sin tocar esos
+componentes, se agregó `lib/contests/useLabelContests.ts` — un hook que
+mezcla `label.activeContests` (mock) con los del store — usado en
+`ActiveContests.tsx`, `ContestDetailClient.tsx` y `TrackRemixCard.tsx`.
+
+### 5. Demo policy — gestión de política de demos para label-manager (toolkit ítem 4)
+Página `/dashboard/demo-policy`: por label, editar estado (abierto/cerrado/
+desconocido), géneros preferidos, formato preferido, tiempo de respuesta y
+notas. Store nuevo `lib/store/label-manager/demoPolicyStore.ts` (overrides
+por `labelId`), mezclado vía `lib/labels/useEffectiveLabel.ts` en el único
+punto donde `LabelProfileClient.tsx` resuelve la label y se la pasa a
+`LabelDetailHeader`/`DemoPolicyCard`/el gate de "Submit demo" vs "Request
+to connect" — esos componentes no cambiaron.
+
+**Gap conocido, no resuelto**: las tarjetas de labels en Browse/Discover
+(`SearchResults`, `LabelRow`, `FeaturedCard`, tabs por género) siguen
+leyendo `demoStatus` directo del mock estático — un cambio de política se
+ve en la página de la label pero no todavía en esas listas.
+
+Con esto, **los 4 ítems del toolkit de label-manager
+(`docs/feature-label-manager-toolkit.md`) están implementados**. `npx tsc
+--noEmit` limpio después de cada paso.
+
+## Sesión anterior — resumen de lo que se hizo
 
 ### 1. Filtro de BPM (verificación)
 Se terminó de verificar en el navegador el rediseño del `BpmRangeFilter`
@@ -119,13 +201,17 @@ se reescribieron ambas páginas con `useQuery` (mismo patrón que
 ## Qué quedó pendiente / abierto
 
 **Del toolkit de label-manager** (`docs/feature-label-manager-toolkit.md`):
-- [ ] Sugerencias de artistas para label-manager — necesita dataset mock nuevo.
-- [ ] Vista del inbox de remix/contest del lado label-manager (la mitad
-      productor ya está construida, falta la vista label).
-- [ ] Formulario de creación/edición de contest para label-manager.
-- [ ] Gestión de política de demos (abrir/cerrar, requisitos) para label-manager.
-- [ ] Dónde viven estas 4 herramientas en el nav de label-manager (pregunta
-      abierta, no resuelta).
+- [x] Sugerencias de artistas, inbox de remix/contest, creación de
+      contests, y gestión de política de demos — los 4 ítems implementados
+      hoy (ver arriba).
+- [ ] Gap conocido: las tarjetas de Browse/Discover no reflejan ediciones
+      de política de demos hechas en `/dashboard/demo-policy` (siguen
+      leyendo el mock estático).
+
+**Del deploy / performance**:
+- [ ] Aplicar `runConfig: minInstances: 1` en `apphosting.yaml` para
+      eliminar el cold start de ~20s — propuesto, no confirmado por el
+      usuario todavía.
 
 **Del sistema de contest** (`docs/feature-contest-flow.md`):
 - [ ] Cómo se le avisa a un productor qué pasó con su remix después de
@@ -165,3 +251,83 @@ encontraron investigando o verificando)
 8. "Pending to review" mostraba tu propio track como si fuera de otro
    productor.
 9. Las páginas de Feedback no estaban preparadas para una API real.
+
+## Qué falta testear a mano (lo de hoy)
+
+Todo esto compila (`npx tsc --noEmit` limpio) pero no se verificó en el
+navegador esta sesión — el usuario prefiere revisarlo él mismo.
+
+**Scouting (`/dashboard/scouting`, label-manager)**
+- [ ] Cambiar a vista label-manager y escopear a Sudbeat (id "2"): deberían
+      verse las tarjetas de Solene Frost y Nadir Cole.
+- [ ] Escopear a Bedrock (id "3"): debería verse Marlowe Kade.
+- [ ] Con "All labels" seleccionado, deberían verse las 3 juntas.
+- [ ] "Reach out" → escribir una nota → "Send": la tarjeta pasa a estado
+      "Reached out" con link "View conversation".
+- [ ] Ese link lleva a un chat real, y la conversación aparece en
+      Connections (vista productor) etiquetada como outreach de esa label.
+- [ ] "Dismiss" saca la tarjeta de la lista (y no debería reaparecer al
+      recargar, por el `persist` del store).
+
+**Requests (`/dashboard/requests`, label-manager)**
+- [ ] Sudbeat debería mostrar los pedidos de remix ya seedeados
+      (Weightless, Fading Signal). Bedrock, el de Open Horizons.
+- [ ] El nombre mostrado como remitente debe ser "Naial" (no el nombre de
+      la propia label).
+- [ ] Entrar a un request abre el chat real, con historial de mensajes.
+- [ ] El botón Back del chat vuelve a `/dashboard/requests`, no al
+      Dashboard.
+- [ ] Mandar un contest entry nuevo desde el lado productor (Track Detail
+      → Remix this track) y confirmar que aparece acá con el track
+      correcto en la descripción.
+
+**Bottom nav mobile (label-manager, viewport angosto)**
+- [ ] Solo deberían verse 4 tabs + "More": Roster, Scouting, Requests,
+      Catalog, More.
+- [ ] Tocar "More" abre el mismo drawer que el botón hamburguesa de arriba,
+      con los 7 ítems completos (incluye Contests, Releases, Revenue,
+      Statements, Demo policy).
+- [ ] Estando en una página que solo vive en "More" (ej. Revenue), el tab
+      "More" debería marcarse como activo (subrayado/color accent).
+- [ ] En desktop (`lg:` para arriba) el sidebar sigue mostrando los 8
+      ítems completos, sin recorte.
+
+**Contests (`/dashboard/contests`, label-manager)**
+- [ ] Escopeado a un label específico: se ven sus contests existentes
+      (ej. Sudbeat → Weightless, Fading Signal).
+- [ ] Con "All labels": se ven todos, con el nombre de la label al lado
+      de cada uno.
+- [ ] "+ New contest": el selector de track solo debería listar tracks con
+      `labelSlug` de la label activa (probar con Toxic Astronaut, que
+      tiene "Living" real de Naial).
+- [ ] Crear un contest y confirmar que aparece: (a) en esta misma lista,
+      (b) en `ActiveContests` dentro de la página pública del label
+      (`/dashboard/labels/{slug}`), (c) en la card "Remix this track" del
+      Track Detail del track elegido (si el artista tiene `openToRemix`),
+      (d) al entrar al link de detalle del contest nuevo.
+- [ ] Con "All labels" seleccionado, el formulario debería pedir elegir un
+      label específico en vez de mostrar el form directamente.
+- [ ] Recargar la página y confirmar que el contest creado persiste
+      (`persist` del store).
+
+**Demo policy (`/dashboard/demo-policy`, label-manager)**
+- [ ] Escopear a un label, cambiar el estado a "Closed" y guardar: en
+      `/dashboard/labels/{slug}` (vista productor) el badge de estado y el
+      CTA deberían cambiar de "Submit demo" a "Request to connect".
+- [ ] Cambiar géneros preferidos y formato/tiempo de respuesta/notas:
+      confirmar que `DemoPolicyCard` en la página del label muestra los
+      valores nuevos.
+- [ ] Cambiar de label activo en el switcher: el formulario debe
+      re-poblarse con los valores de la nueva label (no arrastrar los de
+      la anterior).
+- [ ] Confirmar el gap conocido: ese mismo cambio de `demoStatus` **no**
+      se refleja en Browse/Discover (`/dashboard/labels`, tarjetas de
+      búsqueda) — solo en la página de detalle del label. Si se quiere
+      que sí se refleje, hay que extender ahí el mismo patrón de merge.
+- [ ] Con "All labels" seleccionado, debería pedir elegir un label
+      específico en vez de mostrar el formulario.
+
+**General**
+- [ ] Correr toda esta lista también como productor (vista producer) para
+      confirmar que nada de lo de label-manager quedó visible o rompe esa
+      vista (nav, rutas, etc.).

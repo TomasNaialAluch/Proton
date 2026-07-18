@@ -13,6 +13,7 @@ import RequestToConnectForm from "@/components/dashboard/producer/labels/detail/
 import SimilarLabels from "@/components/dashboard/producer/labels/detail/SimilarLabels";
 import { mockLabels } from "@/lib/mock/labels";
 import { usePrototypeViewStore } from "@/lib/store/prototypeViewStore";
+import { useEffectiveLabel } from "@/lib/labels/useEffectiveLabel";
 import { backChainForward } from "@/lib/utils/navigation";
 
 function slugFromPath(pathname: string): string {
@@ -24,14 +25,15 @@ export default function LabelProfileClient() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const slug = slugFromPath(pathname);
-  const label = mockLabels.find((l) => l.slug === slug);
+  const rawLabel = mockLabels.find((l) => l.slug === slug);
   // Submitting a demo / requesting to connect is a producer action — a
   // label manager (viewing their own label or someone else's) never
   // pitches a label. See docs/README-routing-architecture.md.
   const view = usePrototypeViewStore((s) => s.view);
+  const label = useEffectiveLabel(rawLabel ?? mockLabels[0]);
 
   if (!slug) notFound();
-  if (!label) notFound();
+  if (!rawLabel) notFound();
 
   const canSubmitDemo = label.demoStatus === "open";
 

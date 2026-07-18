@@ -6,10 +6,12 @@ import HamburgerMenu from "./HamburgerMenu";
 import NotificationsPanel from "./NotificationsPanel";
 import { useHelpAssistantStore } from "@/lib/store/helpAssistantStore";
 import { usePrototypeViewStore } from "@/lib/store/prototypeViewStore";
+import { useMobileMenuStore } from "@/lib/store/mobileMenuStore";
 import LabelScopeSwitcher from "@/components/dashboard/label-manager/LabelScopeSwitcher";
 
 export default function DashboardNavbar() {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const menuOpen = useMobileMenuStore((s) => s.open);
+  const setMenuOpen = useMobileMenuStore((s) => s.setOpen);
   const [notifOpen, setNotifOpen] = useState(false);
   const openAssistant = useHelpAssistantStore((s) => s.openAssistant);
   const view = usePrototypeViewStore((s) => s.view);

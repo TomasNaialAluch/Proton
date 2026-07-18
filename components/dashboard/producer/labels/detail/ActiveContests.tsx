@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { Trophy, Calendar, Gift, ChevronRight } from "lucide-react";
 import { trackArtistsOptedInToRemix } from "@/lib/contests/remixConsent";
+import { useLabelContests } from "@/lib/contests/useLabelContests";
 import type { ProtonLabel } from "@/types/label";
 
 function formatDeadline(iso: string) {
@@ -54,8 +57,8 @@ function ContestRow({ label, contest, backChain }: { label: ProtonLabel; contest
 }
 
 export default function ActiveContests({ label, backChain }: { label: ProtonLabel; backChain: string }) {
-  const contests = label.activeContests;
-  if (!contests || contests.length === 0) return null;
+  const contests = useLabelContests(label);
+  if (contests.length === 0) return null;
 
   return (
     <section>
