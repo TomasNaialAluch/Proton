@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { User, TrendingUp, Disc3, Music2, DollarSign } from "lucide-react";
+import { User, TrendingUp, Disc3, Music2, DollarSign, Radar, Inbox, Trophy, ClipboardList } from "lucide-react";
 
 /** Default landing when switching into the label-manager prototype shell. */
 export const LABEL_MANAGER_ENTRY = "/dashboard/roster";
@@ -14,11 +14,24 @@ export const LABEL_MANAGER_NAV_LINKS: readonly {
   href: string;
 }[] = [
   { label: "Roster", icon: User, href: LABEL_MANAGER_ENTRY },
+  { label: "Scouting", icon: Radar, href: "/dashboard/scouting" },
+  { label: "Requests", icon: Inbox, href: "/dashboard/requests" },
   { label: "Catalog", icon: Disc3, href: "/dashboard/catalog" },
+  { label: "Contests", icon: Trophy, href: "/dashboard/contests" },
   { label: "Releases", icon: Music2, href: "/dashboard/releases" },
   { label: "Revenue", icon: TrendingUp, href: "/dashboard/revenue" },
   { label: "Statements", icon: DollarSign, href: "/dashboard/statements" },
+  { label: "Demo policy", icon: ClipboardList, href: "/dashboard/demo-policy" },
 ];
+
+/**
+ * `/dashboard/labels/{slug}...` (a specific label's own page, and its
+ * releases/roster/contests sub-routes) is a universal entity page, viewable
+ * by both shells — see "Resolved: these pages don't need a label-manager UI
+ * mode at all" in docs/README-routing-architecture.md. Only `/dashboard/labels`
+ * itself (Browse) and these producer-scoped sub-workflows stay producer-only.
+ */
+const LABELS_PRODUCER_ONLY_SUBPATHS = ["submissions", "messages", "chat"];
 
 /**
  * Producer-only routes: not used by the label-manager MVP shell (except `/dashboard/releases`,
@@ -31,7 +44,12 @@ export function isProducerShellPath(pathname: string): boolean {
   if (pathname === "/dashboard") return true;
   if (pathname.startsWith("/dashboard/performance")) return true;
   if (pathname.startsWith("/dashboard/royalties")) return true;
-  if (pathname.startsWith("/dashboard/labels")) return true;
+  if (pathname.startsWith("/dashboard/labels")) {
+    const rest = pathname.slice("/dashboard/labels".length);
+    if (rest === "" || rest === "/") return true;
+    const firstSegment = rest.split("/")[1];
+    return LABELS_PRODUCER_ONLY_SUBPATHS.includes(firstSegment);
+  }
   if (pathname.startsWith("/dashboard/contracts")) return true;
   if (pathname.startsWith("/dashboard/platform")) return true;
   return false;
@@ -40,6 +58,10 @@ export function isProducerShellPath(pathname: string): boolean {
 /** Label-manager MVP routes (excluding shared `/dashboard/releases`). */
 export function isLabelShellPath(pathname: string): boolean {
   if (pathname.startsWith("/dashboard/roster")) return true;
+  if (pathname.startsWith("/dashboard/scouting")) return true;
+  if (pathname.startsWith("/dashboard/requests")) return true;
+  if (pathname.startsWith("/dashboard/contests")) return true;
+  if (pathname.startsWith("/dashboard/demo-policy")) return true;
   if (pathname.startsWith("/dashboard/catalog")) return true;
   if (pathname.startsWith("/dashboard/revenue")) return true;
   if (pathname.startsWith("/dashboard/statements")) return true;

@@ -21,10 +21,14 @@ export default function TrackDetailHeader({
   track,
   artists,
   label,
+  backChain,
 }: {
   track: Track;
   artists: Artist[];
   label?: ProtonLabel;
+  /** This page's own `from` chain, forwarded so Back from Artist/Label
+   *  keeps unwinding the whole trail — see docs/README-navigation-back-flow.md. */
+  backChain: string;
 }) {
   return (
     <div className="rounded-2xl border border-[var(--color-border)] bg-surface p-5">
@@ -41,7 +45,7 @@ export default function TrackDetailHeader({
                 <span key={a.id}>
                   {i > 0 && " & "}
                   <Link
-                    href={`/dashboard/artists/${a.id}?from=${encodeURIComponent(`/dashboard/tracks/${track.id}`)}`}
+                    href={`/dashboard/artists/${a.id}?${label ? `via=${label.slug}&` : ""}from=${encodeURIComponent(backChain)}`}
                     className="text-accent hover:underline underline-offset-2"
                   >
                     {a.name}
@@ -84,7 +88,7 @@ export default function TrackDetailHeader({
 
           {label && (
             <Link
-              href={`/dashboard/labels/${label.slug}`}
+              href={`/dashboard/labels/${label.slug}?from=${encodeURIComponent(backChain)}`}
               className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-accent hover:underline underline-offset-2"
             >
               <Building2 size={11} /> {label.name}

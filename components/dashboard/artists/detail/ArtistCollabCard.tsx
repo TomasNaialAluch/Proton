@@ -39,6 +39,7 @@ export default function ArtistCollabCard({ artist, viaLabel }: { artist: Artist;
       label: viaLabel,
       kind: "collab",
       text: `Collab request re: ${artist.name} — ${pitch.trim()}`,
+      artistId: artist.id,
     });
     setConversationId(convoId);
     setSent(true);

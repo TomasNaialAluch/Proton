@@ -215,7 +215,16 @@ logic works, not that it's a good artist profile.
   `RosterArtistRow`. Real photo support is still a separate, later step
 - [x] Populate real bios in mock data — all 4 roster artists now have a
   real 1-2 sentence bio; the header's bio block actually renders now
-- [ ] Render `socialLinks`
+- [x] Render `socialLinks` — real end to end now, not just the type field.
+  Settings > Artist Profile (`app/(dashboard)/dashboard/(producer)/settings/profile/page.tsx`)
+  has real, editable Instagram/SoundCloud/Spotify fields backed by
+  `lib/store/artistProfileStore.ts` (this used to be a hardcoded,
+  non-functional "Links & Connections" list). Artist Detail merges those
+  live edits in when you're viewing your own profile (`mockArtist.id`
+  match) and renders whichever platforms are actually filled in as icon
+  links in the header. Every other artist's `socialLinks` stays whatever
+  the static roster mock has (empty today) — there's no settings flow for
+  managing someone else's profile
 - [ ] Some form of artist activity/stats
 - [x] Richer track list — rows now show `CoverArt` per track, still no
   inline play or release-grouping yet

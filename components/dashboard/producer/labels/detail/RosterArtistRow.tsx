@@ -10,10 +10,10 @@ import type { Artist } from "@/types/artist";
  * label mediated the visit, so Artist Detail knows who to message for a
  * collab request without needing its own stored label relationship.
  */
-export default function RosterArtistRow({ label, artist }: { label: ProtonLabel; artist: Artist }) {
+export default function RosterArtistRow({ label, artist, backChain }: { label: ProtonLabel; artist: Artist; backChain: string }) {
   return (
     <Link
-      href={`/dashboard/artists/${artist.id}?via=${label.slug}`}
+      href={`/dashboard/artists/${artist.id}?via=${label.slug}&from=${encodeURIComponent(backChain)}`}
       className="flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-surface
         pl-1.5 pr-3 py-1.5 hover:border-accent/50 transition-colors"
     >

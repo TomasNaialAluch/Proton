@@ -10,7 +10,7 @@ function rosterArtists() {
   return mockRosterArtists.filter((a) => ids.has(a.id));
 }
 
-export default function ArtistRoster({ label }: { label: ProtonLabel }) {
+export default function ArtistRoster({ label, backChain }: { label: ProtonLabel; backChain: string }) {
   const artists = rosterArtists();
   if (artists.length === 0) return null;
 
@@ -21,13 +21,13 @@ export default function ArtistRoster({ label }: { label: ProtonLabel }) {
           <Mic2 size={13} className="text-accent" />
           <h2 className="text-sm font-semibold text-text-primary">Artist roster</h2>
         </div>
-        <Link href={`/dashboard/labels/${label.slug}/roster`} className="text-xs font-medium text-accent hover:underline underline-offset-2">
+        <Link href={`/dashboard/labels/${label.slug}/roster?from=${encodeURIComponent(backChain)}`} className="text-xs font-medium text-accent hover:underline underline-offset-2">
           View all
         </Link>
       </div>
       <div className="flex flex-wrap gap-2">
         {artists.map((artist) => (
-          <RosterArtistRow key={artist.id} label={label} artist={artist} />
+          <RosterArtistRow key={artist.id} label={label} artist={artist} backChain={backChain} />
         ))}
       </div>
     </section>

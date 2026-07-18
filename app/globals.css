@@ -139,3 +139,42 @@ body {
   text-transform: uppercase;
   color: rgb(220 252 231 / 0.95);
 }
+
+/* ── Dual-handle range slider (BpmRangeFilter) ──────────────────────────
+   Two overlapping <input type="range"> share one visual track: the native
+   track is hidden (transparent) so our own colored fill sits underneath,
+   only the thumb stays visible/interactive. */
+.range-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  pointer-events: none;
+}
+.range-slider-thumb::-webkit-slider-runnable-track {
+  background: transparent;
+}
+.range-slider-thumb::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--color-accent);
+  border: 2px solid var(--color-surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+.range-slider-thumb::-moz-range-track {
+  background: transparent;
+}
+.range-slider-thumb::-moz-range-thumb {
+  pointer-events: auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--color-accent);
+  border: 2px solid var(--color-surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}

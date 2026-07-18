@@ -32,11 +32,16 @@ export const mockReceivedFeedback: Feedback[] = [
   },
 ];
 
-/** Tracks (mine) assigned for me to review — no feedback submitted yet from my side. */
+/**
+ * Other producers' tracks assigned to me for review — no feedback
+ * submitted yet from my side. `trackId` points into `PEER_TRACKS`
+ * (lib/mock/peerTracks.ts), never into my own catalog — see
+ * docs/feature-peer-feedback-tracks.md for why that distinction matters.
+ */
 export const mockPendingToReview: PendingFeedbackRequest[] = [
   {
     id: "req-1",
-    trackId: "2", // Living (standing in for a peer's track in this prototype catalog)
+    trackId: "peer-vesna-1", // Afterglow, by Vesna
     fromProducer: peers[2],
     toProducer: mockMe,
     requestedAt: "2026-06-19T09:00:00Z",

@@ -2,12 +2,15 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Compass, Tag, Play, Pause, ArrowDownUp } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Compass, Tag, Play, Pause, ArrowDownUp, RotateCcw } from "lucide-react";
 import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
 import FilterDropdown from "@/components/dashboard/discover/FilterDropdown";
+import BpmRangeFilter, { type BpmRange } from "@/components/dashboard/discover/BpmRangeFilter";
 import LoadMoreButton from "@/components/dashboard/_shared/LoadMoreButton";
 import CoverArt, { genreColor, genreColorBg } from "@/components/dashboard/discover/CoverArt";
 import { mockDiscoverTracks, discoverGenres, discoverLabels, type DiscoverTrack } from "@/lib/mock/discover";
+import { mockLabels } from "@/lib/mock/labels";
 import { usePreviewStore } from "@/lib/store/previewStore";
 import { usePaginatedList } from "@/lib/hooks/usePaginatedList";
 
@@ -21,11 +24,37 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 ];
 
 export default function DiscoverPage() {
+  const router = useRouter();
   const genres = discoverGenres();
   const labels = discoverLabels();
+  const keys = useMemo(
+    () => [...new Set(mockDiscoverTracks.map((t) => t.key).filter((k): k is string => Boolean(k)))].sort(),
+    []
+  );
+  const producers = useMemo(
+    () => [...new Set(mockDiscoverTracks.map((t) => t.producer.name))].sort(),
+    []
+  );
+  const bpmBounds = useMemo<BpmRange>(() => {
+    const bpms = mockDiscoverTracks.map((t) => t.bpm).filter((b): b is number => b !== undefined);
+    return { min: Math.min(...bpms), max: Math.max(...bpms) };
+  }, []);
+
   const [genre, setGenre] = useState<string | null>(null);
   const [label, setLabel] = useState<string | null>(null);
+  const [trackKey, setTrackKey] = useState<string | null>(null);
+  const [producer, setProducer] = useState<string | null>(null);
+  const [bpmRange, setBpmRange] = useState<BpmRange | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>("newest");
+
+  const resetAll = () => {
+    setGenre(null);
+    setLabel(null);
+    setTrackKey(null);
+    setProducer(null);
+    setBpmRange(null);
+  };
+  const hasActiveFilters = Boolean(genre || label || trackKey || producer || bpmRange);
 
   /** Only one card preview plays at a time, via a single shared <audio>. */
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -61,21 +90,26 @@ export default function DiscoverPage() {
   };
 
   const filtered = useMemo(() => {
-    const matches = mockDiscoverTracks.filter(
-      (t) => (!genre || t.genre === genre) && (!label || t.label === label)
-    );
+    const matches = mockDiscoverTracks.filter((t) => {
+      if (genre && t.genre !== genre) return false;
+      if (label && t.label !== label) return false;
+      if (trackKey && t.key !== trackKey) return false;
+      if (producer && t.producer.name !== producer) return false;
+      if (bpmRange && t.bpm !== undefined && (t.bpm < bpmRange.min || t.bpm > bpmRange.max)) return false;
+      return true;
+    });
     const sorted = [...matches].sort((a, b) =>
       sortBy === "newest"
         ? +new Date(b.openedForFeedbackAt) - +new Date(a.openedForFeedbackAt)
         : b.feedbackCount - a.feedbackCount
     );
     return sorted;
-  }, [genre, label, sortBy]);
+  }, [genre, label, trackKey, producer, bpmRange, sortBy]);
 
   const { visibleItems: visible, hasMore, remaining, loadMore } = usePaginatedList(
     filtered,
     PAGE_SIZE,
-    `${genre ?? ""}-${label ?? ""}-${sortBy}`
+    `${genre ?? ""}-${label ?? ""}-${trackKey ?? ""}-${producer ?? ""}-${bpmRange?.min ?? ""}-${bpmRange?.max ?? ""}-${sortBy}`
   );
 
   return (
@@ -109,6 +143,28 @@ export default function DiscoverPage() {
           value={label}
           onChange={setLabel}
         />
+        <BpmRangeFilter bounds={bpmBounds} value={bpmRange} onChange={setBpmRange} />
+        <FilterDropdown
+          label="Key"
+          options={keys}
+          value={trackKey}
+          onChange={setTrackKey}
+        />
+        <FilterDropdown
+          label="Producer"
+          options={producers}
+          value={producer}
+          onChange={setProducer}
+        />
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={resetAll}
+            className="flex items-center gap-1 text-xs text-text-secondary hover:text-text-primary transition-colors"
+          >
+            <RotateCcw size={11} /> Reset all
+          </button>
+        )}
         <span className="ml-auto text-xs text-text-secondary">
           {filtered.length} {filtered.length === 1 ? "track" : "tracks"}
         </span>
@@ -169,7 +225,25 @@ export default function DiscoverPage() {
             </div>
             <p className="text-sm font-medium text-text-primary truncate">{track.title}</p>
             <p className="text-xs text-text-secondary truncate mb-2">
-              {track.producer.name} · {track.label}
+              {track.producer.name} ·{" "}
+              {(() => {
+                const realLabel = mockLabels.find((l) => l.name === track.label);
+                if (!realLabel) return track.label;
+                return (
+                  <span
+                    role="link"
+                    tabIndex={0}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      router.push(`/dashboard/labels/${realLabel.slug}`);
+                    }}
+                    className="hover:text-accent hover:underline underline-offset-2 transition-colors"
+                  >
+                    {track.label}
+                  </span>
+                );
+              })()}
             </p>
             <div className="flex items-center justify-between gap-2">
               <span

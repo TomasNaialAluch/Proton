@@ -272,6 +272,14 @@ navigation graph, not a finished page. In rough priority order:
 - [x] Page exists, reads the real shared `Track`, reachable from Label
   Detail, Label's "view all releases," Label's remix list, and Artist
   Detail
+- [x] Discover's own label data was a separate loose end from the same
+  unification: `lib/mock/discover.ts`'s `PRODUCERS` array used fictional
+  label names ("Outer Space", "Subterra Records", "Deep Current", "Night
+  Frequency") disconnected from the real `mockLabels`. Remapped to real
+  labels (Outer Space Oasis, Fabric, Hope Recordings, Hyperdub, Toxic
+  Astronaut — picked for genre fit), and Discover's track cards now link
+  the label name to `/dashboard/labels/[slug]` when it resolves to a real
+  one. Also added a BPM range filter (min/max) alongside Genre/Label.
 - [x] Feedback and remix actions, both correctly gated
 - [x] Deterministic back navigation (`from` param)
 - [x] Visual identity via `CoverArt` (deterministic per-track gradient,

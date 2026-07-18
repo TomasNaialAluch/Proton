@@ -6,6 +6,7 @@ import { TrendingUp, Music2, Disc3, Star, Search } from "lucide-react";
 import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
 import LoadMoreButton from "@/components/dashboard/_shared/LoadMoreButton";
 import Skeleton from "@/components/ui/Skeleton";
+import KpiCard from "@/components/ui/KpiCard";
 import StreamsChart from "@/components/dashboard/StreamsChart";
 import GenreDonut from "@/components/dashboard/GenreDonut";
 import { fetchArtistWithTracks } from "@/lib/api/artist";
@@ -271,33 +272,6 @@ export default function PerformancePage() {
 }
 
 // ── Sub-components ─────────────────────────────────────────────
-
-function KpiCard({
-  icon, label, value, accent = false, small = false, isLoading = false,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  accent?: boolean;
-  small?: boolean;
-  isLoading?: boolean;
-}) {
-  return (
-    <div className="bg-surface rounded-xl border border-[var(--color-border)] px-3 py-4 flex flex-col gap-2">
-      <div className={`flex items-center gap-1.5 ${accent ? "text-accent" : "text-text-secondary"}`}>
-        {icon}
-        <span className="text-xs font-medium">{label}</span>
-      </div>
-      {isLoading ? (
-        <Skeleton className={small ? "h-5 w-16" : "h-7 w-16"} />
-      ) : (
-        <span className={`font-semibold tabular-nums text-text-primary truncate ${small ? "text-base" : "text-2xl"}`}>
-          {value}
-        </span>
-      )}
-    </div>
-  );
-}
 
 function SortHeader({
   label, sortKey, current, asc, onSort,

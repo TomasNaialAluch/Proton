@@ -3,6 +3,7 @@ import AppSidebar from "@/components/dashboard/AppSidebar";
 import BottomNav from "@/components/dashboard/BottomNav";
 import DashboardMainArea from "@/components/dashboard/DashboardMainArea";
 import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
+import SessionWelcomeModal from "@/components/dashboard/SessionWelcomeModal";
 
 export default function DashboardLayout({
   children,
@@ -23,6 +24,8 @@ export default function DashboardLayout({
       </div>
 
       <BottomNav />
+
+      <SessionWelcomeModal />
     </div>
   );
 }

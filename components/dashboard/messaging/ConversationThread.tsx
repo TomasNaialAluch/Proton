@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Send, FileText, ChevronRight } from "lucide-react";
+import { Send, FileText, FileAudio, ChevronRight } from "lucide-react";
 import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
+import BackButton from "@/components/dashboard/_shared/BackButton";
 import type { ChatMessage } from "@/types/message";
 
 /**
@@ -22,11 +23,18 @@ export default function ConversationThread({
   peerName,
   breadcrumbItems,
   initialMessages,
+  backHref,
+  backFallback,
 }: {
   conversationId: string;
   peerName: string;
   breadcrumbItems: { label: string; href?: string }[];
   initialMessages: ChatMessage[];
+  /** Where "back" should go — set by whoever linked here (the messages
+   *  list), so leaving a chat returns to that list instead of forcing a
+   *  trip through Dashboard. See docs/README-navigation-back-flow.md. */
+  backHref?: string;
+  backFallback: string;
 }) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [draft, setDraft] = useState("");
@@ -49,6 +57,8 @@ export default function ConversationThread({
 
   return (
     <main className="max-w-lg mx-auto px-5 pt-6 pb-24 lg:pb-10 lg:max-w-3xl lg:px-10 flex flex-col h-[calc(100vh-2rem)]">
+      <BackButton href={backHref} fallbackHref={backFallback} label="Back" />
+
       <DashboardBreadcrumb items={breadcrumbItems} />
 
       <h1 className="text-xl font-bold text-text-primary mb-4">{peerName}</h1>
@@ -64,7 +74,7 @@ export default function ConversationThread({
                 }`}
             >
               <p>{m.text}</p>
-              {m.attachment && (
+              {m.attachment?.type === "contract" && (
                 <Link
                   href={`/dashboard/contracts/${m.attachment.contractId}`}
                   className={`mt-2 flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-colors
@@ -77,6 +87,18 @@ export default function ConversationThread({
                   <span className="flex-1 truncate">{m.attachment.contractLabel}</span>
                   <ChevronRight size={12} className="shrink-0" />
                 </Link>
+              )}
+              {m.attachment?.type === "contest_entry" && (
+                <div
+                  className={`mt-2 flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium
+                    ${m.fromMe
+                      ? "bg-white/15 text-white"
+                      : "bg-[var(--color-border)]/60 text-text-primary"
+                    }`}
+                >
+                  <FileAudio size={14} className="shrink-0" />
+                  <span className="flex-1 truncate">{m.attachment.fileName}</span>
+                </div>
               )}
             </div>
           </div>

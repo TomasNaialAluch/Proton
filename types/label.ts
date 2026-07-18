@@ -23,26 +23,25 @@ export interface ProtonLabel {
     notes?: string;
   };
 
-  // detail page — action surfaces
+  /**
+   * A remix call against a track the label already owns — not a ranked
+   * competition (no places, no prize tiers). References a real `Track` by
+   * id, so it can be checked against that track's `openToRemix` artist(s):
+   * a contest only actually opens up (stems + submission) once the
+   * credited artist(s) have also opted in — the label putting a track up
+   * isn't enough on its own, since it's the artist's name on the release.
+   * This used to be two separate systems (a `remixOpportunities` list
+   * with only a text-message "request" and no way to get the stems, plus
+   * this `activeContests` list) — merged into one, see
+   * docs/feature-contest-flow.md, "Merging remix opportunities into
+   * contests".
+   */
   activeContests?: {
     id: string;
     title: string;
     description: string;
-    deadline?: string;
-    prize?: string;
-  }[];
-
-  /**
-   * Tracks the LABEL has approved for remix — this is step 1 of a 2-step
-   * approval (label, then the credited artist). References a real `Track`
-   * by id instead of free-text title/artist so it can be checked against
-   * that track's `openToRemix` artist(s) — see docs/feature-track-detail.md,
-   * "The 2-step remix approval". A track only becomes actually requestable
-   * once both the label AND the artist have said yes.
-   */
-  remixOpportunities?: {
-    id: string;
     trackId: string;
     deadline?: string;
+    prize?: string;
   }[];
 }

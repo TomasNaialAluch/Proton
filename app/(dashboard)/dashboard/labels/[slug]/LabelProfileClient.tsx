@@ -1,6 +1,6 @@
 "use client";
 
-import { notFound, usePathname } from "next/navigation";
+import { notFound, usePathname, useSearchParams } from "next/navigation";
 import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
 import BackButton from "@/components/dashboard/_shared/BackButton";
 import SubmitTrackForm from "@/components/dashboard/producer/labels/SubmitTrackForm";
@@ -9,11 +9,12 @@ import RecentReleasesStrip from "@/components/dashboard/producer/labels/detail/R
 import ArtistRoster from "@/components/dashboard/producer/labels/detail/ArtistRoster";
 import DemoPolicyCard from "@/components/dashboard/producer/labels/detail/DemoPolicyCard";
 import ActiveContests from "@/components/dashboard/producer/labels/detail/ActiveContests";
-import RemixOpportunities from "@/components/dashboard/producer/labels/detail/RemixOpportunities";
 import RequestToConnectForm from "@/components/dashboard/producer/labels/detail/RequestToConnectForm";
 import SimilarLabels from "@/components/dashboard/producer/labels/detail/SimilarLabels";
 import { mockLabels } from "@/lib/mock/labels";
 import { usePrototypeViewStore } from "@/lib/store/prototypeViewStore";
+import { useEffectiveLabel } from "@/lib/labels/useEffectiveLabel";
+import { backChainForward } from "@/lib/utils/navigation";
 
 function slugFromPath(pathname: string): string {
   const m = pathname.match(/\/dashboard\/labels\/([^/]+)\/?$/);
@@ -22,21 +23,30 @@ function slugFromPath(pathname: string): string {
 
 export default function LabelProfileClient() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const slug = slugFromPath(pathname);
-  const label = mockLabels.find((l) => l.slug === slug);
+  const rawLabel = mockLabels.find((l) => l.slug === slug);
   // Submitting a demo / requesting to connect is a producer action — a
   // label manager (viewing their own label or someone else's) never
   // pitches a label. See docs/README-routing-architecture.md.
   const view = usePrototypeViewStore((s) => s.view);
+  const label = useEffectiveLabel(rawLabel ?? mockLabels[0]);
 
   if (!slug) notFound();
-  if (!label) notFound();
+  if (!rawLabel) notFound();
 
   const canSubmitDemo = label.demoStatus === "open";
 
+  // Where "back" should go, and what to hand off to Track/Artist links so
+  // Back from wherever the user drills into next unwinds the whole trail
+  // back to this label, not just the last hop. See
+  // docs/README-navigation-back-flow.md.
+  const from = searchParams.get("from");
+  const backChain = backChainForward(pathname, searchParams);
+
   return (
     <main className="max-w-lg mx-auto px-5 pt-6 pb-24 lg:pb-10 lg:max-w-2xl lg:px-10 flex flex-col gap-6">
-      <BackButton fallbackHref="/dashboard/labels" label="Back to Labels" />
+      <BackButton href={from ?? undefined} fallbackHref="/dashboard/labels" label="Back to Labels" />
 
       <DashboardBreadcrumb items={[
         { label: "Dashboard", href: "/dashboard" },
@@ -46,13 +56,11 @@ export default function LabelProfileClient() {
 
       <LabelDetailHeader label={label} />
 
-      <RecentReleasesStrip label={label} />
+      <RecentReleasesStrip label={label} backChain={backChain} />
 
-      <ArtistRoster label={label} />
+      <ArtistRoster label={label} backChain={backChain} />
 
-      <ActiveContests label={label} />
-
-      <RemixOpportunities label={label} />
+      <ActiveContests label={label} backChain={backChain} />
 
       {/* Demo policy sits directly above the action it describes — reading
           what the label wants right before submitting/reaching out, instead
