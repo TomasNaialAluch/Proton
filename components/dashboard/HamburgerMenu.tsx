@@ -41,11 +41,10 @@ interface HamburgerMenuProps {
 const LEAVES_DASHBOARD_HINT =
   "Opens the public site — you will leave the artist dashboard.";
 
+/** Producer tools — see navData.ts for the desktop-sidebar version of this
+ *  same rationale (Shows/DJ Mixes moved here from "Extras"). */
 const producerToolLinks = [
-  { label: "Release Links", href: "/dashboard/settings/account/notifications", icon: LinkIcon, dot: null, leavesDashboard: false, externalGlyph: false },
-] as const;
-
-const platformLinks = [
+  { label: "Release Links", href: "/dashboard/settings/account/notifications", icon: LinkIcon, dot: null, leavesDashboard: false, externalGlyph: false, platformTab: null },
   {
     label: "Shows",
     href: "/dashboard/platform?tab=shows",
@@ -56,15 +55,6 @@ const platformLinks = [
     platformTab: "shows" as const,
   },
   {
-    label: "Labels",
-    href: "/dashboard/platform?tab=labels",
-    icon: Tag,
-    dot: "#1ABC9C",
-    leavesDashboard: false,
-    externalGlyph: false,
-    platformTab: "labels" as const,
-  },
-  {
     label: "DJ Mixes",
     href: "/dashboard/platform?tab=dj-mixes",
     icon: Disc3,
@@ -72,6 +62,19 @@ const platformLinks = [
     leavesDashboard: false,
     externalGlyph: false,
     platformTab: "dj-mixes" as const,
+  },
+] as const;
+
+/** Extras — not producer-tool actions, see navData.ts. */
+const extrasLinks = [
+  {
+    label: "Labels",
+    href: "/dashboard/platform?tab=labels",
+    icon: Tag,
+    dot: "#1ABC9C",
+    leavesDashboard: false,
+    externalGlyph: false,
+    platformTab: "labels" as const,
   },
 ] as const;
 
@@ -227,7 +230,8 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
               Producer tools
             </p>
             <ul className="space-y-0.5">
-              {producerToolLinks.map(({ label, href, icon: Icon, dot, leavesDashboard, externalGlyph }) => {
+              {producerToolLinks.map(({ label, href, icon: Icon, dot, leavesDashboard, externalGlyph, platformTab }) => {
+                const active = platformTab ? platformHubLinkActive(pathname, urlTab, platformTab) : false;
                 const title = leavesDashboard ? LEAVES_DASHBOARD_HINT : undefined;
                 const ariaLabel = leavesDashboard ? `${label}. ${LEAVES_DASHBOARD_HINT}` : label;
                 const trailingExternal = leavesDashboard || externalGlyph;
@@ -238,9 +242,12 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
                       onClick={onClose}
                       title={title}
                       aria-label={ariaLabel}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg
-                        text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]
-                        transition-colors text-sm"
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg
+                        transition-colors text-sm
+                        ${active
+                          ? "bg-[var(--color-border)] text-text-primary font-medium"
+                          : "text-text-secondary hover:text-text-primary hover:bg-[var(--color-border)]"
+                        }`}
                     >
                       <div className="relative shrink-0">
                         <Icon size={16} />
@@ -265,18 +272,19 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
           </div>
           )}
 
-          {/* Platform */}
+          {/* Extras — not producer-tool actions, see navData.ts */}
           <div>
             <button
               type="button"
               onClick={togglePlatformSection}
               aria-expanded={platformSectionOpen}
               aria-controls="drawer-platform-links"
+              title="Not about your producer account — apply to launch your own label."
               className="mb-2 flex w-full items-center justify-between gap-2 rounded-lg px-1 py-1.5 text-left
                 text-xs font-medium uppercase tracking-wider text-text-secondary
                 hover:bg-[var(--color-border)] hover:text-text-primary transition-colors"
             >
-              <span>Platform</span>
+              <span>Extras</span>
               <ChevronDown
                 size={14}
                 className={`shrink-0 opacity-70 transition-transform duration-200 ${
@@ -289,7 +297,7 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
               id="drawer-platform-links"
               className={`space-y-0.5 ${platformSectionOpen ? "" : "hidden"}`}
             >
-              {platformLinks.map((link) => {
+              {extrasLinks.map((link) => {
                 const { label, href, icon: Icon, dot, leavesDashboard, externalGlyph } = link;
                 const platformTab = link.platformTab;
                 const active = platformHubLinkActive(pathname, urlTab, platformTab);

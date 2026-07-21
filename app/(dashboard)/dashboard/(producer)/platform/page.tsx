@@ -5,7 +5,7 @@ import PlatformHubClient from "@/components/dashboard/platform/PlatformHubClient
 export const metadata: Metadata = {
   title: "Platform — Proton",
   description:
-    "SoundSystem-style overview: Shows, Labels, DJ Mixes, and Account (prototype copy).",
+    "SoundSystem-style overview: Shows, Labels, and DJ Mixes (prototype copy).",
 };
 
 export default function PlatformHubPage() {

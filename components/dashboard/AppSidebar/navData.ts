@@ -38,6 +38,15 @@ export function linkIsActive(
 export const LEAVES_DASHBOARD_HINT =
   "Opens the public site — you will leave the artist dashboard.";
 
+/**
+ * Producer tools — things a producer who already has a Proton artist
+ * account actively does with it. Shows and DJ Mixes moved here from the
+ * old "Platform" grouping (see docs/analisis-platform-integracion.md,
+ * "Roadmap decidido: Shows + DJ Mixes se mudan a Producer tools"): both
+ * are actions a logged-in producer takes to get content out through
+ * Proton's own channels (a radio show, a DJ mix on Spotify/Apple),
+ * same nature as Release Links — not reference copy.
+ */
 export const producerToolLinks = [
   {
     label: "Release Links",
@@ -46,10 +55,8 @@ export const producerToolLinks = [
     dot: null,
     leavesDashboard: false,
     externalGlyph: false,
+    platformTab: null,
   },
-] as const;
-
-export const platformLinks = [
   {
     label: "Shows",
     href: "/dashboard/platform?tab=shows",
@@ -60,15 +67,6 @@ export const platformLinks = [
     platformTab: "shows" as const,
   },
   {
-    label: "Labels",
-    href: "/dashboard/platform?tab=labels",
-    icon: Tag,
-    dot: "#1ABC9C" as const,
-    leavesDashboard: false,
-    externalGlyph: false,
-    platformTab: "labels" as const,
-  },
-  {
     label: "DJ Mixes",
     href: "/dashboard/platform?tab=dj-mixes",
     icon: Disc3,
@@ -76,6 +74,26 @@ export const platformLinks = [
     leavesDashboard: false,
     externalGlyph: false,
     platformTab: "dj-mixes" as const,
+  },
+] as const;
+
+/**
+ * Extras — not producer-tool actions. Applying to launch a label isn't
+ * something a producer does with their own artist account; it's a
+ * separate Proton business relationship (see
+ * docs/analisis-platform-integracion.md, "Labels — seguimos pensando
+ * dónde va"). Kept in its own, clearly-separate section instead of mixed
+ * in with Producer tools until that placement question is resolved.
+ */
+export const extrasLinks = [
+  {
+    label: "Labels",
+    href: "/dashboard/platform?tab=labels",
+    icon: Tag,
+    dot: "#1ABC9C" as const,
+    leavesDashboard: false,
+    externalGlyph: false,
+    platformTab: "labels" as const,
   },
 ] as const;
 

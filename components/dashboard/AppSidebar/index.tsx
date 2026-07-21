@@ -11,7 +11,7 @@ import NotificationsPanel from "../NotificationsPanel";
 import SidebarHeader from "./SidebarHeader";
 import SidebarPrimaryNav from "./SidebarPrimaryNav";
 import SidebarProducerTools from "./SidebarProducerTools";
-import SidebarPlatformSection from "./SidebarPlatformSection";
+import SidebarExtrasSection from "./SidebarExtrasSection";
 import SidebarPublicSiteSection from "./SidebarPublicSiteSection";
 import SidebarFooter from "./SidebarFooter";
 
@@ -102,10 +102,10 @@ export default function AppSidebar() {
           />
 
           {!isLabelManager && (
-            <SidebarProducerTools pathname={pathname} collapsed={collapsed} />
+            <SidebarProducerTools pathname={pathname} urlTab={urlTab} collapsed={collapsed} />
           )}
 
-          <SidebarPlatformSection
+          <SidebarExtrasSection
             pathname={pathname}
             urlTab={urlTab}
             collapsed={collapsed}

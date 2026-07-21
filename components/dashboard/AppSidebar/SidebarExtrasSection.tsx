@@ -1,10 +1,18 @@
 import { ChevronDown, CircleHelp } from "lucide-react";
 import { platformHubLinkActive } from "@/lib/dashboard/platformHub";
 import SidebarToolLink from "./SidebarToolLink";
-import { platformLinks, LEAVES_DASHBOARD_HINT } from "./navData";
+import { extrasLinks, LEAVES_DASHBOARD_HINT } from "./navData";
 
-/** Collapsible "Platform" section (Shows / Labels / DJ Mixes) + Help & support. */
-export default function SidebarPlatformSection({
+/**
+ * Collapsible "Extras" section — deliberately separate from "Producer
+ * tools": applying to launch a label isn't something you do with your
+ * producer account, it's a different Proton relationship entirely. Shows
+ * and DJ Mixes used to live here too but moved to Producer tools (see
+ * docs/analisis-platform-integracion.md) since those genuinely are
+ * things a producer does with their own account. Also hosts Help &
+ * support, unrelated to either grouping but needing a home.
+ */
+export default function SidebarExtrasSection({
   pathname,
   urlTab,
   collapsed,
@@ -30,6 +38,7 @@ export default function SidebarPlatformSection({
           onClick={onToggle}
           aria-expanded={open}
           aria-controls="sidebar-platform-links"
+          title="Not about your producer account — apply to launch your own label."
           className={`mb-2 flex w-full items-center justify-between gap-2 rounded-lg px-1 py-1.5 text-left
             text-[10px] font-semibold uppercase tracking-widest transition-colors
             ${platformHubActive && !open
@@ -37,7 +46,7 @@ export default function SidebarPlatformSection({
               : "text-text-secondary hover:bg-[var(--color-border)] hover:text-text-primary"
             }`}
         >
-          <span>Platform</span>
+          <span>Extras</span>
           <ChevronDown
             size={14}
             className={`shrink-0 opacity-70 transition-transform duration-200 ${open ? "rotate-0" : "-rotate-90"}`}
@@ -49,7 +58,7 @@ export default function SidebarPlatformSection({
         id="sidebar-platform-links"
         className={`space-y-0.5 ${!collapsed && !open ? "hidden" : ""}`}
       >
-        {platformLinks.map((item) => {
+        {extrasLinks.map((item) => {
           const { label, href, icon, dot, leavesDashboard, externalGlyph, platformTab } = item;
           const active = platformHubLinkActive(pathname, urlTab, platformTab);
           const trailingExternal = leavesDashboard || Boolean(externalGlyph);
