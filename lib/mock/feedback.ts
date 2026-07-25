@@ -30,6 +30,29 @@ export const mockReceivedFeedback: Feedback[] = [
     createdAt: "2026-06-15T18:05:00Z",
     read: true,
   },
+  // Two more reviews on the same track (Dmt) — mock-only, added to demo how
+  // the grouped "Received" view (docs/feature-peer-feedback-tracks.md)
+  // handles several reviews on one track instead of just one.
+  {
+    id: "fb-3",
+    trackId: "6", // Dmt
+    fromProducer: peers[2],
+    toProducer: mockMe,
+    scores: { groove: 7, percussion: 6, melody: 8, synthDesign: 7, mix: 6, arrangement: 7 },
+    comment: "Buena progresión melódica, pero el mix se siente un poco apretado en los graves.",
+    createdAt: "2026-06-20T14:15:00Z",
+    read: false,
+  },
+  {
+    id: "fb-4",
+    trackId: "6", // Dmt
+    fromProducer: peers[0],
+    toProducer: mockMe,
+    scores: { groove: 8, percussion: 8, melody: 7, synthDesign: 9, mix: 8, arrangement: 8 },
+    comment: "El diseño de sonido es lo más fuerte acá. Lo escucharía en un B2B sin dudarlo.",
+    createdAt: "2026-06-22T09:40:00Z",
+    read: false,
+  },
 ];
 
 /**

@@ -182,7 +182,7 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
             className="flex items-center justify-center gap-2 w-full py-3 rounded-lg text-sm font-semibold text-white bg-accent transition-opacity hover:opacity-90"
           >
             <LayoutDashboard size={16} />
-            For Artists
+            SoundSystem
           </Link>
         </div>
       </aside>

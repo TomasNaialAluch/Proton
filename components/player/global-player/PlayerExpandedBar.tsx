@@ -236,31 +236,54 @@ export default function PlayerExpandedBar() {
 
           {/* Dos mitades iguales + transporte centrado en el ancho total */}
           <div className="relative flex min-h-14 w-full items-center px-4 py-2.5">
-            <div className="flex min-w-0 flex-1 items-center gap-3 pr-2 max-md:pr-[4rem] md:pr-24">
-              {hasYoutube ? (
-                /* Espaciador invisible: el vídeo real está posicionado `absolute` arriba,
-                   esto solo reserva el hueco para que el título no quede tapado. */
-                <div
-                  aria-hidden
-                  className="shrink-0"
-                  style={{
-                    width: expandedVideoStyle.width,
-                    height: expandedVideoStyle.height,
-                  }}
-                />
+            {(() => {
+              const infoContent = (
+                <>
+                  {hasYoutube ? (
+                    /* Espaciador invisible: el vídeo real está posicionado `absolute` arriba,
+                       esto solo reserva el hueco para que el título no quede tapado. */
+                    <div
+                      aria-hidden
+                      className="shrink-0"
+                      style={{
+                        width: expandedVideoStyle.width,
+                        height: expandedVideoStyle.height,
+                      }}
+                    />
+                  ) : (
+                    <PlayerArtwork mix={currentMix} size="md" />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium leading-tight text-[var(--color-text-primary)]">
+                      {currentMix.title}
+                    </p>
+                    <p className="truncate text-xs leading-tight text-[var(--color-text-secondary)]">
+                      {artist.name}
+                      {currentMix.genre && ` · ${currentMix.genre}`}
+                    </p>
+                  </div>
+                </>
+              );
+              const infoClassName =
+                "flex min-w-0 flex-1 items-center gap-3 pr-2 max-md:pr-[4rem] md:pr-24";
+              /* Mobile-only: tapping the info block opens the fullscreen "Now
+               * Playing" screen directly — same convention as Spotify/Apple
+               * Music/YouTube Music's mini players. Desktop already has the
+               * dedicated Maximize2 icon further down, so this stays a
+               * plain (non-interactive) block there instead of doubling up. */
+              return isMobile ? (
+                <button
+                  type="button"
+                  onClick={() => setPlayerChrome("fullscreen")}
+                  aria-label="Open full-screen player"
+                  className={`${infoClassName} text-left`}
+                >
+                  {infoContent}
+                </button>
               ) : (
-                <PlayerArtwork mix={currentMix} size="md" />
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium leading-tight text-[var(--color-text-primary)]">
-                  {currentMix.title}
-                </p>
-                <p className="truncate text-xs leading-tight text-[var(--color-text-secondary)]">
-                  {artist.name}
-                  {currentMix.genre && ` · ${currentMix.genre}`}
-                </p>
-              </div>
-            </div>
+                <div className={infoClassName}>{infoContent}</div>
+              );
+            })()}
 
             <div className="absolute left-1/2 top-1/2 z-20 flex -translate-x-1/2 -translate-y-1/2 items-center gap-0.5 sm:gap-1">
               <button
@@ -306,7 +329,7 @@ export default function PlayerExpandedBar() {
               </button>
               <StartMixButton
                 mix={currentMix}
-                className="hidden shrink-0 rounded-lg p-2 text-[var(--color-text-secondary)] transition-colors hover:bg-white/5 hover:text-[var(--color-text-primary)] sm:flex"
+                className="flex shrink-0 rounded-lg p-2 text-[var(--color-text-secondary)] transition-colors hover:bg-white/5 hover:text-[var(--color-text-primary)]"
               />
               <PlayerQueueButton />
               <PlayerVolumeControl />

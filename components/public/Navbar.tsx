@@ -214,7 +214,7 @@ export default function PublicNavbar() {
             className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-semibold text-white bg-accent transition-opacity hover:opacity-90"
           >
             <LayoutDashboard size={15} />
-            For Artists
+            SoundSystem
           </Link>
         </div>
       </header>

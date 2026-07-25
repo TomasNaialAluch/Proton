@@ -28,12 +28,20 @@ interface WelcomeItem {
  * attention" moments (a label review, a milestone) can be added here as
  * they're identified, same shape each time. See
  * docs/feature-session-welcome-modal.md.
+ *
+ * Each category collapses to a single summary row once there's more than
+ * one — a well-known artist could easily have hundreds of unread feedback
+ * entries, and a modal listing every single one by name doesn't scale (and
+ * isn't the point: this is a "here's where to look," not a full inbox).
+ * The single-item case keeps the specific detail, since there's nothing to
+ * summarize away yet.
  */
 function producerWelcomeItems(contracts: Contract[]): WelcomeItem[] {
   const items: WelcomeItem[] = [];
 
-  for (const c of contracts) {
-    if (c.status !== "pending_signature") continue;
+  const pendingContracts = contracts.filter((c) => c.status === "pending_signature");
+  if (pendingContracts.length === 1) {
+    const c = pendingContracts[0];
     items.push({
       id: `contract-${c.id}`,
       icon: FileText,
@@ -42,10 +50,20 @@ function producerWelcomeItems(contracts: Contract[]): WelcomeItem[] {
       description: `${c.label} — ${c.release}`,
       href: `/dashboard/contracts/${c.id}`,
     });
+  } else if (pendingContracts.length > 1) {
+    items.push({
+      id: "contracts-multiple",
+      icon: FileText,
+      iconColor: "#F59E0B",
+      title: `${pendingContracts.length} contracts awaiting your signature`,
+      description: "Tap to review them.",
+      href: "/dashboard/contracts",
+    });
   }
 
-  for (const s of mockConnectionSuggestions) {
-    if (s.status !== "pending") continue;
+  const pendingConnections = mockConnectionSuggestions.filter((s) => s.status === "pending");
+  if (pendingConnections.length === 1) {
+    const s = pendingConnections[0];
     items.push({
       id: `connection-${s.id}`,
       icon: Users,
@@ -56,15 +74,27 @@ function producerWelcomeItems(contracts: Contract[]): WelcomeItem[] {
         : `We think you and ${s.peer.name} would make a great pair.`,
       href: `/dashboard/connections/${s.id}`,
     });
+  } else if (pendingConnections.length > 1) {
+    items.push({
+      id: "connections-multiple",
+      icon: Users,
+      iconColor: "#9B59B6",
+      title: `${pendingConnections.length} new connections need your attention`,
+      description: "Tap to see who's waiting.",
+      href: "/dashboard/connections",
+    });
   }
 
-  // A label reached out directly and is still waiting on a reply — see
+  // Labels that reached out directly and are still waiting on a reply — see
   // convo-hope-outreach in lib/mock/messages.ts.
-  for (const convo of mockConversations) {
-    if (convo.origin.type !== "label_outreach" || convo.peer.type !== "label") continue;
+  const waitingOutreach = mockConversations.filter((convo) => {
+    if (convo.origin.type !== "label_outreach" || convo.peer.type !== "label") return false;
     const thread = mockMessages.filter((m) => m.conversationId === convo.id);
     const last = thread[thread.length - 1];
-    if (!last || last.fromMe) continue;
+    return Boolean(last) && !last.fromMe;
+  });
+  if (waitingOutreach.length === 1) {
+    const convo = waitingOutreach[0];
     items.push({
       id: `outreach-${convo.id}`,
       icon: Building2,
@@ -73,17 +103,36 @@ function producerWelcomeItems(contracts: Contract[]): WelcomeItem[] {
       description: "Waiting on your reply.",
       href: `/dashboard/connections/chat/${convo.id}`,
     });
+  } else if (waitingOutreach.length > 1) {
+    items.push({
+      id: "outreach-multiple",
+      icon: Building2,
+      iconColor: "#1ABC9C",
+      title: `${waitingOutreach.length} labels reached out directly`,
+      description: "Tap to see who's waiting on a reply.",
+      href: "/dashboard/connections?tab=messages",
+    });
   }
 
-  for (const f of mockReceivedFeedback) {
-    if (f.read) continue;
+  const unreadFeedback = mockReceivedFeedback.filter((f) => !f.read);
+  if (unreadFeedback.length === 1) {
+    const f = unreadFeedback[0];
     items.push({
       id: `feedback-${f.id}`,
       icon: MessageSquareText,
       iconColor: "#E67E22",
       title: "New feedback received",
       description: `${f.fromProducer.name} left feedback on one of your tracks.`,
-      href: `/dashboard/feedback/${f.id}`,
+      href: `/dashboard/feedback/track/${f.trackId}`,
+    });
+  } else if (unreadFeedback.length > 1) {
+    items.push({
+      id: "feedback-multiple",
+      icon: MessageSquareText,
+      iconColor: "#E67E22",
+      title: `${unreadFeedback.length} new feedback received`,
+      description: "Tap to see what's new.",
+      href: "/dashboard/feedback",
     });
   }
 

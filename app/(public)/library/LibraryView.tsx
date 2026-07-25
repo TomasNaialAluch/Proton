@@ -71,6 +71,10 @@ export default function LibraryView() {
         <p className="text-sm mt-1" style={{ color: "var(--color-text-secondary)" }}>
           Everything you&apos;ve liked and what&apos;s queued up next.
         </p>
+        <p className="text-xs mt-2 max-w-md" style={{ color: "var(--color-text-secondary)" }}>
+          Prototype only: this is where your full Proton Radio profile would eventually live —
+          history, playlists, account details. For now, only Likes and Queue are wired up.
+        </p>
       </div>
 
       <section className="flex flex-col gap-4">
