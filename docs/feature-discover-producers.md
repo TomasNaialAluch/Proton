@@ -6,6 +6,50 @@ Working document. Complements [feature-feedback-productores.md](feature-feedback
 
 ---
 
+## 0. Scoring is global, not Discover-only
+
+**Discover's job is narrow and specific: it's the feed of the newest tracks
+coming out across the platform** — where a producer spends time staying
+connected with what's new in the industry, browsing/genre-filtering the
+most recent things other producers have put out. That's what "recent
+tracks" in section 1 below means, and it's the right job for Discover to
+have.
+
+**But the underlying goal — producers analyzing each other's work and
+connecting through that — is bigger than "whatever's currently in the
+recent feed."** More tracks able to receive a score is strictly better for
+that goal, not just the newest ones. So: **giving feedback (the score
+form) is not limited to tracks reachable through Discover.** Any track a
+producer lands on — via a label's release list, an artist's catalog, a
+remix call, wherever — can receive a score, from Track Detail directly.
+
+Concretely, this means `track.openForFeedback` now only controls **one
+thing**: whether a track shows up in Discover's curated recent-tracks
+feed (section 6's grid). It no longer gates whether Track Detail's "Give
+feedback" card appears — that card is now unconditional (aside from the
+existing self/label-manager guards), on every track, regardless of the
+flag. See `components/dashboard/tracks/detail/TrackFeedbackCard.tsx`.
+
+**Code implication, already done:** the actual scoring UI (player + 6
+score bars + comment + submit) used to be inlined entirely inside
+`discover/[trackId]/page.tsx` with no reuse boundary — extracted into
+`components/dashboard/feedback/FeedbackScoreForm.tsx` so it can be
+embedded anywhere, not just linked to from one page. Track Detail embeds
+it inline (collapsed → expands in place); Discover's own page still uses
+it as a full standalone page. Also split `FeedbackTrackPlayer.tsx` into a
+metadata-header version (for standalone pages) and a bare
+`TrackWaveformPlayer.tsx` (playback + waveform only) — Track Detail
+already shows title/genre/BPM/key in its own header, so the embedded
+version doesn't repeat it.
+
+**Not done yet:** feedback still doesn't persist anywhere — submitting
+sets local `submitted` state only, no store write, no notification to the
+track's artist. Needs a real feedback store (mirroring how
+`labelInboxStore` works for messages) before this is more than a UI demo,
+regardless of where it's embedded.
+
+---
+
 ## 1. The idea: "a Spotify" for feedback between producers
 
 In one word: **Spotify**. A discovery surface **crossing labels** — not scoped to one label's roster — where a producer browses artists/producers from any label and listens to tracks.

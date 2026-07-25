@@ -28,7 +28,8 @@ card-specific markup of its own). Sub-components live in
 `components/dashboard/tracks/detail/`, same split pattern as Label
 Detail's `components/dashboard/producer/labels/detail/`:
 - `TrackDetailHeader.tsx` — cover, title, artists, metadata, release, label link
-- `TrackFeedbackCard.tsx` — self-guards on `track.openForFeedback`
+- `TrackFeedbackCard.tsx` — self-guards on role/self-credit only; embeds
+  `FeedbackScoreForm` inline (see docs/feature-discover-producers.md)
 - `TrackRemixCard.tsx` — self-guards on the label having approved this
   track for remix (2-step approval, see below)
 
@@ -51,11 +52,15 @@ weaknesses" below for why this had to be built at all, and
    every credited artist as a link (`&`-joined if more than one), a row of
    genre/BPM/key/duration, release name + date if set, and a link to the
    label if `track.labelSlug` resolves to one.
-2. **"Open for feedback" card** — only rendered if `track.openForFeedback`
-   is true. If the track is also in `mockDiscoverTracks`, shows a "Give
-   feedback" button linking to `/dashboard/discover/[id]` (the real scored
-   feedback flow). If not, shows an informational sentence instead of a
-   dead link.
+2. **"Give feedback" card** — unconditional on every track (aside from the
+   self/label-manager guards below); no longer gated on
+   `track.openForFeedback`. Starts collapsed, expands inline into
+   `FeedbackScoreForm` (player + 6 score bars + comment + submit) instead
+   of linking out to Discover — see
+   `docs/feature-discover-producers.md`, "Scoring is global, not
+   Discover-only." `openForFeedback` still exists on `Track`, but now only
+   controls whether the track shows up in Discover's own curated feed, not
+   whether it can be scored from here.
 3. **"Remix this track" card** — only rendered if the **label** has
    approved this track for remix (`track.id` appears in
    `label.remixOpportunities`). Inside that: if a credited artist also has
