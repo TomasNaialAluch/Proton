@@ -64,7 +64,7 @@ export default function SidebarPrimaryNav({
                     <span className={`relative inline-flex shrink-0 items-center justify-center ${collapsed ? "size-9" : ""}`}>
                       <Icon size={16} strokeWidth={active ? 2.5 : 1.75} />
                       {label === "Contracts" && hasPendingContracts && (
-                        <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-amber-500" />
+                        <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-red-500" />
                       )}
                     </span>
                     {!collapsed && label}

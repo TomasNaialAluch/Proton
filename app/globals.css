@@ -178,3 +178,23 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   cursor: pointer;
 }
+
+/* ── Contract signing: sequential attention cue ───────────
+   First the placement instructions glow (read this), then once the
+   read-window has passed, the Confirm & sign button glows green instead
+   (now confirm). Two separate keyframes so the color is baked in, no CSS
+   var plumbing needed at the call site. */
+@keyframes glow-accent {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(230, 126, 34, 0.35); }
+  50%      { box-shadow: 0 0 0 6px rgba(230, 126, 34, 0); }
+}
+@keyframes glow-confirm {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.45); }
+  50%      { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+}
+.animate-glow-accent {
+  animation: glow-accent 1.3s ease-in-out infinite;
+}
+.animate-glow-confirm {
+  animation: glow-confirm 1.3s ease-in-out infinite;
+}

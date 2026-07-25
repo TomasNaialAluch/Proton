@@ -65,7 +65,7 @@ export default function BottomNav() {
                 <span className="relative inline-flex size-6 shrink-0 items-center justify-center">
                   <Icon size={19} strokeWidth={active ? 2.5 : 1.75} className="shrink-0" />
                   {label === "Contracts" && hasPendingContracts && (
-                    <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-amber-500" />
+                    <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-red-500" />
                   )}
                 </span>
                 <span className="max-w-full truncate text-center text-[9px] font-medium leading-tight tracking-tight">
