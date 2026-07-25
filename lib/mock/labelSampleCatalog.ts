@@ -99,4 +99,22 @@ export const LABEL_SAMPLE_TRACKS: Track[] = [
     audioUrl: "",
     coverUrl: "",
   },
+  {
+    id: "demo-6",
+    title: "Solar Flare",
+    artistId: "gmj",
+    releaseName: "Night Drives",
+    releaseDate: "2026-05-30",
+    duration: 410,
+    genre: "Progressive",
+    bpm: 124,
+    status: "published",
+    audioUrl: "",
+    coverUrl: "",
+    // Has a real label but deliberately NO activeContests entry anywhere —
+    // the case Track Detail's "Request a remix" fallback exists for (see
+    // TrackRemixCard.tsx): the label hasn't opened a remix call yet, so a
+    // producer can ask for one instead of seeing nothing at all.
+    labelSlug: "hope-recordings",
+  },
 ];

@@ -76,7 +76,7 @@ export default function TrackDetailClient() {
 
       <TrackDetailHeader track={track} artists={artists} label={label} backChain={backChain} />
       <TrackFeedbackCard track={track} />
-      <TrackRemixCard track={track} backChain={backChain} />
+      <TrackRemixCard track={track} backChain={backChain} label={label} />
     </main>
   );
 }
