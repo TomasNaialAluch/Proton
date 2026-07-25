@@ -10,6 +10,7 @@ import LoadMoreButton from "@/components/dashboard/_shared/LoadMoreButton";
 import FilterDropdown from "@/components/dashboard/discover/FilterDropdown";
 import BpmRangeFilter, { type BpmRange } from "@/components/dashboard/discover/BpmRangeFilter";
 import CoverArt from "@/components/dashboard/discover/CoverArt";
+import TrackPreviewButton from "@/components/player/preview/TrackPreviewButton";
 import { LABEL_SAMPLE_TRACKS, LABEL_DEMO_CATALOG_NOTICE } from "@/lib/mock/labelSampleCatalog";
 import { mockRosterArtists } from "@/lib/mock/label-manager/rosterArtists";
 import { mockLabels } from "@/lib/mock/labels";
@@ -183,9 +184,12 @@ export default function LabelReleasesPage() {
               <li key={t.id}>
                 <Link
                   href={`/dashboard/tracks/${t.id}?from=${encodeURIComponent(backChain)}`}
-                  className="flex items-center gap-3 px-5 py-4 hover:bg-[var(--color-border)]/30 transition-colors"
+                  className="group flex items-center gap-3 px-5 py-4 hover:bg-[var(--color-border)]/30 transition-colors"
                 >
-                  <CoverArt seed={t.id} className="size-11" />
+                  <div className="relative shrink-0">
+                    <CoverArt seed={t.id} className="size-11" />
+                    <TrackPreviewButton track={t} artistName={artistNames(t)} size="sm" />
+                  </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-text-primary truncate">{t.title}</p>
                     <p className="text-xs text-text-secondary truncate">{artistNames(t)}</p>

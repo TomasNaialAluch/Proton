@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Music } from "lucide-react";
 import CoverArt from "@/components/dashboard/discover/CoverArt";
+import TrackPreviewButton from "@/components/player/preview/TrackPreviewButton";
+import { resolveTrackArtistName } from "@/lib/player/resolveTrackArtistName";
 import type { Track } from "@/types/track";
 
 /**
@@ -24,9 +26,12 @@ export default function ArtistTrackList({ tracks, linkFrom }: { tracks: Track[];
             <li key={t.id}>
               <Link
                 href={`/dashboard/tracks/${t.id}?from=${encodeURIComponent(linkFrom)}`}
-                className="flex items-center gap-3 px-4 py-3 hover:bg-[var(--color-border)]/30 transition-colors"
+                className="group flex items-center gap-3 px-4 py-3 hover:bg-[var(--color-border)]/30 transition-colors"
               >
-                <CoverArt seed={t.id} className="size-9" />
+                <div className="relative shrink-0">
+                  <CoverArt seed={t.id} className="size-9" />
+                  <TrackPreviewButton track={t} artistName={resolveTrackArtistName(t)} size="sm" />
+                </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-text-primary truncate">{t.title}</p>
                   <p className="text-xs text-text-secondary truncate">{t.releaseName ?? t.genre}</p>

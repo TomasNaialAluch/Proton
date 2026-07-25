@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
-import GlobalPlayer from "@/components/player/GlobalPlayer";
+import PlayerSlot from "@/components/player/PlayerSlot";
 import SupportAssistantPanel from "@/components/help/SupportAssistantPanel";
 import ThemeProvider from "@/components/providers/ThemeProvider";
 import QueryProvider from "@/components/providers/QueryProvider";
@@ -55,7 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ThemeProvider>
             <FirebaseInit />
             {children}
-            <GlobalPlayer />
+            <PlayerSlot />
             <SupportAssistantPanel />
           </ThemeProvider>
         </QueryProvider>

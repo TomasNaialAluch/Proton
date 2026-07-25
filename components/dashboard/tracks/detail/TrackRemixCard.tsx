@@ -9,6 +9,7 @@ import { useContestsStore } from "@/lib/store/label-manager/contestsStore";
 import { useLabelInboxStore } from "@/lib/store/labelInboxStore";
 import { mockLabels } from "@/lib/mock/labels";
 import { mockArtist } from "@/lib/mock/artist";
+import { mockRosterArtists } from "@/lib/mock/label-manager/rosterArtists";
 import type { Track } from "@/types/track";
 import type { ProtonLabel } from "@/types/label";
 
@@ -44,9 +45,11 @@ export default function TrackRemixCard({
   const extraContests = useContestsStore((s) => s.extraContests);
   const sendLabelRequest = useLabelInboxStore((s) => s.sendLabelRequest);
   const [requested, setRequested] = useState(false);
-  const [conversationId, setConversationId] = useState<string | null>(null);
 
   const credited = track.artistIds ?? [track.artistId];
+  const creditedNames = credited
+    .map((id) => mockRosterArtists.find((a) => a.id === id)?.name)
+    .filter((name): name is string => Boolean(name));
 
   const seededLabel = mockLabels.find((l) => l.activeContests?.some((c) => c.trackId === track.id));
   const seededContest = seededLabel?.activeContests?.find((c) => c.trackId === track.id);
@@ -88,14 +91,19 @@ export default function TrackRemixCard({
   if (!label) return null;
 
   // Case 3: no remix call yet, but we know the label — let the producer
-  // ask for one.
+  // ask for one. The confirmation deliberately doesn't link to a chat —
+  // this isn't the start of a conversation, it's a request pending the
+  // same 2-step approval used everywhere else remix consent is checked
+  // (label first, then the credited artist): sendLabelRequest still
+  // notifies the label for real (shows up in their Requests inbox), but
+  // the producer-facing state is "pending both approvals," not "go talk
+  // to someone."
   const request = () => {
-    const id = sendLabelRequest({
+    sendLabelRequest({
       label,
       kind: "remix",
       text: `I'd like to remix "${track.title}". Would you be open to putting it up for a remix call?`,
     });
-    setConversationId(id);
     setRequested(true);
   };
 
@@ -109,14 +117,13 @@ export default function TrackRemixCard({
         {label.name} hasn&apos;t opened a remix call for this track yet — ask them to.
       </p>
       {requested ? (
-        <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400">
-          <CheckCircle2 size={13} className="shrink-0" />
-          Request sent.{" "}
-          {conversationId && (
-            <Link href={`/dashboard/labels/chat/${conversationId}`} className="font-semibold underline underline-offset-2">
-              View conversation
-            </Link>
-          )}
+        <div className="flex items-start gap-2 text-xs text-text-secondary">
+          <CheckCircle2 size={13} className="shrink-0 mt-0.5 text-emerald-500" />
+          <span>
+            Request sent. Waiting on {label.name}
+            {creditedNames.length > 0 ? ` and ${creditedNames.join(" & ")}` : " and the artist"} to approve —
+            you&apos;ll be notified once this track opens for remix.
+          </span>
         </div>
       ) : (
         <button

@@ -1,52 +1,70 @@
 import { create } from "zustand";
 import { usePlayerStore } from "./playerStore";
+import type { Track } from "@/types/track";
 
 /**
- * Coordinates short "preview" playback (Discover cards, the Feedback track
- * player) with the global radio player so only one source ever sounds at once.
+ * Coordinates short "preview" playback (Discover cards, Track Detail, the
+ * Feedback inline panel, label track cards) with the global player so only
+ * one source ever sounds at once.
  *
- * Design (see docs/feature-preview-vs-global-player.md, Option B): the preview
- * keeps its OWN `<audio>` per page — protected-master concerns (no download,
- * signed URLs) stay isolated from the radio engine. This store only owns the
- * coordination: pause the global player when a preview starts, and resume it
- * when previews stop, WITHOUT touching `currentMix` (the radio mix is preserved).
+ * Design (see docs/feature-preview-vs-global-player.md, Option B + section 6):
+ * the preview is a SEPARATE engine from the global player (own `<audio>`,
+ * own protections) — this store only owns coordination + "what's active"
+ * state, never the audio element itself (that's `usePreviewAudioEngine`).
  */
 interface PreviewState {
   /** Which preview is currently active (track id), or null. */
   activePreviewId: string | null;
-  /** Whether the global player was playing when the first preview started. */
-  resumeGlobalOnStop: boolean;
-  startPreview: (id: string) => void;
-  stopPreview: () => void;
+  /** Full track, not just the id — so the docked bar / inline panel can
+   *  render title/cover/duration without re-deriving it from whichever
+   *  mock array it came from. */
+  activePreviewTrack: Track | null;
+  /** Track.artistId has no display name on its own — carried alongside. */
+  activePreviewArtistName: string | null;
+  /** True only while a global-player source is paused *specifically*
+   *  because a preview started — the thing the confirmation modal asks
+   *  about. Not the same as "was playing at some point." */
+  pausedForPreview: boolean;
+  startPreview: (track: Track, artistName: string) => void;
+  /** Closing the preview (✕) — just clears preview state. Does NOT decide
+   *  whether to show the resume-show modal; that's a UI-layer decision
+   *  (check `pausedForPreview` first) — see PreviewDockedBar. */
+  closePreview: () => void;
 }
 
 export const usePreviewStore = create<PreviewState>((set, get) => ({
   activePreviewId: null,
-  resumeGlobalOnStop: false,
+  activePreviewTrack: null,
+  activePreviewArtistName: null,
+  pausedForPreview: false,
 
-  startPreview: (id) => {
+  startPreview: (track, artistName) => {
     const { activePreviewId } = get();
     // Only coordinate with the global player on the FIRST preview. Switching
-    // from one preview to another must not re-pause or re-capture the flag —
-    // the global player is already paused and the resume intent already stored.
+    // from one preview to another must not re-pause or re-flag — the global
+    // player is already paused (or was never playing) from the first one.
     if (activePreviewId === null) {
       const player = usePlayerStore.getState();
       if (player.isPlaying) {
         player.pause();
-        set({ resumeGlobalOnStop: true });
+        set({ pausedForPreview: true });
       } else {
-        set({ resumeGlobalOnStop: false });
+        set({ pausedForPreview: false });
       }
     }
-    set({ activePreviewId: id });
+    set({
+      activePreviewId: track.id,
+      activePreviewTrack: track,
+      activePreviewArtistName: artistName,
+    });
   },
 
-  stopPreview: () => {
-    if (get().resumeGlobalOnStop) {
-      // Auto-resume (recommended policy): the producer's background radio mix
-      // comes back when they finish sampling. currentMix was never touched.
-      usePlayerStore.getState().resume();
-    }
-    set({ activePreviewId: null, resumeGlobalOnStop: false });
+  closePreview: () => {
+    set({
+      activePreviewId: null,
+      activePreviewTrack: null,
+      activePreviewArtistName: null,
+      pausedForPreview: false,
+    });
   },
 }));

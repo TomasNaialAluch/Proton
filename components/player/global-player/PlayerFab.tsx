@@ -30,9 +30,11 @@ export default function PlayerFab() {
     <div
       className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-0 overflow-hidden rounded-full border shadow-lg"
       style={{
+        // No backdrop-filter: `position: fixed` + `backdrop-filter` fails to
+        // paint (element present/hit-testable but invisible) on some Android
+        // GPU drivers — a solid background is the reliable choice here.
         background: "var(--color-surface)",
         borderColor: "var(--color-border)",
-        backdropFilter: "blur(12px)",
       }}
       role="toolbar"
       aria-label="Mini player"

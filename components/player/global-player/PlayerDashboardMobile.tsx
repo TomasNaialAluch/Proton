@@ -39,8 +39,10 @@ export default function PlayerDashboardMobile() {
     <div
       className="fixed bottom-16 left-0 right-0 z-50 flex flex-col overflow-hidden rounded-t-xl border border-b-0 border-[var(--color-border)] shadow-[0_-8px_30px_rgba(0,0,0,0.15)] md:hidden"
       style={{
+        // No backdrop-filter: `position: fixed` + `backdrop-filter` fails to
+        // paint (element present/hit-testable but invisible) on some Android
+        // GPU drivers — a solid background is the reliable choice here.
         background: "var(--color-surface)",
-        backdropFilter: "blur(12px)",
       }}
     >
       <PlayerYoutubeNotice />

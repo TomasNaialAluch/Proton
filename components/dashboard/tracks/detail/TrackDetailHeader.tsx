@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Building2 } from "lucide-react";
 import CoverArt from "@/components/dashboard/discover/CoverArt";
+import TrackPreviewButton from "@/components/player/preview/TrackPreviewButton";
 import type { Track } from "@/types/track";
 import type { Artist } from "@/types/artist";
 import type { ProtonLabel } from "@/types/label";
@@ -36,7 +37,13 @@ export default function TrackDetailHeader({
         {/* No real cover art in the mock catalog — a deterministic gradient
             per track id reads as a specific release, not a generic icon
             repeated everywhere. See docs/feature-track-detail.md. */}
-        <CoverArt seed={track.id} className="size-20" />
+        <div className="group relative shrink-0">
+          <CoverArt seed={track.id} className="size-20" />
+          <TrackPreviewButton
+            track={track}
+            artistName={artists.length > 0 ? artists.map((a) => a.name).join(" & ") : "Unknown artist"}
+          />
+        </div>
         <div className="min-w-0 flex-1">
           <h1 className="text-xl font-bold text-text-primary">{track.title}</h1>
           <p className="text-sm text-text-secondary mt-0.5">

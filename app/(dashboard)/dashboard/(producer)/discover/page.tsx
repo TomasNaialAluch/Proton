@@ -1,17 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Compass, Tag, Play, Pause, ArrowDownUp, RotateCcw } from "lucide-react";
+import { Compass, Tag, ArrowDownUp, RotateCcw } from "lucide-react";
 import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
 import FilterDropdown from "@/components/dashboard/discover/FilterDropdown";
 import BpmRangeFilter, { type BpmRange } from "@/components/dashboard/discover/BpmRangeFilter";
 import LoadMoreButton from "@/components/dashboard/_shared/LoadMoreButton";
 import CoverArt, { genreColor, genreColorBg } from "@/components/dashboard/discover/CoverArt";
-import { mockDiscoverTracks, discoverGenres, discoverLabels, type DiscoverTrack } from "@/lib/mock/discover";
+import TrackPreviewButton from "@/components/player/preview/TrackPreviewButton";
+import { mockDiscoverTracks, discoverGenres, discoverLabels } from "@/lib/mock/discover";
 import { mockLabels } from "@/lib/mock/labels";
-import { usePreviewStore } from "@/lib/store/previewStore";
 import { usePaginatedList } from "@/lib/hooks/usePaginatedList";
 
 const PAGE_SIZE = 12;
@@ -55,39 +55,6 @@ export default function DiscoverPage() {
     setBpmRange(null);
   };
   const hasActiveFilters = Boolean(genre || label || trackKey || producer || bpmRange);
-
-  /** Only one card preview plays at a time, via a single shared <audio>. */
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const previewingId = usePreviewStore((s) => s.activePreviewId);
-  const startPreview = usePreviewStore((s) => s.startPreview);
-  const stopPreview = usePreviewStore((s) => s.stopPreview);
-
-  /** Preview is page-scoped: leaving Discover stops it and resumes the global player. */
-  useEffect(() => {
-    return () => {
-      audioRef.current?.pause();
-      stopPreview();
-    };
-  }, [stopPreview]);
-
-  const togglePreview = (e: React.MouseEvent, track: DiscoverTrack) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (previewingId === track.id) {
-      audio.pause();
-      stopPreview();
-      return;
-    }
-
-    audio.pause();
-    audio.src = track.audioUrl || "";
-    audio.currentTime = 0;
-    startPreview(track.id); // pauses the global radio player if it was playing
-    if (track.audioUrl) audio.play().catch(() => {});
-  };
 
   const filtered = useMemo(() => {
     const matches = mockDiscoverTracks.filter((t) => {
@@ -194,14 +161,9 @@ export default function DiscoverPage() {
         </div>
       </div>
 
-      {/* Shared preview player — only one card plays at a time. */}
-      <audio ref={audioRef} preload="none" onEnded={() => stopPreview()} />
-
       {/* ── Grid ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {visible.map((track) => {
-          const isPreviewing = previewingId === track.id;
-          return (
+        {visible.map((track) => (
           <Link
             key={track.id}
             href={`/dashboard/discover/${track.id}`}
@@ -210,18 +172,7 @@ export default function DiscoverPage() {
           >
             <div className="relative mb-3">
               <CoverArt seed={track.id} className="transition-transform group-hover:scale-[1.02]" />
-              <button
-                type="button"
-                onClick={(e) => togglePreview(e, track)}
-                aria-label={isPreviewing ? `Pause preview of ${track.title}` : `Preview ${track.title}`}
-                className={`absolute inset-0 flex items-center justify-center transition-opacity
-                  ${isPreviewing ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
-              >
-                <span className="absolute inset-0 rounded-lg bg-black/40" />
-                <span className="relative flex size-10 items-center justify-center rounded-full bg-white text-black shadow-lg">
-                  {isPreviewing ? <Pause size={16} /> : <Play size={16} />}
-                </span>
-              </button>
+              <TrackPreviewButton track={track} artistName={track.producer.name} />
             </div>
             <p className="text-sm font-medium text-text-primary truncate">{track.title}</p>
             <p className="text-xs text-text-secondary truncate mb-2">
@@ -258,8 +209,7 @@ export default function DiscoverPage() {
               </span>
             </div>
           </Link>
-          );
-        })}
+        ))}
         {filtered.length === 0 && (
           <p className="col-span-full text-sm text-text-secondary py-8 text-center">
             No open tracks match these filters.

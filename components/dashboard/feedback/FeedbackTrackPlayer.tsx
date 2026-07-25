@@ -1,6 +1,6 @@
 "use client";
 
-import TrackWaveformPlayer from "./TrackWaveformPlayer";
+import PreviewInlinePanel from "@/components/player/preview/PreviewInlinePanel";
 import type { Track } from "@/types/track";
 
 interface FeedbackTrackPlayerProps {
@@ -10,7 +10,7 @@ interface FeedbackTrackPlayerProps {
 /** Metadata header + playback, for standalone feedback pages that don't
  *  already show this info elsewhere (feedback/[id], feedback/track/[trackId]).
  *  Track Detail's embedded scoring (`FeedbackScoreForm`) uses
- *  `TrackWaveformPlayer` directly instead, since its own header already
+ *  `PreviewInlinePanel` directly instead, since its own header already
  *  shows title/genre/BPM/key — this would just repeat it. */
 export default function FeedbackTrackPlayer({ track }: FeedbackTrackPlayerProps) {
   return (
@@ -32,7 +32,7 @@ export default function FeedbackTrackPlayer({ track }: FeedbackTrackPlayerProps)
         </div>
       </div>
 
-      <TrackWaveformPlayer track={track} />
+      <PreviewInlinePanel track={track} />
     </div>
   );
 }

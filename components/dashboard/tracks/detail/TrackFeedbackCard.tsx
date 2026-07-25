@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MessageSquareText, ChevronDown, ChevronUp } from "lucide-react";
+import { ClipboardList, ChevronDown } from "lucide-react";
 import { usePrototypeViewStore } from "@/lib/store/prototypeViewStore";
 import FeedbackScoreForm from "@/components/dashboard/feedback/FeedbackScoreForm";
 import { mockArtist } from "@/lib/mock/artist";
@@ -20,7 +20,14 @@ import type { Track } from "@/types/track";
  * Starts collapsed (just the CTA) and expands inline into the same
  * `FeedbackScoreForm` Discover's own page uses, instead of navigating away
  * — Track Detail already has the track's context on screen, no reason to
- * leave it to score.
+ * leave it to score. Title is "Review this track," matching the sibling
+ * "Remix this track" card's naming, not "Give feedback" — reads more like
+ * a deliberate, structured evaluation (which is what the 6-category score
+ * form actually is) than a casual comment box.
+ *
+ * Expand/collapse uses the CSS grid-rows trick (0fr → 1fr) instead of a
+ * fixed max-height, so it animates smoothly regardless of the form's
+ * actual height — no JS measurement needed.
  *
  * Hidden for label-manager view (feedback is a producer-to-producer
  * action) and for a producer viewing their own track (can't leave
@@ -43,14 +50,13 @@ export default function TrackFeedbackCard({ track }: { track: Track }) {
         aria-expanded={open}
       >
         <span className="flex items-center gap-2">
-          <MessageSquareText size={14} className="text-sky-500" />
-          <span className="text-sm font-semibold text-text-primary">Give feedback</span>
+          <ClipboardList size={14} className="text-sky-500" />
+          <span className="text-sm font-semibold text-text-primary">Review this track</span>
         </span>
-        {open ? (
-          <ChevronUp size={14} className="text-text-secondary shrink-0" />
-        ) : (
-          <ChevronDown size={14} className="text-text-secondary shrink-0" />
-        )}
+        <ChevronDown
+          size={14}
+          className={`text-text-secondary shrink-0 transition-transform duration-300 ease-in-out ${open ? "rotate-180" : ""}`}
+        />
       </button>
 
       {!open && (
@@ -59,11 +65,15 @@ export default function TrackFeedbackCard({ track }: { track: Track }) {
         </p>
       )}
 
-      {open && (
-        <div className="mt-4">
-          <FeedbackScoreForm track={track} />
+      <div
+        className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
+          open ? "grid-rows-[1fr] mt-4" : "grid-rows-[0fr]"
+        }`}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <FeedbackScoreForm track={track} showPlayer={false} />
         </div>
-      )}
+      </div>
     </div>
   );
 }

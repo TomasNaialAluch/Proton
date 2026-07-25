@@ -1,6 +1,7 @@
 import Link from "next/link";
 import HorizontalScroll from "@/components/dashboard/producer/labels/browse/HorizontalScroll";
 import CoverArt from "@/components/dashboard/discover/CoverArt";
+import TrackPreviewButton from "@/components/player/preview/TrackPreviewButton";
 import { LABEL_SAMPLE_TRACKS, LABEL_DEMO_CATALOG_NOTICE } from "@/lib/mock/labelSampleCatalog";
 import { mockRosterArtists } from "@/lib/mock/label-manager/rosterArtists";
 import type { ProtonLabel } from "@/types/label";
@@ -34,11 +35,14 @@ export default function RecentReleasesStrip({ label, backChain }: { label: Proto
           <Link
             key={t.id}
             href={`/dashboard/tracks/${t.id}?from=${encodeURIComponent(backChain)}`}
-            className="flex flex-col gap-2.5 rounded-xl border border-[var(--color-border)] bg-surface p-3.5 shrink-0
+            className="group flex flex-col gap-2.5 rounded-xl border border-[var(--color-border)] bg-surface p-3.5 shrink-0
               hover:border-accent/50 transition-colors"
             style={{ width: 168 }}
           >
-            <CoverArt seed={t.id} className="w-full" />
+            <div className="relative">
+              <CoverArt seed={t.id} className="w-full" />
+              <TrackPreviewButton track={t} artistName={artistNames(t)} />
+            </div>
             <div className="min-w-0">
               <p className="text-sm font-medium text-text-primary truncate leading-tight">{t.title}</p>
               <p className="text-xs text-text-secondary truncate">{artistNames(t)}</p>

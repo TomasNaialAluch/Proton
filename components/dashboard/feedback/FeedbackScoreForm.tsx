@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { CheckCircle2 } from "lucide-react";
-import TrackWaveformPlayer from "./TrackWaveformPlayer";
+import PreviewInlinePanel from "@/components/player/preview/PreviewInlinePanel";
 import ScoreBar from "./ScoreBar";
 import { FEEDBACK_CATEGORIES, type FeedbackCategoryKey, type FeedbackScores } from "@/types/feedback";
 import type { Track } from "@/types/track";
@@ -27,7 +27,16 @@ import type { Track } from "@/types/track";
  * store or notifies the track's artist. Flagging so it doesn't read as
  * more finished than it is.
  */
-export default function FeedbackScoreForm({ track }: { track: Track }) {
+export default function FeedbackScoreForm({
+  track,
+  showPlayer = true,
+}: {
+  track: Track;
+  /** Off for Track Detail's embedded card, for now — see
+   *  docs/feature-discover-producers.md. Discover's own standalone page
+   *  still wants it (no player exists anywhere else on that page). */
+  showPlayer?: boolean;
+}) {
   const [scores, setScores] = useState<FeedbackScores>({});
   const [comment, setComment] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -51,9 +60,11 @@ export default function FeedbackScoreForm({ track }: { track: Track }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="bg-surface rounded-2xl border border-[var(--color-border)] p-5">
-        <TrackWaveformPlayer track={track} />
-      </div>
+      {showPlayer && (
+        <div className="bg-surface rounded-2xl border border-[var(--color-border)] p-5">
+          <PreviewInlinePanel track={track} />
+        </div>
+      )}
 
       <div className="bg-surface rounded-2xl border border-[var(--color-border)] p-5 space-y-4">
         {FEEDBACK_CATEGORIES.map((cat) => (

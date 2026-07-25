@@ -110,9 +110,11 @@ export default function PlayerExpandedBar() {
           : `fixed bottom-0 right-0 z-50 flex flex-col transition-[left] duration-300 ease-in-out ${dashboardInset}`
       }
       style={{
+        // No backdrop-filter: `position: fixed` + `backdrop-filter` fails to
+        // paint (element present/hit-testable but invisible) on some Android
+        // GPU drivers — a solid background is the reliable choice here.
         background: isFullscreen ? "var(--color-background)" : "var(--color-surface)",
         borderTop: isFullscreen ? undefined : "1px solid var(--color-border)",
-        backdropFilter: isFullscreen ? undefined : "blur(12px)",
       }}
     >
       {hasYoutube && (
