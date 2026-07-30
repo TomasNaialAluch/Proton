@@ -174,16 +174,19 @@ export default function HamburgerMenu({ open, onClose }: HamburgerMenuProps) {
           <PublicThemeToggle variant="labeled" />
         </div>
 
-        {/* For Artists CTA */}
+        {/* SoundSystem CTA — plain <a>, not <Link>, so crossing into the
+            dashboard is a full-page navigation (see the comment on the same
+            button in Navbar.tsx: RSC payload requests handle a cold start
+            far worse than a plain document GET). */}
         <div className="px-4 py-5 border-t border-[var(--color-border)]">
-          <Link
+          <a
             href="/dashboard"
             onClick={onClose}
             className="flex items-center justify-center gap-2 w-full py-3 rounded-lg text-sm font-semibold text-white bg-accent transition-opacity hover:opacity-90"
           >
             <LayoutDashboard size={16} />
             SoundSystem
-          </Link>
+          </a>
         </div>
       </aside>
     </>

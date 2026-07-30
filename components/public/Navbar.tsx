@@ -209,13 +209,20 @@ export default function PublicNavbar() {
               Sign in
             </Link>
           )}
-          <Link
+          {/* Plain <a>, not <Link>: crossing into SoundSystem must be a
+              full-page navigation. Next.js client-side nav requests an RSC
+              payload, which handles a Firebase App Hosting cold start far
+              worse than a normal document GET (hangs for minutes instead of
+              the expected ~20s) — see the comment in LoginSignUpView.tsx.
+              Nothing lost here: /dashboard is a different shell entirely, so
+              it re-renders wholesale either way. */}
+          <a
             href="/dashboard"
             className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-semibold text-white bg-accent transition-opacity hover:opacity-90"
           >
             <LayoutDashboard size={15} />
             SoundSystem
-          </Link>
+          </a>
         </div>
       </header>
 

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import {
   safeDashboardCallbackUrl,
@@ -11,7 +10,6 @@ import {
   setDemoSessionCookie,
   setPublicDemoSessionCookie,
 } from "@/lib/auth/demoSession";
-import { fetchArtistWithTracks, NAIAL_ARTIST_ID } from "@/lib/api/artist";
 
 type Tab = "signin" | "signup";
 
@@ -27,7 +25,6 @@ export default function LoginSignUpView() {
    *  broken rather than "still loading" (see docs/feature-skeletons-loading.md). */
   const [pending, setPending] = useState(false);
   const router = useRouter();
-  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const callbackRaw = searchParams.get("callbackUrl");
   const returnPath = safeDashboardCallbackUrl(callbackRaw);
@@ -37,15 +34,24 @@ export default function LoginSignUpView() {
   function completeDashboardAccess() {
     setPending(true);
     setDemoSessionCookie();
-    /** Fire the artist+tracks fetch now, in parallel with the route transition,
-     * instead of waiting for DashboardContent/Performance to mount and request it —
-     * same queryKey, so their `useQuery` picks up this in-flight/cached result
-     * instead of re-fetching. Not awaited: navigation shouldn't wait on it. */
-    queryClient.prefetchQuery({
-      queryKey: ["artist", NAIAL_ARTIST_ID],
-      queryFn: () => fetchArtistWithTracks(NAIAL_ARTIST_ID),
-    });
-    router.push(returnPath!);
+    /** Full-page navigation, deliberately NOT `router.push()`.
+     *
+     * `router.push()` asks the server for an RSC payload (special headers,
+     * not a plain document request). On Firebase App Hosting that flavour of
+     * request handles a cold start far worse than a normal document GET: the
+     * button appeared to hang for minutes, while typing the same URL in the
+     * address bar took the expected ~20s. Reproducible only on the deployed
+     * site — never locally, where `next dev` is always warm and there is no
+     * cold start to hit at all.
+     *
+     * The trade-off is losing the client-side transition on this one step,
+     * which costs nothing here: `/dashboard` is a different shell (sidebar,
+     * player, providers) than the public site, so it re-renders wholesale
+     * either way. The prefetch below is dropped along with it — a full-page
+     * navigation discards the client-side query cache, so warming it up
+     * milliseconds before leaving the page is wasted work.
+     */
+    window.location.assign(returnPath!);
   }
 
   function completePublicAccount() {
