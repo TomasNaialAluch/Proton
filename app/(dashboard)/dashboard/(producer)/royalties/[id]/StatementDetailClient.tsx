@@ -1,12 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { notFound, usePathname } from "next/navigation";
 import {
-  Download, ChevronRight, Music2,
+  Download, Music2,
   Store, DollarSign, AlertTriangle, FileText,
 } from "lucide-react";
 import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
+import BackButton from "@/components/dashboard/_shared/BackButton";
 import { mockRoyalties, mockStatements, payoutConfig } from "@/lib/mock/royalties";
 
 const PRO_USER_ID = 67325;
@@ -64,6 +64,8 @@ export default function StatementDetailClient() {
 
   return (
     <main className="max-w-lg mx-auto px-5 pt-6 pb-24 lg:pb-10 lg:max-w-3xl lg:px-10">
+      <BackButton fallbackHref="/dashboard/royalties" label="Back to Royalties" />
+
       <DashboardBreadcrumb items={[
         { label: "Dashboard",  href: "/dashboard" },
         { label: "Royalties",  href: "/dashboard/royalties" },
@@ -90,17 +92,17 @@ export default function StatementDetailClient() {
       {/* ── Summary strip ── */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         <div className="bg-surface rounded-xl border border-[var(--color-border)] px-4 py-3">
-          <p className="text-[11px] text-text-secondary uppercase tracking-wider mb-1">Monto</p>
+          <p className="text-[11px] text-text-secondary uppercase tracking-wider mb-1">Amount</p>
           <p className="text-xl font-bold text-text-primary tabular-nums">${fmt(royalty.amount)}</p>
           <p className="text-[11px] text-text-secondary mt-0.5">{royalty.currency}</p>
         </div>
         <div className="bg-surface rounded-xl border border-[var(--color-border)] px-4 py-3">
-          <p className="text-[11px] text-text-secondary uppercase tracking-wider mb-1">Estado</p>
+          <p className="text-[11px] text-text-secondary uppercase tracking-wider mb-1">Status</p>
           <p className="text-sm font-bold text-amber-500">WITHHELD</p>
-          <p className="text-[11px] text-text-secondary mt-0.5">Retenido</p>
+          <p className="text-[11px] text-text-secondary mt-0.5">Withheld</p>
         </div>
         <div className="bg-surface rounded-xl border border-[var(--color-border)] px-4 py-3">
-          <p className="text-[11px] text-text-secondary uppercase tracking-wider mb-1">Pago vía</p>
+          <p className="text-[11px] text-text-secondary uppercase tracking-wider mb-1">Paid via</p>
           <p className="text-sm font-bold text-accent">{payoutConfig.token}</p>
           <p className="text-[11px] text-text-secondary mt-0.5">{payoutConfig.paymentMethod}</p>
         </div>
@@ -109,10 +111,10 @@ export default function StatementDetailClient() {
       {!hasDetail && (
         <div className="bg-surface rounded-2xl border border-[var(--color-border)] p-8 text-center">
           <FileText size={32} className="mx-auto text-text-secondary opacity-40 mb-3" />
-          <p className="text-sm font-medium text-text-primary mb-1">Detalle no disponible</p>
+          <p className="text-sm font-medium text-text-primary mb-1">Detail not available</p>
           <p className="text-xs text-text-secondary mb-4">
-            El desglose completo de este statement no está disponible localmente.<br />
-            Podés descargarlo directamente desde Proton SoundSystem.
+            The full breakdown for this statement isn&apos;t available locally.<br />
+            You can download it directly from Proton SoundSystem.
           </p>
           <a
             href={`https://soundsystem.protonradio.com/statementCSVDownload.php?id=${PRO_USER_ID}&qid=${qid}&type=rev_report`}
@@ -121,7 +123,7 @@ export default function StatementDetailClient() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium
               bg-accent text-white hover:bg-accent/90 transition-colors"
           >
-            <Download size={14} /> Descargar CSV
+            <Download size={14} /> Download CSV
           </a>
         </div>
       )}
@@ -140,10 +142,10 @@ export default function StatementDetailClient() {
                 <thead>
                   <tr className="border-b border-[var(--color-border)] bg-[var(--color-border)]/20">
                     <th className="text-left px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Release</th>
-                    <th className="text-right px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Vendidos Q</th>
-                    <th className="text-right px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Streams Q</th>
-                    <th className="text-right px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden lg:table-cell">Vendidos Total</th>
-                    <th className="text-right px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden lg:table-cell">Streams Total</th>
+                    <th className="text-right px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Sold (Qtr)</th>
+                    <th className="text-right px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Streams (Qtr)</th>
+                    <th className="text-right px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden lg:table-cell">Sold (Total)</th>
+                    <th className="text-right px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden lg:table-cell">Streams (Total)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--color-border)]">
@@ -175,10 +177,10 @@ export default function StatementDetailClient() {
                 <thead>
                   <tr className="border-b border-[var(--color-border)] bg-[var(--color-border)]/20">
                     <th className="text-left px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Track</th>
-                    <th className="text-right px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Vendidos</th>
+                    <th className="text-right px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Sold</th>
                     <th className="text-right px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Streams</th>
                     <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden lg:table-cell">Store</th>
-                    <th className="text-right px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden lg:table-cell">Tu %</th>
+                    <th className="text-right px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden lg:table-cell">Your %</th>
                     <th className="text-right px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Royalties</th>
                   </tr>
                 </thead>
@@ -228,7 +230,7 @@ export default function StatementDetailClient() {
                 <thead>
                   <tr className="border-b border-[var(--color-border)] bg-[var(--color-border)]/20">
                     <th className="text-left px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Store</th>
-                    <th className="text-right px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Vendidos</th>
+                    <th className="text-right px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Sold</th>
                     <th className="text-right px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Streams</th>
                     <th className="text-right px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Royalties</th>
                   </tr>
@@ -270,10 +272,10 @@ export default function StatementDetailClient() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-[var(--color-border)] bg-[var(--color-border)]/20">
-                      <th className="text-left px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Catálogo</th>
+                      <th className="text-left px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Catalog</th>
                       <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Track</th>
-                      <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden lg:table-cell">Concepto</th>
-                      <th className="text-right px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Monto</th>
+                      <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary hidden lg:table-cell">Description</th>
+                      <th className="text-right px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary">Amount</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--color-border)]">
@@ -305,23 +307,12 @@ export default function StatementDetailClient() {
 
               <div className="px-5 py-4 bg-amber-500/5 border-t border-amber-500/20">
                 <p className="text-xs text-amber-600 dark:text-amber-400 leading-relaxed">
-                  Los gastos de mastering, diseño y promoción son descontados de tus royalties acumuladas.
-                  Las tarifas se aplican por release y se recuperan antes del pago.
+                  Mastering, design, and promotion expenses are deducted from your accrued royalties.
+                  Fees are applied per release and recouped before payout.
                 </p>
               </div>
             </section>
           )}
-
-          {/* ── Back link ── */}
-          <div className="flex justify-center pt-2">
-            <Link
-              href="/dashboard/royalties"
-              className="flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition-colors"
-            >
-              <ChevronRight size={14} className="rotate-180" />
-              Volver al historial
-            </Link>
-          </div>
         </div>
       )}
     </main>

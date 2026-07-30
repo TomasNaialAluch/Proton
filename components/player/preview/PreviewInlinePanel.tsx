@@ -4,7 +4,7 @@ import { Play, Pause, Music2 } from "lucide-react";
 import type { Track } from "@/types/track";
 import { usePreviewStore } from "@/lib/store/previewStore";
 import { usePreviewPlaybackStore } from "@/lib/store/previewPlaybackStore";
-import { waveformBars } from "@/lib/player/previewWaveform";
+import { waveformBars, PREVIEW_CLIP_RATIO, isWithinPreviewClip } from "@/lib/player/previewWaveform";
 import { resolveTrackArtistName } from "@/lib/player/resolveTrackArtistName";
 
 /**
@@ -56,16 +56,32 @@ export default function PreviewInlinePanel({ track }: { track: Track }) {
         <div className="relative flex h-12 flex-1 items-end gap-[2px] overflow-hidden">
           {bars.map((h, i) => {
             const played = i / bars.length <= progress;
+            const inClip = isWithinPreviewClip(i, bars.length);
             return (
               <span
                 key={i}
                 style={{ height: `${h * 100}%` }}
-                className={`flex-1 rounded-sm ${played ? "bg-accent" : "bg-[var(--color-border)]"}`}
+                className={`flex-1 rounded-sm transition-opacity ${played ? "bg-accent" : "bg-[var(--color-border)]"} ${inClip ? "" : "opacity-30"}`}
               />
             );
           })}
+          {/* Boundary markers — where the audible clip starts/ends, same convention as Beatport's preview player. */}
+          <span
+            className="absolute inset-y-0 w-px bg-white/80"
+            style={{ left: `${PREVIEW_CLIP_RATIO.start * 100}%` }}
+            aria-hidden
+          />
+          <span
+            className="absolute inset-y-0 w-px bg-white/80"
+            style={{ left: `${PREVIEW_CLIP_RATIO.end * 100}%` }}
+            aria-hidden
+          />
         </div>
       </div>
+
+      <p className="mt-2 text-[11px] text-text-secondary">
+        Only the highlighted section is available to preview.
+      </p>
 
       {!hasSource && (
         <p className="mt-3 flex items-center gap-1.5 text-xs text-text-secondary">

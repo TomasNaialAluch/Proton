@@ -28,12 +28,3 @@ export interface Feedback {
   /** Set when this feedback is a reply to another feedback. */
   returnedFeedbackId?: string;
 }
-
-/** A track assigned for review that has no feedback submitted yet. */
-export interface PendingFeedbackRequest {
-  id: string;
-  trackId: string;
-  fromProducer: FeedbackProducer;
-  toProducer: FeedbackProducer;
-  requestedAt: string;
-}

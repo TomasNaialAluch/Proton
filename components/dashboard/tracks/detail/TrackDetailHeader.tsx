@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Building2 } from "lucide-react";
+import { Building2, ExternalLink } from "lucide-react";
 import CoverArt from "@/components/dashboard/discover/CoverArt";
 import TrackPreviewButton from "@/components/player/preview/TrackPreviewButton";
 import type { Track } from "@/types/track";
@@ -100,6 +100,21 @@ export default function TrackDetailHeader({
             >
               <Building2 size={11} /> {label.name}
             </Link>
+          )}
+
+          {/* Only for tracks actually released — a draft/pending track has
+              nothing to buy anywhere yet, and implying otherwise would be
+              exactly the kind of copyright overreach this needs to avoid.
+              See docs/feature-preview-vs-global-player.md section 5.2. */}
+          {label && track.status === "published" && (
+            <a
+              href={`https://www.beatport.com/search?q=${encodeURIComponent(`${artists.length > 0 ? artists.map((a) => a.name).join(" ") : ""} ${track.title}`.trim())}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 flex items-center gap-1 text-xs font-medium text-accent hover:underline underline-offset-2 w-fit"
+            >
+              Get full track <ExternalLink size={10} />
+            </a>
           )}
         </div>
       </div>

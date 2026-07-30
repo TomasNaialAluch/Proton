@@ -3,20 +3,15 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Search, ChevronRight, Clock } from "lucide-react";
+import { Search, Clock } from "lucide-react";
 import DashboardBreadcrumb from "@/components/dashboard/_shared/DashboardBreadcrumb";
 import FilterDropdown from "@/components/dashboard/discover/FilterDropdown";
 import CoverArt from "@/components/dashboard/discover/CoverArt";
 import Skeleton from "@/components/ui/Skeleton";
-import { fetchReceivedFeedback, fetchPendingToReview } from "@/lib/api/feedback";
+import { fetchReceivedFeedback } from "@/lib/api/feedback";
 import { fetchTracks } from "@/lib/api/tracks";
-import { PEER_TRACKS } from "@/lib/mock/peerTracks";
 import { FEEDBACK_CATEGORIES, type Feedback } from "@/types/feedback";
 import type { Track } from "@/types/track";
-
-function trackTitle(tracks: Track[], trackId: string) {
-  return tracks.find((t) => t.id === trackId)?.title ?? "Unknown track";
-}
 
 function averageScore(scores: Record<string, number | undefined>) {
   const values = FEEDBACK_CATEGORIES.map((c) => scores[c.key]).filter(
@@ -77,15 +72,14 @@ function groupByTrack(feedback: Feedback[], tracks: Track[]): TrackFeedbackSumma
 }
 
 export default function FeedbackPage() {
-  // Real fetchers behind lib/api/, not mock arrays imported straight into
-  // the page — see docs/feature-peer-feedback-tracks.md. `myTracks` covers
-  // "Received" (feedback on tracks I own); `PEER_TRACKS` covers "Pending
-  // to review" (other producers' tracks) — a real API would resolve both
-  // through one `GET /tracks/:id`-style lookup regardless of owner.
-  const { data: pending, isLoading: pendingLoading } = useQuery({
-    queryKey: ["feedback", "pending"],
-    queryFn: fetchPendingToReview,
-  });
+  // Real fetcher behind lib/api/, not a mock array imported straight into
+  // the page — see docs/feature-peer-feedback-tracks.md. There's no
+  // "request feedback from a specific producer" system — the only real
+  // path is organic (someone shares a track link in chat, you open it and
+  // score it via the track's own "Review this track" card, a global
+  // capability — see TrackFeedbackCard.tsx). A formal request mechanism
+  // would just let anyone flood whichever producer has the best ear with
+  // demands, so it's deliberately not modeled here.
   const { data: received, isLoading: receivedLoading } = useQuery({
     queryKey: ["feedback", "received"],
     queryFn: fetchReceivedFeedback,
@@ -95,8 +89,8 @@ export default function FeedbackPage() {
     queryFn: fetchTracks,
   });
 
-  const isLoading = pendingLoading || receivedLoading || tracksLoading;
-  const allTracks = useMemo(() => [...(myTracks ?? []), ...PEER_TRACKS], [myTracks]);
+  const isLoading = receivedLoading || tracksLoading;
+  const allTracks = useMemo(() => myTracks ?? [], [myTracks]);
 
   const [search, setSearch] = useState("");
   const [genre, setGenre] = useState<string | null>(null);
@@ -134,43 +128,6 @@ export default function FeedbackPage() {
       ]} />
 
       <h1 className="text-2xl font-bold text-text-primary mb-6">Feedback</h1>
-
-      {/* ── Pending to review ── */}
-      <section className="mb-8">
-        <h2 className="text-sm font-semibold text-text-secondary uppercase tracking-wider mb-3">
-          Pending to review {!isLoading && `(${pending?.length ?? 0})`}
-        </h2>
-        {isLoading ? (
-          <div className="space-y-2">
-            <Skeleton className="h-14" />
-            <Skeleton className="h-14" />
-          </div>
-        ) : !pending || pending.length === 0 ? (
-          <p className="text-sm text-text-secondary">Nothing assigned to you right now.</p>
-        ) : (
-          <ul className="space-y-2">
-            {pending.map((req) => (
-              <li key={req.id}>
-                <Link
-                  href={`/dashboard/feedback/${req.id}?mode=give`}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-[var(--color-border)]
-                    bg-surface px-4 py-3 hover:bg-[var(--color-border)]/40 transition-colors"
-                >
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-text-primary truncate">
-                      {trackTitle(allTracks, req.trackId)}
-                    </p>
-                    <p className="text-xs text-text-secondary">
-                      Requested by {req.fromProducer.name} · {timeAgo(req.requestedAt)}
-                    </p>
-                  </div>
-                  <ChevronRight size={16} className="shrink-0 text-text-secondary" />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
 
       {/* ── Received — grouped by track, one row per track (not per review),
           filterable/sortable the same way Discover and a label's releases

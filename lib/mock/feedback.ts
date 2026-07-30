@@ -1,4 +1,4 @@
-import type { Feedback, FeedbackProducer, PendingFeedbackRequest } from "@/types/feedback";
+import type { Feedback, FeedbackProducer } from "@/types/feedback";
 
 export const mockMe: FeedbackProducer = { id: "naial", name: "Naial" };
 
@@ -52,21 +52,5 @@ export const mockReceivedFeedback: Feedback[] = [
     comment: "El diseño de sonido es lo más fuerte acá. Lo escucharía en un B2B sin dudarlo.",
     createdAt: "2026-06-22T09:40:00Z",
     read: false,
-  },
-];
-
-/**
- * Other producers' tracks assigned to me for review — no feedback
- * submitted yet from my side. `trackId` points into `PEER_TRACKS`
- * (lib/mock/peerTracks.ts), never into my own catalog — see
- * docs/feature-peer-feedback-tracks.md for why that distinction matters.
- */
-export const mockPendingToReview: PendingFeedbackRequest[] = [
-  {
-    id: "req-1",
-    trackId: "peer-vesna-1", // Afterglow, by Vesna
-    fromProducer: peers[2],
-    toProducer: mockMe,
-    requestedAt: "2026-06-19T09:00:00Z",
   },
 ];

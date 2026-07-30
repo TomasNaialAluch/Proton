@@ -193,7 +193,7 @@ export default function RoyaltiesPage() {
                     href={`/dashboard/royalties/${r.qid}`}
                     className="flex items-center gap-1 text-xs text-accent hover:opacity-80 transition-opacity px-2.5 py-1.5 rounded-lg hover:bg-accent/10"
                   >
-                    Ver <ChevronRight size={12} />
+                    View <ChevronRight size={12} />
                   </Link>
                   <a
                     href={`https://soundsystem.protonradio.com/statementCSVDownload.php?id=${PRO_USER_ID}&qid=${r.qid}&type=rev_report`}
