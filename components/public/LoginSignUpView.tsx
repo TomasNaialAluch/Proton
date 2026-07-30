@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Loader2 } from "lucide-react";
@@ -13,6 +13,34 @@ import {
 
 type Tab = "signin" | "signup";
 
+/** Once per browser session — an auto-retry that itself hangs shouldn't
+ *  loop forever. A fresh tab/session gets to try the auto-retry again. */
+const AUTO_RETRY_FLAG = "proton-login-auto-retry-used";
+
+/** Falls back to a hard navigation if the original attempt (soft or hard)
+ *  hasn't resolved after a while — same cold-start hang this whole flow is
+ *  built around, see the comment in completeDashboardAccess. Retries at
+ *  most once per session so a retry that also hangs doesn't loop. */
+function scheduleAutoRetry(target: string) {
+  window.setTimeout(() => {
+    if (sessionStorage.getItem(AUTO_RETRY_FLAG)) return;
+    sessionStorage.setItem(AUTO_RETRY_FLAG, "true");
+    window.location.assign(target);
+  }, 16000);
+}
+
+/** Shown once a pending navigation has run long enough to look stuck — see
+ *  the slowLoad comment in LoginSignUpView. */
+function SlowLoadHint() {
+  return (
+    <p className="text-center text-xs text-text-secondary">
+      This is taking longer than usual — the server may be waking up from idle.
+      We&apos;ll retry automatically in a few seconds. If nothing happens, try
+      refreshing the page.
+    </p>
+  );
+}
+
 /**
  * Prototype auth: `/login` with tabs.
  * - With `callbackUrl` under `/dashboard` → sets dashboard demo cookie → For Artists.
@@ -20,10 +48,18 @@ type Tab = "signin" | "signup";
  */
 export default function LoginSignUpView() {
   const [tab, setTab] = useState<Tab>("signin");
+  const continueButtonRef = useRef<HTMLButtonElement>(null);
   /** Immediate feedback the moment the demo CTA is tapped — navigation + dashboard
    *  hydration take a couple seconds, and an unresponsive-looking button reads as
    *  broken rather than "still loading" (see docs/feature-skeletons-loading.md). */
   const [pending, setPending] = useState(false);
+  /** Firebase App Hosting cold starts can take ~20s — long enough that a
+   *  plain spinner reads as broken. Full-page navigation means this
+   *  component keeps rendering (and this timer keeps running) right up
+   *  until the new document actually replaces it, so it's safe to surface
+   *  a "still with you, try refreshing" message if the wait drags on. See
+   *  the cold-start comment in completeDashboardAccess. */
+  const [slowLoad, setSlowLoad] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackRaw = searchParams.get("callbackUrl");
@@ -31,9 +67,23 @@ export default function LoginSignUpView() {
   const publicReturn = safePublicReturnUrl(searchParams.get("next")) ?? "/";
   const isDashboardGate = returnPath != null;
 
+  /** Focus the CTA on mount — matters most for the reload-and-try-again
+   *  case (a stuck cold-start attempt landed back here): the button is
+   *  already the focused element, so Enter/Space submits immediately
+   *  without hunting for it with the mouse. Doesn't auto-submit on its
+   *  own — the tap itself is the demo interaction this screen exists to
+   *  show (see the copy below, "Tap the orange button"). */
+  useEffect(() => {
+    continueButtonRef.current?.focus();
+  }, []);
+
   function completeDashboardAccess() {
     setPending(true);
     setDemoSessionCookie();
+    /** See the slowLoad comment above — cold starts on the deployed site can
+     *  run long enough that the plain spinner isn't reassuring on its own. */
+    window.setTimeout(() => setSlowLoad(true), 6000);
+    scheduleAutoRetry(returnPath!);
     /** Full-page navigation, deliberately NOT `router.push()`.
      *
      * `router.push()` asks the server for an RSC payload (special headers,
@@ -57,6 +107,8 @@ export default function LoginSignUpView() {
   function completePublicAccount() {
     setPending(true);
     setPublicDemoSessionCookie();
+    window.setTimeout(() => setSlowLoad(true), 6000);
+    scheduleAutoRetry(publicReturn);
     router.push(publicReturn);
   }
 
@@ -207,7 +259,7 @@ export default function LoginSignUpView() {
             />
           </label>
           <div className="login-prototype-cta-ring">
-            <button type="submit" disabled={pending} className="login-prototype-cta-btn">
+            <button ref={continueButtonRef} type="submit" disabled={pending} className="login-prototype-cta-btn">
               <span className="flex items-center gap-2">
                 {pending && <Loader2 size={16} className="animate-spin" aria-hidden />}
                 {pending
@@ -221,6 +273,7 @@ export default function LoginSignUpView() {
               <span className="login-prototype-cta-btn-sub">Tap here · prototype</span>
             </button>
           </div>
+          {pending && slowLoad && <SlowLoadHint />}
         </form>
       </div>
 
@@ -306,6 +359,7 @@ export default function LoginSignUpView() {
               {pending ? "Continuing…" : "Create account & continue"}
             </button>
           )}
+          {pending && slowLoad && <SlowLoadHint />}
         </form>
       </div>
     </div>
