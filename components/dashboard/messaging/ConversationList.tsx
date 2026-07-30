@@ -80,7 +80,7 @@ export default function ConversationList({
               className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors
                 ${peerType === opt ? "bg-accent text-white" : "text-text-secondary hover:text-text-primary"}`}
             >
-              {opt === "producer" ? "People" : opt === "label" ? "Labels" : "All"}
+              {opt === "producer" ? "Artists" : opt === "label" ? "Labels" : "All"}
             </button>
           ))}
         </div>
